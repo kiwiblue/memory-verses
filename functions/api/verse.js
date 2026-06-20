@@ -1,6 +1,15 @@
+// Normalise reference to match how the CSV data was stored
+function normaliseRef(ref) {
+  return ref
+    .replace(/^Psalm\s+/i, 'Psalms ')
+    .replace(/^Song of Solomon\s+/i, 'Song of Songs ')
+    .replace(/^Song of Songs\s+/i, 'Song of Songs ');
+}
+
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
-  const ref = url.searchParams.get('ref');
+  const rawRef = url.searchParams.get('ref');
+  const ref = rawRef ? normaliseRef(rawRef) : null;
   const translation = url.searchParams.get('translation')?.toLowerCase();
 
   const corsHeaders = {
