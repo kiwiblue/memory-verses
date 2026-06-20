@@ -154,3 +154,26 @@ input[type=text] {
 .swatch.selected { border-color: #1a1a18; }
 .form-btns { display: flex; gap: 8px; }
 .form-btns .btn { padding: 8px; font-size: 12px; }
+
+/* Translation badge interactive */
+.badge { cursor: pointer; position: relative; user-select: none; transition: background .15s; }
+.badge:hover { background: #d8e8f8; }
+.badge-override { background: #fde8c8; color: #9a6c10; }
+.badge-override:hover { background: #f8dab0; }
+.badge-dot {
+  display: inline-block; width: 5px; height: 5px; border-radius: 50%;
+  background: #9a6c10; margin-left: 4px; vertical-align: middle; margin-bottom: 1px;
+}
+
+/* Translation picker on card */
+.trans-picker {
+  display: flex; gap: 4px; margin-top: 8px;
+  animation: panelIn .12s ease;
+}
+.trans-opt {
+  padding: 4px 8px; border-radius: 99px; border: 0.5px solid #ddd;
+  background: #f1f0eb; font-size: 11px; font-weight: 500;
+  cursor: pointer; color: #555; transition: background .1s;
+}
+.trans-opt:hover { background: #e5e4de; }
+.trans-opt.active { background: #1a1a18; color: #fff; border-color: #1a1a18; }

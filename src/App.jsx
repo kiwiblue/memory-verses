@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 
 import { VERSES } from './data/verses.js';
-import { loadUsers, saveUsers, loadCurrentUserId, saveCurrentUserId, loadUserProgress, saveUserProgress } from './data/users.js';
+import { loadUsers, saveUsers, loadCurrentUserId, saveCurrentUserId, loadUserProgress, saveUserProgress, loadVerseTranslations, saveVerseTranslations } from './data/users.js';
 import FlipCard from './components/FlipCard.jsx';
 import ModeTabs from './components/ModeTabs.jsx';
 import ProgressBar from './components/ProgressBar.jsx';
@@ -42,6 +42,11 @@ export default function App() {
     const us = ensureDefaultUser(loadUsers());
     const id = loadCurrentUserId() || us[0].id;
     return us.find(u => u.id === id) || us[0];
+  });
+  const [verseTranslations, setVerseTranslations] = useState(() => {
+    const us = ensureDefaultUser(loadUsers());
+    const id = loadCurrentUserId() || us[0].id;
+    return loadVerseTranslations(id);
   });
 
   // Timer ref for browse auto-flip
@@ -99,10 +104,24 @@ export default function App() {
     setCurrentUser(user);
     saveCurrentUserId(user.id);
     setProgress(loadUserProgress(user.id));
+    setVerseTranslations(loadVerseTranslations(user.id));
     setVersion(user.translation);
     setCurrentIndex(0);
     setIsFlipped(false);
   }, []);
+
+  const handleVerseTranslationChange = useCallback((verseId, translation) => {
+    setVerseTranslations(prev => {
+      const updated = { ...prev };
+      if (!translation || translation === version) {
+        delete updated[verseId];
+      } else {
+        updated[verseId] = translation;
+      }
+      saveVerseTranslations(currentUser.id, updated);
+      return updated;
+    });
+  }, [currentUser.id, version]);
 
   const handleUsersChange = useCallback((updatedUsers) => {
     setUsers(updatedUsers);
@@ -145,10 +164,13 @@ export default function App() {
 
       <FlipCard
         verse={verse}
-        version={version}
+        version={verseTranslations[verse.id] || version}
+        defaultVersion={version}
+        verseTranslations={verseTranslations}
         isFlipped={isFlipped}
         mode={mode}
         onFlip={handleFlip}
+        onVerseTranslationChange={handleVerseTranslationChange}
       />
 
       {mode === 'study' && (

@@ -41,3 +41,15 @@ export function loadUserProgress(userId) {
 export function saveUserProgress(userId, progress) {
   localStorage.setItem(`mv-progress-${userId}`, JSON.stringify(progress));
 }
+
+export function loadVerseTranslations(userId) {
+  try {
+    const raw = localStorage.getItem(`mv-trans-${userId}`);
+    if (raw) return JSON.parse(raw);
+  } catch (_) {}
+  return {};
+}
+
+export function saveVerseTranslations(userId, overrides) {
+  localStorage.setItem(`mv-trans-${userId}`, JSON.stringify(overrides));
+}
