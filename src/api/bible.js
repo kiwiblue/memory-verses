@@ -81,7 +81,7 @@ export function referenceToOSIS(reference) {
 }
 
 function stripHtml(str) {
-  return str.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  return str.replace(/<[^>]*>/g, '').replace(/¶\s*/g, '').replace(/\s+/g, ' ').trim();
 }
 
 export async function fetchESV(reference) {
@@ -100,13 +100,20 @@ export async function fetchESV(reference) {
   }
 }
 
-export async function fetchKJV(reference) {
+const API_BIBLE_IDS = {
+  kjv:  'de4e12af7f28f599-01',
+  niv:  '78a9f6124f344018-01',
+  nkjv: '63097d2a0a2f7db3-01',
+  nasb: 'b8ee27bcd1cae43a-01',
+};
+
+async function fetchApiBible(bibleId, reference) {
   const key = import.meta.env.VITE_API_BIBLE_KEY;
   if (!key) return null;
   const osisId = referenceToOSIS(reference);
   if (!osisId) return null;
   try {
-    const url = `https://api.scripture.api.bible/v1/bibles/de4e12af7f28f599-01/passages/${osisId}?content-type=text&include-notes=false&include-titles=false&include-chapter-numbers=false&include-verse-numbers=false`;
+    const url = `https://api.scripture.api.bible/v1/bibles/${bibleId}/passages/${osisId}?content-type=text&include-notes=false&include-titles=false&include-chapter-numbers=false&include-verse-numbers=false`;
     const res = await fetch(url, { headers: { 'api-key': key } });
     if (!res.ok) return null;
     const data = await res.json();
@@ -118,10 +125,21 @@ export async function fetchKJV(reference) {
   }
 }
 
+export const fetchKJV  = (ref) => fetchApiBible(API_BIBLE_IDS.kjv,  ref);
+export const fetchNIV  = (ref) => fetchApiBible(API_BIBLE_IDS.niv,  ref);
+export const fetchNKJV = (ref) => fetchApiBible(API_BIBLE_IDS.nkjv, ref);
+export const fetchNASB = (ref) => fetchApiBible(API_BIBLE_IDS.nasb, ref);
+
 export async function fetchVerse(reference) {
-  const [esv, kjv] = await Promise.all([fetchESV(reference), fetchKJV(reference)]);
-  if (!esv && !kjv) {
+  const [esv, kjv, niv, nkjv, nasb] = await Promise.all([
+    fetchESV(reference),
+    fetchKJV(reference),
+    fetchNIV(reference),
+    fetchNKJV(reference),
+    fetchNASB(reference),
+  ]);
+  if (!esv && !kjv && !niv && !nkjv && !nasb) {
     throw new Error('Verse not found. Check the reference and try again.');
   }
-  return { reference, esv, kjv };
+  return { reference, esv, kjv, niv, nkjv, nasb };
 }

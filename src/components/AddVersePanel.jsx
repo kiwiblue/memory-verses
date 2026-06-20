@@ -101,18 +101,13 @@ export default function AddVersePanel({ allVerses, customVerses, currentUser, on
             <div className="verse-preview">
               <div className="preview-ref">{result.reference}</div>
 
-              {result.esv && (
-                <div className="preview-block">
-                  <div className="preview-label">ESV</div>
-                  <div className="preview-text">{result.esv}</div>
-                </div>
-              )}
-
-              {result.kjv && (
-                <div className="preview-block">
-                  <div className="preview-label">KJV</div>
-                  <div className="preview-text">{result.kjv}</div>
-                </div>
+              {[['esv','ESV'],['kjv','KJV'],['niv','NIV'],['nkjv','NKJV'],['nasb','NASB']].map(([key, label]) =>
+                result[key] ? (
+                  <div className="preview-block" key={key}>
+                    <div className="preview-label">{label}</div>
+                    <div className="preview-text">{result[key]}</div>
+                  </div>
+                ) : null
               )}
 
               {alreadyInDeck() ? (
