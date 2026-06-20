@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bible Memory — UI Reference Mockup</title>
+<style>
+  /* -------------------------------------------------------
+     This is a standalone reference prototype.
+     Use it as the interaction and visual baseline.
+     Replicate behaviour; adapt markup to the actual framework.
+  ------------------------------------------------------- */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #f9f9f8;
+    color: #1a1a18;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+
+  .scene {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  /* Header */
+  .hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; }
+  .ttl { font-size: 15px; font-weight: 500; }
+  select {
+    font-size: 12px; padding: 4px 8px; border-radius: 8px;
+    border: 0.5px solid #ccc; background: #f1f0eb; color: #555; cursor: pointer;
+  }
+
+  /* Progress */
+  .prog-row { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
+  .prog-bar { flex: 1; height: 4px; background: #ddd; border-radius: 2px; overflow: hidden; }
+  .prog-fill { height: 100%; background: #3a8c5c; border-radius: 2px; transition: width .4s; }
+  .prog-txt { font-size: 12px; color: #777; white-space: nowrap; }
+
+  /* Mode tabs */
+  .tabs { display: flex; gap: 3px; margin-bottom: 1.1rem; background: #efefec; border-radius: 8px; padding: 3px; }
+  .tab {
+    flex: 1; font-size: 12px; padding: 6px; text-align: center;
+    border-radius: 6px; cursor: pointer; color: #777; user-select: none; transition: background .15s;
+  }
+  .tab.on { background: #fff; color: #1a1a18; font-weight: 500; border: 0.5px solid #ddd; }
+
+  /* Flip card */
+  .wrap { perspective: 1200px; width: 100%; height: 220px; margin-bottom: 1rem; cursor: pointer; }
+  .card {
+    width: 100%; height: 100%; position: relative;
+    transform-style: preserve-3d;
+    transition: transform .55s cubic-bezier(.45, 0, .55, 1);
+  }
+  .card.flip { transform: rotateY(180deg); }
+  .face {
+    position: absolute; width: 100%; height: 100%;
+    backface-visibility: hidden;
+    border-radius: 12px; border: 0.5px solid #ddd;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 1.25rem; background: #fff;
+  }
+  .back { transform: rotateY(180deg); }
+
+  .lbl { font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
+  .ref { font-size: 26px; font-weight: 500; text-align: center; }
+  .hint { font-size: 12px; color: #bbb; margin-top: 16px; }
+  .badge {
+    font-size: 11px; padding: 3px 9px; border-radius: 99px;
+    background: #e8f0fb; color: #2a6ab5; margin-bottom: 12px; font-weight: 500;
+  }
+  .vtxt { font-size: 13px; line-height: 1.75; text-align: center; }
+  .vref { font-size: 12px; color: #aaa; margin-top: 10px; }
+
+  /* Controls */
+  .ctrls { display: flex; gap: 8px; }
+  .btn {
+    flex: 1; padding: 10px; border-radius: 8px; border: 0.5px solid #ddd;
+    background: #fff; font-size: 13px; cursor: pointer; transition: background .15s;
+    color: #1a1a18; font-weight: 500;
+  }
+  .btn:hover { background: #f5f5f2; }
+  .btn-ok { border-color: #a3d4b8; color: #2d7a52; }
+  .btn-ok:hover { background: #edf7f1; }
+  .btn-learn { border-color: #f0d49a; color: #9a6c10; }
+  .btn-learn:hover { background: #fdf8ec; }
+  .btn-sk { flex: 0 0 auto; padding: 10px 14px; color: #aaa; font-weight: 400; }
+
+  /* Test mode */
+  .ti { display: none; flex-direction: column; gap: 8px; }
+  input[type=text] {
+    width: 100%; padding: 10px; border-radius: 8px; border: 0.5px solid #ddd;
+    font-size: 14px; background: #f9f9f8; color: #1a1a18;
+  }
+  .fb { font-size: 12px; text-align: center; min-height: 18px; color: #aaa; }
+
+  /* Stats */
+  .stats { display: flex; gap: 8px; margin-top: 1rem; }
+  .pill { flex: 1; text-align: center; padding: 8px 4px; border-radius: 8px; background: #f1f0eb; }
+  .pill .v { font-size: 20px; font-weight: 500; display: block; }
+  .pill .k { color: #777; font-size: 11px; }
+  .un .v { color: #888; }
+  .le .v { color: #9a6c10; }
+  .ma .v { color: #2d7a52; }
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="hdr">
+    <div class="ttl">Bible Memory Deck</div>
+    <select id="ver" onchange="chVer(this.value)">
+      <option value="esv">ESV</option>
+      <option value="kjv">KJV</option>
+      <option value="niv">NIV</option>
+      <option value="nlt">NLT</option>
+    </select>
+  </div>
+
+  <div class="prog-row">
+    <div class="prog-bar"><div class="prog-fill" id="pf" style="width:20%"></div></div>
+    <span class="prog-txt" id="pt">1 of 5</span>
+  </div>
+
+  <div class="tabs">
+    <div class="tab on" onclick="setM('study',this)">Study</div>
+    <div class="tab" onclick="setM('test',this)">Test</div>
+    <div class="tab" onclick="setM('browse',this)">Browse</div>
+  </div>
+
+  <div class="wrap" id="cw" onclick="fl()">
+    <div class="card" id="card">
+      <div class="face">
+        <div class="lbl" id="fl">Reference</div>
+        <div class="ref" id="rd">John 3:16</div>
+        <div class="hint" id="fh">tap to reveal</div>
+      </div>
+      <div class="face back">
+        <div class="badge" id="vb">ESV</div>
+        <div class="vtxt" id="vd">"For God so loved the world, that he gave his only Son, that whoever believes in him should not perish but have eternal life."</div>
+        <div class="vref" id="vr">John 3:16</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Study controls -->
+  <div class="ctrls" id="cs">
+    <button class="btn btn-learn" onclick="mk('learning')">Still learning</button>
+    <button class="btn btn-ok" onclick="mk('known')">Know it ✓</button>
+    <button class="btn btn-sk" onclick="nx()">→</button>
+  </div>
+
+  <!-- Test controls -->
+  <div class="ti" id="ct">
+    <input type="text" id="ti" placeholder="Type the verse from memory…" oninput="chkT()">
+    <div class="fb" id="fb"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-learn" onclick="rvl()">Reveal</button>
+      <button class="btn btn-sk" onclick="nx()">Next →</button>
+    </div>
+  </div>
+
+  <!-- Browse controls -->
+  <div class="ctrls" id="cb" style="display:none">
+    <button class="btn btn-sk" onclick="pv()">← Prev</button>
+    <button class="btn btn-sk" onclick="nx()">Next →</button>
+  </div>
+
+  <div class="stats">
+    <div class="pill un"><span class="v" id="su">4</span><span class="k">not yet</span></div>
+    <div class="pill le"><span class="v" id="sl">0</span><span class="k">learning</span></div>
+    <div class="pill ma"><span class="v" id="sm">1</span><span class="k">mastered</span></div>
+  </div>
+</div>
+
+<script>
+/* -----------------------------------------------------------
+   Sample verse data — replace with D1 fetch in production.
+   Each card matches one row from the verses table.
+----------------------------------------------------------- */
+const D = {
+  esv: [
+    { r: "John 3:16",      t: "For God so loved the world, that he gave his only Son, that whoever believes in him should not perish but have eternal life." },
+    { r: "Romans 8:28",    t: "And we know that for those who love God all things work together for good, for those who are called according to his purpose." },
+    { r: "Philippians 4:13", t: "I can do all things through him who strengthens me." },
+    { r: "Psalm 23:1",     t: "The LORD is my shepherd; I shall not want." },
+    { r: "Jeremiah 29:11", t: "For I know the plans I have for you, declares the LORD, plans for welfare and not for evil, to give you a future and a hope." }
+  ],
+  kjv: [
+    { r: "John 3:16",      t: "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life." },
+    { r: "Romans 8:28",    t: "And we know that all things work together for good to them that love God, to them who are the called according to his purpose." },
+    { r: "Philippians 4:13", t: "I can do all things through Christ which strengtheneth me." },
+    { r: "Psalm 23:1",     t: "The LORD is my shepherd; I shall not want." },
+    { r: "Jeremiah 29:11", t: "For I know the thoughts that I think toward you, saith the LORD, thoughts of peace, and not of evil, to give you an expected end." }
+  ],
+  niv: [
+    { r: "John 3:16",      t: "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life." },
+    { r: "Romans 8:28",    t: "And we know that in all things God works for the good of those who love him, who have been called according to his purpose." },
+    { r: "Philippians 4:13", t: "I can do all this through him who gives me strength." },
+    { r: "Psalm 23:1",     t: "The LORD is my shepherd, I lack nothing." },
+    { r: "Jeremiah 29:11", t: "For I know the plans I have for you, declares the LORD, plans to prosper you and not to harm you, plans to give you hope and a future." }
+  ],
+  nlt: [
+    { r: "John 3:16",      t: "For this is how God loved the world: He gave his one and only Son, so that everyone who believes in him will not perish but have eternal life." },
+    { r: "Romans 8:28",    t: "And we know that God causes everything to work together for the good of those who love God and are called according to his purpose for them." },
+    { r: "Philippians 4:13", t: "For I can do everything through Christ, who gives me strength." },
+    { r: "Psalm 23:1",     t: "The LORD is my shepherd; I have all that I need." },
+    { r: "Jeremiah 29:11", t: "For I know the plans I have for you, says the LORD. They are plans for good and not for disaster, to give you a future and a hope." }
+  ]
+};
+
+let v = 'esv', i = 0, f = false, m = 'study';
+let st = { 0: 'mastered', 1: 'unseen', 2: 'unseen', 3: 'unseen', 4: 'unseen' };
+
+function cd() { return D[v][i]; }
+
+function rn(rf = true) {
+  const c = cd();
+  document.getElementById('rd').textContent = c.r;
+  document.getElementById('vd').textContent = '"' + c.t + '"';
+  document.getElementById('vr').textContent = c.r;
+  document.getElementById('vb').textContent = v.toUpperCase();
+  const n = D[v].length;
+  document.getElementById('pf').style.width = ((i + 1) / n * 100) + '%';
+  document.getElementById('pt').textContent = (i + 1) + ' of ' + n;
+  const vals = Object.values(st);
+  document.getElementById('su').textContent = vals.filter(s => s === 'unseen').length;
+  document.getElementById('sl').textContent = vals.filter(s => s === 'learning').length;
+  document.getElementById('sm').textContent = vals.filter(s => s === 'mastered').length;
+  if (rf && f) { document.getElementById('card').classList.remove('flip'); f = false; }
+  if (m === 'test') { document.getElementById('ti').value = ''; document.getElementById('fb').textContent = ''; }
+  if (m === 'browse' && !f) { setTimeout(() => { document.getElementById('card').classList.add('flip'); f = true; }, 200); }
+  document.getElementById('fl').textContent = m === 'test' ? 'Recall the verse for…' : 'Reference';
+  document.getElementById('fh').style.display = (m === 'test' || m === 'browse') ? 'none' : 'block';
+}
+
+function fl() { if (m === 'test' || m === 'browse') return; f = !f; document.getElementById('card').classList.toggle('flip', f); }
+function mk(s) { st[i] = s; nx(); }
+function nx() { i = (i + 1) % D[v].length; rn(); }
+function pv() { i = (i - 1 + D[v].length) % D[v].length; rn(); }
+function chVer(nv) { v = nv; rn(false); }
+
+function setM(nm, el) {
+  m = nm;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('cs').style.display = nm === 'study' ? 'flex' : 'none';
+  document.getElementById('ct').style.display = nm === 'test' ? 'flex' : 'none';
+  document.getElementById('cb').style.display = nm === 'browse' ? 'flex' : 'none';
+  f = false; document.getElementById('card').classList.remove('flip');
+  rn(false);
+  if (nm === 'browse') { setTimeout(() => { document.getElementById('card').classList.add('flip'); f = true; }, 300); }
+}
+
+function chkT() {
+  const inp = document.getElementById('ti').value.toLowerCase().trim();
+  if (inp.length < 6) { document.getElementById('fb').textContent = ''; return; }
+  const tgt = cd().t.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/);
+  const gvn = inp.replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
+  const hits = gvn.filter((w, j) => w === tgt[j]).length;
+  const pct = Math.round(hits / Math.max(gvn.length, 1) * 100);
+  const fb = document.getElementById('fb');
+  if (pct >= 85) { fb.style.color = '#2d7a52'; fb.textContent = pct + '% — excellent!'; }
+  else if (pct >= 60) { fb.style.color = '#9a6c10'; fb.textContent = pct + '% — keep going'; }
+  else { fb.style.color = '#888'; fb.textContent = pct + '% — try again'; }
+}
+
+function rvl() { document.getElementById('card').classList.add('flip'); f = true; }
+
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' && m === 'study') { e.preventDefault(); fl(); }
+  if (e.code === 'ArrowRight') nx();
+  if (e.code === 'ArrowLeft' && m === 'browse') pv();
+  if (e.code === 'KeyK' && m === 'study') mk('known');
+  if (e.code === 'KeyL' && m === 'study') mk('learning');
+});
+
+rn();
+</script>
+</body>
+</html>

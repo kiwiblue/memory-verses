@@ -1,0 +1,42 @@
+export const VERSES = [
+  {
+    id: 1,
+    reference: 'John 3:16',
+    esv: 'For God so loved the world, that he gave his only Son, that whoever believes in him should not perish but have eternal life.',
+    kjv: 'For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.',
+    niv: 'For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.',
+    nlt: 'For this is how God loved the world: He gave his one and only Son, so that everyone who believes in him will not perish but have eternal life.',
+  },
+  {
+    id: 2,
+    reference: 'Romans 8:28',
+    esv: 'And we know that for those who love God all things work together for good, for those who are called according to his purpose.',
+    kjv: 'And we know that all things work together for good to them that love God, to them who are the called according to his purpose.',
+    niv: 'And we know that in all things God works for the good of those who love him, who have been called according to his purpose.',
+    nlt: 'And we know that God causes everything to work together for the good of those who love God and are called according to his purpose for them.',
+  },
+  {
+    id: 3,
+    reference: 'Philippians 4:13',
+    esv: 'I can do all things through him who strengthens me.',
+    kjv: 'I can do all things through Christ which strengtheneth me.',
+    niv: 'I can do all this through him who gives me strength.',
+    nlt: 'For I can do everything through Christ, who gives me strength.',
+  },
+  {
+    id: 4,
+    reference: 'Psalm 23:1',
+    esv: 'The LORD is my shepherd; I shall not want.',
+    kjv: 'The LORD is my shepherd; I shall not want.',
+    niv: 'The LORD is my shepherd, I lack nothing.',
+    nlt: 'The LORD is my shepherd; I have all that I need.',
+  },
+  {
+    id: 5,
+    reference: 'Jeremiah 29:11',
+    esv: 'For I know the plans I have for you, declares the LORD, plans for welfare and not for evil, to give you a future and a hope.',
+    kjv: 'For I know the thoughts that I think toward you, saith the LORD, thoughts of peace, and not of evil, to give you an expected end.',
+    niv: 'For I know the plans I have for you, declares the LORD, plans to prosper you and not to harm you, plans to give you hope and a future.',
+    nlt: 'For I know the plans I have for you, says the LORD. They are plans for good and not for disaster, to give you a future and a hope.',
+  },
+];
