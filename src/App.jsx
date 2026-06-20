@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 
 import { VERSES } from './data/verses.js';
+import { loadUsers, saveUsers, loadCurrentUserId, saveCurrentUserId, loadUserProgress, saveUserProgress } from './data/users.js';
 import FlipCard from './components/FlipCard.jsx';
 import ModeTabs from './components/ModeTabs.jsx';
 import ProgressBar from './components/ProgressBar.jsx';
@@ -10,26 +11,20 @@ import TestControls from './components/TestControls.jsx';
 import BrowseControls from './components/BrowseControls.jsx';
 import StatPills from './components/StatPills.jsx';
 import VersionSelector from './components/VersionSelector.jsx';
+import UserPanel from './components/UserPanel.jsx';
 
-const STORAGE_KEY = 'mv-progress';
-
-function buildInitialProgress() {
-  const init = {};
-  VERSES.forEach(v => { init[v.id] = 'unseen'; });
-  return init;
-}
-
-function loadProgress() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      // Merge with initial so new verses always appear
-      const init = buildInitialProgress();
-      return { ...init, ...parsed };
-    }
-  } catch (_) {}
-  return buildInitialProgress();
+function ensureDefaultUser(users) {
+  if (users.length > 0) return users;
+  const guest = {
+    id: crypto.randomUUID(),
+    name: 'Guest',
+    age: 0,
+    colour: '#3a8c5c',
+    translation: 'esv',
+  };
+  saveUsers([guest]);
+  saveCurrentUserId(guest.id);
+  return [guest];
 }
 
 export default function App() {
@@ -37,7 +32,17 @@ export default function App() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [mode, setMode] = useState('study');
   const [version, setVersion] = useState('esv');
-  const [progress, setProgress] = useState(loadProgress);
+  const [progress, setProgress] = useState(() => {
+    const users = ensureDefaultUser(loadUsers());
+    const id = loadCurrentUserId() || users[0].id;
+    return loadUserProgress(id);
+  });
+  const [users, setUsers] = useState(() => ensureDefaultUser(loadUsers()));
+  const [currentUser, setCurrentUser] = useState(() => {
+    const us = ensureDefaultUser(loadUsers());
+    const id = loadCurrentUserId() || us[0].id;
+    return us.find(u => u.id === id) || us[0];
+  });
 
   // Timer ref for browse auto-flip
   const browseTimerRef = useRef(null);
@@ -45,15 +50,14 @@ export default function App() {
   const total = VERSES.length;
   const verse = VERSES[currentIndex];
 
-  // Persist progress
+  // Persist progress for current user
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
-  }, [progress]);
+    if (currentUser) saveUserProgress(currentUser.id, progress);
+  }, [progress, currentUser]);
 
   // Browse auto-flip: trigger when mode is browse or index changes in browse
   useEffect(() => {
     if (mode !== 'browse') return;
-    // Clear any pending timer
     if (browseTimerRef.current) clearTimeout(browseTimerRef.current);
     setIsFlipped(false);
     browseTimerRef.current = setTimeout(() => {
@@ -62,7 +66,6 @@ export default function App() {
     return () => clearTimeout(browseTimerRef.current);
   }, [mode, currentIndex]);
 
-  // Reset flip when switching modes (except browse handles its own)
   const handleModeChange = useCallback((newMode) => {
     setMode(newMode);
     if (newMode !== 'browse') {
@@ -77,7 +80,6 @@ export default function App() {
 
   const goPrev = useCallback(() => {
     setCurrentIndex(i => (i - 1 + total) % total);
-    // browse handles flip via effect
   }, [total]);
 
   const handleMark = useCallback((status) => {
@@ -91,6 +93,20 @@ export default function App() {
 
   const handleReveal = useCallback(() => {
     setIsFlipped(true);
+  }, []);
+
+  const handleUserChange = useCallback((user) => {
+    setCurrentUser(user);
+    saveCurrentUserId(user.id);
+    setProgress(loadUserProgress(user.id));
+    setVersion(user.translation);
+    setCurrentIndex(0);
+    setIsFlipped(false);
+  }, []);
+
+  const handleUsersChange = useCallback((updatedUsers) => {
+    setUsers(updatedUsers);
+    saveUsers(updatedUsers);
   }, []);
 
   // Keyboard shortcuts
@@ -113,6 +129,12 @@ export default function App() {
   return (
     <div className="scene">
       <div className="hdr">
+        <UserPanel
+          users={users}
+          currentUser={currentUser}
+          onUserChange={handleUserChange}
+          onUsersChange={handleUsersChange}
+        />
         <div className="ttl">Bible Memory Deck</div>
         <VersionSelector version={version} onChange={setVersion} />
       </div>

@@ -1,0 +1,43 @@
+import { VERSES } from './verses.js';
+
+function buildInitialProgress() {
+  const init = {};
+  VERSES.forEach(v => { init[v.id] = 'unseen'; });
+  return init;
+}
+
+export function loadUsers() {
+  try {
+    const raw = localStorage.getItem('mv-users');
+    if (raw) return JSON.parse(raw);
+  } catch (_) {}
+  return [];
+}
+
+export function saveUsers(users) {
+  localStorage.setItem('mv-users', JSON.stringify(users));
+}
+
+export function loadCurrentUserId() {
+  return localStorage.getItem('mv-current-user') || null;
+}
+
+export function saveCurrentUserId(id) {
+  localStorage.setItem('mv-current-user', id);
+}
+
+export function loadUserProgress(userId) {
+  try {
+    const raw = localStorage.getItem(`mv-progress-${userId}`);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const init = buildInitialProgress();
+      return { ...init, ...parsed };
+    }
+  } catch (_) {}
+  return buildInitialProgress();
+}
+
+export function saveUserProgress(userId, progress) {
+  localStorage.setItem(`mv-progress-${userId}`, JSON.stringify(progress));
+}
