@@ -100,8 +100,24 @@ export async function fetchESV(reference) {
   }
 }
 
+// D1-backed translations (KJV and BSB served from our own database)
+async function fetchFromD1(reference, translation) {
+  try {
+    const url = `/api/verse?ref=${encodeURIComponent(reference)}&translation=${translation}`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.text?.trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+export const fetchKJV = (ref) => fetchFromD1(ref, 'kjv');
+export const fetchBSB = (ref) => fetchFromD1(ref, 'bsb');
+
+// api.bible-backed translations
 const API_BIBLE_IDS = {
-  kjv:  'de4e12af7f28f599-01',
   niv:  '78a9f6124f344018-01',
   nkjv: '63097d2a0a2f7db3-01',
   nasb: 'b8ee27bcd1cae43a-01',
@@ -125,21 +141,21 @@ async function fetchApiBible(bibleId, reference) {
   }
 }
 
-export const fetchKJV  = (ref) => fetchApiBible(API_BIBLE_IDS.kjv,  ref);
 export const fetchNIV  = (ref) => fetchApiBible(API_BIBLE_IDS.niv,  ref);
 export const fetchNKJV = (ref) => fetchApiBible(API_BIBLE_IDS.nkjv, ref);
 export const fetchNASB = (ref) => fetchApiBible(API_BIBLE_IDS.nasb, ref);
 
 export async function fetchVerse(reference) {
-  const [esv, kjv, niv, nkjv, nasb] = await Promise.all([
+  const [esv, kjv, bsb, niv, nkjv, nasb] = await Promise.all([
     fetchESV(reference),
     fetchKJV(reference),
+    fetchBSB(reference),
     fetchNIV(reference),
     fetchNKJV(reference),
     fetchNASB(reference),
   ]);
-  if (!esv && !kjv && !niv && !nkjv && !nasb) {
+  if (!esv && !kjv && !bsb && !niv && !nkjv && !nasb) {
     throw new Error('Verse not found. Check the reference and try again.');
   }
-  return { reference, esv, kjv, niv, nkjv, nasb };
+  return { reference, esv, kjv, bsb, niv, nkjv, nasb };
 }

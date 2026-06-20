@@ -101,7 +101,7 @@ export default function AddVersePanel({ allVerses, customVerses, currentUser, on
             <div className="verse-preview">
               <div className="preview-ref">{result.reference}</div>
 
-              {[['esv','ESV'],['kjv','KJV'],['niv','NIV'],['nkjv','NKJV'],['nasb','NASB']].map(([key, label]) =>
+              {[['esv','ESV'],['kjv','KJV'],['bsb','BSB'],['niv','NIV'],['nkjv','NKJV'],['nasb','NASB']].map(([key, label]) =>
                 result[key] ? (
                   <div className="preview-block" key={key}>
                     <div className="preview-label">{label}</div>

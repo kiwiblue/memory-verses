@@ -7,6 +7,7 @@ export default function VersionSelector({ version, onChange }) {
       <option value="nlt">NLT</option>
       <option value="nkjv">NKJV</option>
       <option value="nasb">NASB</option>
+      <option value="bsb">BSB</option>
     </select>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const TRANSLATIONS = ['esv', 'kjv', 'niv', 'nlt', 'nkjv', 'nasb'];
+const TRANSLATIONS = ['esv', 'kjv', 'bsb', 'niv', 'nlt', 'nkjv', 'nasb'];
 
 export default function FlipCard({ verse, version, defaultVersion, verseTranslations, isFlipped, mode, onFlip, onVerseTranslationChange }) {
   const [pickerOpen, setPickerOpen] = useState(false);
