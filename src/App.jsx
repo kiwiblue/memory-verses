@@ -3,6 +3,7 @@ import './App.css';
 
 import { VERSES } from './data/verses.js';
 import { loadUsers, saveUsers, loadCurrentUserId, saveCurrentUserId, loadUserProgress, saveUserProgress, loadVerseTranslations, saveVerseTranslations } from './data/users.js';
+import { loadCustomVerses, addCustomVerse } from './data/customVerses.js';
 import FlipCard from './components/FlipCard.jsx';
 import ModeTabs from './components/ModeTabs.jsx';
 import ProgressBar from './components/ProgressBar.jsx';
@@ -12,6 +13,7 @@ import BrowseControls from './components/BrowseControls.jsx';
 import StatPills from './components/StatPills.jsx';
 import VersionSelector from './components/VersionSelector.jsx';
 import UserPanel from './components/UserPanel.jsx';
+import AddVersePanel from './components/AddVersePanel.jsx';
 
 function ensureDefaultUser(users) {
   if (users.length > 0) return users;
@@ -48,12 +50,18 @@ export default function App() {
     const id = loadCurrentUserId() || us[0].id;
     return loadVerseTranslations(id);
   });
+  const [customVerses, setCustomVerses] = useState(() => {
+    const us = ensureDefaultUser(loadUsers());
+    const id = loadCurrentUserId() || us[0].id;
+    return loadCustomVerses(id);
+  });
 
   // Timer ref for browse auto-flip
   const browseTimerRef = useRef(null);
 
-  const total = VERSES.length;
-  const verse = VERSES[currentIndex];
+  const allVerses = [...VERSES, ...customVerses];
+  const total = allVerses.length;
+  const verse = allVerses[currentIndex] || allVerses[0];
 
   // Persist progress for current user
   useEffect(() => {
@@ -105,10 +113,16 @@ export default function App() {
     saveCurrentUserId(user.id);
     setProgress(loadUserProgress(user.id));
     setVerseTranslations(loadVerseTranslations(user.id));
+    setCustomVerses(loadCustomVerses(user.id));
     setVersion(user.translation);
     setCurrentIndex(0);
     setIsFlipped(false);
   }, []);
+
+  const handleAddVerse = useCallback((verse) => {
+    const updated = addCustomVerse(currentUser.id, verse);
+    setCustomVerses(updated);
+  }, [currentUser.id]);
 
   const handleVerseTranslationChange = useCallback((verseId, translation) => {
     setVerseTranslations(prev => {
@@ -191,6 +205,13 @@ export default function App() {
       )}
 
       <StatPills progress={progress} />
+
+      <AddVersePanel
+        allVerses={allVerses}
+        customVerses={customVerses}
+        currentUser={currentUser}
+        onAddVerse={handleAddVerse}
+      />
     </div>
   );
 }
