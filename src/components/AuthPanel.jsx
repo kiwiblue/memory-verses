@@ -87,10 +87,11 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
           <button className="profile-link-btn muted" onClick={handleLogout}>Sign out</button>
         </div>
         <div className="auth-sync-status">
-          {syncStatus === 'syncing' && 'Syncing…'}
-          {syncStatus === 'synced'  && `Saved · ${timeSince(lastSynced)}`}
-          {syncStatus === 'error'   && 'Sync failed — will retry'}
-          {!syncStatus              && lastSynced && `Last saved · ${timeSince(lastSynced)}`}
+          All profiles are backed up to this account.{' '}
+          {syncStatus === 'syncing' && '· Syncing…'}
+          {syncStatus === 'synced'  && `· Saved ${timeSince(lastSynced)}`}
+          {syncStatus === 'error'   && '· Sync failed, will retry'}
+          {!syncStatus && lastSynced && `· Last saved ${timeSince(lastSynced)}`}
         </div>
       </div>
     );
@@ -109,7 +110,7 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
           value={confirm} onChange={e => setConfirm(e.target.value)} disabled={busy} />
         {error && <div className="auth-error">{error}</div>}
         <div className="auth-form-note">
-          Your existing profiles and all progress will be saved to your account.
+          All profiles on this device (and their progress) will be linked to this account.
         </div>
         <div className="auth-btns">
           <button className="btn" onClick={() => { setView('idle'); reset(); }}>Cancel</button>
@@ -157,7 +158,7 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
         <span className="auth-desc">Not backed up</span>
       </div>
       <div className="auth-cta">
-        Create an account to keep your progress safe and sync across devices.
+        One account backs up all profiles on this device — sign in once and everyone's progress is safe.
       </div>
       <div className="auth-btns">
         <button className="btn" onClick={() => setView('login')}>Sign in</button>
