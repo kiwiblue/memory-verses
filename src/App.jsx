@@ -293,7 +293,6 @@ export default function App() {
           onUserChange={handleUserChange} onUsersChange={handleUsersChange}
           onOpenProfile={(u) => setProfileUser(u)} />
         <div className="ttl">Bible Memory Deck</div>
-        <VersionSelector version={version} onChange={setVersion} />
       </div>
 
       {showBracketReminder && (
@@ -357,7 +356,7 @@ export default function App() {
       <StatPills stats={stats} />
 
       <AddVersePanel allVerses={allVerses} customVerses={customVerses}
-        currentUser={currentUser} onAddVerse={handleAddVerse} />
+        currentUser={currentUser} preferredVersion={version} onAddVerse={handleAddVerse} />
 
       <footer className="app-footer">
         {ATTRIBUTION[activeVersion] && (

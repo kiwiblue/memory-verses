@@ -146,6 +146,7 @@ input[type=text] {
   font-size: 13px; font-weight: 600; color: #fff;
   cursor: pointer; flex-shrink: 0; user-select: none;
   transition: opacity .15s;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--user-colour, transparent);
 }
 .avatar:hover { opacity: .85; }
 
@@ -374,3 +375,32 @@ input[type=text] {
 .cancel-link { display: block; text-align: center; margin-top: 8px; font-size: 12px; color: #aaa; cursor: pointer; }
 .cancel-link:hover { color: #555; }
 .already-msg { text-align: center; margin-top: 10px; font-size: 12px; color: #aaa; padding: 8px; background: #f1f0eb; border-radius: 8px; }
+
+/* Version list in AddVersePanel */
+.version-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.version-row {
+  display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px;
+  padding: 10px 12px; border-radius: 10px;
+  border: 1px solid #e8e8e8; background: #fafafa; position: relative;
+}
+.version-row-pref {
+  border-color: #b6d9c7; background: #f0f9f4;
+}
+.version-row-meta { display: flex; align-items: center; gap: 6px; width: 100%; }
+.version-tag { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: .06em; }
+.version-row-pref .version-tag { color: #3a8c5c; }
+.version-pref-badge {
+  font-size: 10px; color: #3a8c5c; background: #d6f0e4;
+  padding: 1px 6px; border-radius: 20px; font-weight: 500;
+}
+.version-row-text { font-size: 13px; line-height: 1.6; color: #333; flex: 1; min-width: 0; }
+.version-add-btn {
+  flex-shrink: 0; border: none; cursor: pointer; border-radius: 6px;
+  font-size: 12px; font-weight: 500; padding: 5px 10px;
+  background: #e8e8e8; color: #666; transition: background .15s;
+}
+.version-add-btn:hover { background: #d8d8d8; }
+.version-add-btn-pref {
+  background: #3a8c5c; color: #fff; padding: 5px 14px;
+}
+.version-add-btn-pref:hover { background: #2d7a52; }

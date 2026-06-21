@@ -8,7 +8,7 @@ function Avatar({ user, onClick, size = 32 }) {
   return (
     <div
       className="avatar"
-      style={{ background: photo ? 'transparent' : user.colour, width: size, height: size }}
+      style={{ background: photo ? 'transparent' : user.colour, width: size, height: size, '--user-colour': user.colour }}
       onClick={onClick}
       title={user.name}
     >
