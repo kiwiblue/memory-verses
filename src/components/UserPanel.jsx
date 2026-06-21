@@ -78,7 +78,24 @@ export default function UserPanel({ users, currentUser, onUserChange, onUsersCha
             >
               <Avatar user={u} size={26} />
               <span className="uname">{u.name}</span>
-              <span className="utrans">{u.translation}</span>
+              <span className="utrans">{u.translation?.toUpperCase()}</span>
+              {users.length > 1 && (
+                <button
+                  className="user-delete-btn"
+                  title="Remove profile"
+                  onClick={e => {
+                    e.stopPropagation();
+                    const remaining = users.filter(x => x.id !== u.id);
+                    saveUsers(remaining);
+                    onUsersChange(remaining);
+                    if (u.id === currentUser?.id) {
+                      saveCurrentUserId(remaining[0].id);
+                      onUserChange(remaining[0]);
+                    }
+                    setOpen(false);
+                  }}
+                >✕</button>
+              )}
             </div>
           ))}
 

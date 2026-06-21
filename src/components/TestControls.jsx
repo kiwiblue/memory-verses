@@ -9,7 +9,7 @@ function calcAccuracy(input, target) {
   return Math.round((hits / Math.max(givWords.length, 1)) * 100);
 }
 
-export default function TestControls({ verse, version, onReveal, onNext }) {
+export default function TestControls({ verse, version, onReveal, onNext, onPrev, hasPrev }) {
   const [input, setInput] = useState('');
   const [feedback, setFeedback] = useState({ text: '', color: '#aaa' });
 
@@ -46,6 +46,7 @@ export default function TestControls({ verse, version, onReveal, onNext }) {
       />
       <div className="fb" style={{ color: feedback.color }}>{feedback.text}</div>
       <div className="test-btns">
+        <button className="btn btn-sk" onClick={onPrev} disabled={!hasPrev}>← Back</button>
         <button className="btn btn-learn" onClick={onReveal}>Reveal</button>
         <button className="btn btn-sk" onClick={onNext}>Next →</button>
       </div>

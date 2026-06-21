@@ -21,7 +21,7 @@ import VersionSelector from './components/VersionSelector.jsx';
 import UserPanel from './components/UserPanel.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 
-const APP_VERSION = '0.4.0';
+const APP_VERSION = '0.4.1';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -88,10 +88,19 @@ export default function App() {
     [allVerses, progress, currentUser.bracket]
   );
 
+  // Revise mode only shows verses the user has started (learning or mastered)
+  const reviseVerses = useMemo(() =>
+    allVerses.filter(v => {
+      const s = progress[v.id]?.status;
+      return s === 'learning' || s === 'mastered';
+    }),
+    [allVerses, progress]
+  );
+
   const queueDone  = mode === 'learn' && queueIndex >= dailyQueue.length;
   const verse      = mode === 'learn'
     ? (dailyQueue[queueIndex] ?? null)
-    : (allVerses[browseIndex] || allVerses[0]);
+    : (reviseVerses[browseIndex] || reviseVerses[0] || null);
 
   const stats = useMemo(() =>
     progressStats(allVerses, progress, currentUser.bracket || 'adult'),
@@ -138,10 +147,15 @@ export default function App() {
     if (mode === 'learn') {
       setQueueIndex(i => i + 1);
     } else {
-      setBrowseIndex(i => (i + 1) % allVerses.length);
+      setBrowseIndex(i => (i + 1) % Math.max(reviseVerses.length, 1));
     }
     setIsFlipped(false);
-  }, [mode, allVerses.length]);
+  }, [mode, reviseVerses.length]);
+
+  const goPrev = useCallback(() => {
+    setBrowseIndex(i => Math.max(0, i - 1));
+    setIsFlipped(false);
+  }, []);
 
   const handleFlip   = useCallback(() => { setIsFlipped(f => !f); }, []);
   const handleReveal = useCallback(() => { setIsFlipped(true); }, []);
@@ -230,13 +244,20 @@ export default function App() {
 
       {mode === 'learn'
         ? <ProgressBar current={Math.min(queueIndex + 1, dailyQueue.length)} total={dailyQueue.length} label="today" />
-        : <ProgressBar current={browseIndex + 1} total={allVerses.length} />
+        : <ProgressBar current={reviseVerses.length ? browseIndex + 1 : 0} total={reviseVerses.length} />
       }
 
       <ModeTabs mode={mode} onChange={handleModeChange} />
 
       {queueDone ? (
         <QueueComplete stats={stats} onBrowse={() => handleModeChange('revise')} />
+      ) : mode === 'revise' && reviseVerses.length === 0 ? (
+        <div className="revise-empty">
+          <div className="revise-empty-icon">📖</div>
+          <div className="revise-empty-title">Nothing to revise yet</div>
+          <div className="revise-empty-sub">Complete a Learn session first — verses you've started will appear here.</div>
+          <button className="btn" onClick={() => handleModeChange('learn')}>Start Learning →</button>
+        </div>
       ) : (
         <>
           <FlipCard
@@ -251,10 +272,21 @@ export default function App() {
           />
 
           {mode === 'learn' && (
-            <StudyControls onMark={handleMark} onNext={goNext} />
+            <>
+              <StudyControls onMark={handleMark} onNext={goNext} />
+              {dailyQueue.length > queueIndex + 1 && (
+                <div className="up-next">
+                  Up next: {dailyQueue.slice(queueIndex + 1, queueIndex + 4).map(v => v.reference).join(' · ')}
+                </div>
+              )}
+            </>
           )}
           {mode === 'revise' && (
-            <TestControls verse={verse} version={version} onReveal={handleReveal} onNext={goNext} />
+            <TestControls
+              verse={verse} version={version}
+              onReveal={handleReveal} onNext={goNext}
+              onPrev={goPrev} hasPrev={browseIndex > 0}
+            />
           )}
 
           <div className="remove-row">

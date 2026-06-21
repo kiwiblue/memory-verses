@@ -157,6 +157,12 @@ input[type=text] {
 .user-row.active { background: #f1f0eb; }
 .user-row .uname { font-size: 13px; font-weight: 500; flex: 1; }
 .user-row .utrans { font-size: 11px; color: #999; text-transform: uppercase; }
+.user-delete-btn {
+  background: none; border: none; color: #ccc; cursor: pointer;
+  font-size: 12px; padding: 2px 4px; border-radius: 4px; line-height: 1;
+  transition: color .15s, background .15s;
+}
+.user-delete-btn:hover { color: #c0392b; background: #fdf0ee; }
 
 .panel-divider { height: 0.5px; background: #eee; margin: 0; }
 
