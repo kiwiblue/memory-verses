@@ -228,6 +228,7 @@ input[type=text] {
   cursor: pointer; padding: 2px 0; text-align: left; font-weight: 500;
 }
 .profile-link-btn.muted { color: #aaa; font-weight: 400; }
+.profile-photo-note { font-size: 10px; color: #bbb; margin-top: 2px; }
 
 .profile-field { padding: 12px 16px 0; }
 .profile-label {

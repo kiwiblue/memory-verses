@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { registerAccount, loginAccount, logoutAccount } from '../data/syncService.js';
+import { registerAccount, loginAccount, logoutAccount, pushSync } from '../data/syncService.js';
 import { saveAuth, clearAuth } from '../data/auth.js';
 import { saveUsers, saveCurrentUserId } from '../data/users.js';
 import { saveProgress } from '../data/progress.js';
@@ -79,6 +79,9 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
           try { saveVerseTranslations(p.id, JSON.parse(p.trans_json)); } catch {}
         });
         onUsersChange(merged, cloudUsers[0]);
+        // Push merged profiles immediately so any local-only profiles
+        // are saved to the cloud right after login, not just on next progress change
+        await pushSync(data.token, merged).catch(() => {});
       }
       onAuthChange(data);
       reset();

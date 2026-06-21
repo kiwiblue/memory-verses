@@ -86,6 +86,7 @@ export default function ProfileModal({ user, users, stats, auth, syncStatus, las
             {photo && (
               <button className="profile-link-btn muted" onClick={handleRemovePhoto}>Remove photo</button>
             )}
+            <span className="profile-photo-note">Saved on this device only</span>
           </div>
         </div>
 
