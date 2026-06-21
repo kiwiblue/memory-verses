@@ -115,14 +115,19 @@ export default function UserPanel({ users, currentUser, onUserChange, onUsersCha
               </div>
               <div>
                 <label>Age group</label>
-                <select
-                  value={form.bracket}
-                  onChange={e => setForm(f => ({ ...f, bracket: e.target.value }))}
-                >
-                  <option value="child">Child (under 10)</option>
-                  <option value="youth">Youth (10–17)</option>
-                  <option value="adult">Adult (18+)</option>
-                </select>
+                <div className="tabs" style={{ marginTop: 2 }}>
+                  {[
+                    { value: 'child', label: 'Child (under 10)' },
+                    { value: 'youth', label: 'Youth (10+)' },
+                    { value: 'adult', label: 'Adult' },
+                  ].map(opt => (
+                    <div
+                      key={opt.value}
+                      className={`tab${form.bracket === opt.value ? ' on' : ''}`}
+                      onClick={() => setForm(f => ({ ...f, bracket: opt.value }))}
+                    >{opt.label}</div>
+                  ))}
+                </div>
               </div>
               <div>
                 <label>Translation</label>

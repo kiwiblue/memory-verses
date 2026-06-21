@@ -114,11 +114,19 @@ export default function ProfileModal({ user, users, stats, onSave, onDelete, onC
         {/* Age bracket */}
         <div className="profile-field">
           <label className="profile-label">Age group</label>
-          <select value={bracket} onChange={e => setBracket(e.target.value)}>
-            <option value="child">Child (under 10)</option>
-            <option value="youth">Youth (10–17)</option>
-            <option value="adult">Adult (18+)</option>
-          </select>
+          <div className="tabs">
+            {[
+              { value: 'child', label: 'Child (under 10)' },
+              { value: 'youth', label: 'Youth (10+)' },
+              { value: 'adult', label: 'Adult' },
+            ].map(opt => (
+              <div
+                key={opt.value}
+                className={`tab${bracket === opt.value ? ' on' : ''}`}
+                onClick={() => setBracket(opt.value)}
+              >{opt.label}</div>
+            ))}
+          </div>
           <div className="profile-field-hint">Controls which verses appear in the deck.</div>
         </div>
 
