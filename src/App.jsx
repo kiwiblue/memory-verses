@@ -14,12 +14,14 @@ import VersionSelector from './components/VersionSelector.jsx';
 import UserPanel from './components/UserPanel.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 
-const APP_VERSION = '0.2.0';
+const APP_VERSION = '0.2.1';
 
 const ATTRIBUTION = {
+  esv:  'ESV® © 2001 Crossway. All rights reserved.',
   niv:  'NIV © 1973, 1978, 1984, 2011 Biblica, Inc. All rights reserved.',
   nkjv: 'NKJV © 1982 Thomas Nelson. All rights reserved.',
   nasb: 'NASB © 1960–1995 The Lockman Foundation. All rights reserved.',
+  bsb:  'BSB © 2016, 2020 Bible Hub. All rights reserved.',
 };
 
 function ensureDefaultUser(users) {
@@ -223,8 +225,10 @@ export default function App() {
       <footer className="app-footer">
         {ATTRIBUTION[verseTranslations[verse.id] || version] && (
           <div className="footer-attribution">
-            {ATTRIBUTION[verseTranslations[verse.id] || version]}{' '}
-            <a href="https://api.bible" target="_blank" rel="noopener noreferrer" className="footer-link">api.bible</a>
+            {ATTRIBUTION[verseTranslations[verse.id] || version]}
+            {['niv','nkjv','nasb'].includes(verseTranslations[verse.id] || version) && (
+              <>{' '}<a href="https://api.bible" target="_blank" rel="noopener noreferrer" className="footer-link">api.bible</a></>
+            )}
           </div>
         )}
         <div className="footer-credit">
