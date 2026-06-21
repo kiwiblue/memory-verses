@@ -64,6 +64,10 @@ select {
 }
 .vtxt { font-size: 13px; line-height: 1.75; text-align: center; }
 .vref { font-size: 12px; color: #aaa; margin-top: 10px; }
+.app-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 0.5px solid #e8e7e2; text-align: center; }
+.footer-attribution { font-size: 9px; color: #bbb; line-height: 1.5; margin-bottom: 0.4rem; }
+.footer-credit { font-size: 10px; color: #ccc; }
+.footer-link { color: #bbb; text-decoration: underline; }
 
 /* Controls */
 .ctrls { display: flex; gap: 8px; }

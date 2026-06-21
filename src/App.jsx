@@ -14,6 +14,14 @@ import VersionSelector from './components/VersionSelector.jsx';
 import UserPanel from './components/UserPanel.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 
+const APP_VERSION = '0.1.0';
+
+const ATTRIBUTION = {
+  niv:  'NIV © 1973, 1978, 1984, 2011 Biblica, Inc. All rights reserved.',
+  nkjv: 'NKJV © 1982 Thomas Nelson. All rights reserved.',
+  nasb: 'NASB © 1960–1995 The Lockman Foundation. All rights reserved.',
+};
+
 function ensureDefaultUser(users) {
   if (users.length > 0) return users;
   const guest = {
@@ -186,6 +194,18 @@ export default function App() {
         currentUser={currentUser}
         onAddVerse={handleAddVerse}
       />
+
+      <footer className="app-footer">
+        {ATTRIBUTION[verseTranslations[verse.id] || version] && (
+          <div className="footer-attribution">
+            {ATTRIBUTION[verseTranslations[verse.id] || version]}{' '}
+            <a href="https://api.bible" target="_blank" rel="noopener noreferrer" className="footer-link">api.bible</a>
+          </div>
+        )}
+        <div className="footer-credit">
+          © {new Date().getFullYear()} Chris Sandford · v{APP_VERSION}
+        </div>
+      </footer>
     </div>
   );
 }

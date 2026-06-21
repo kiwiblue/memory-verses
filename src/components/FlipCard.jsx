@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 
 const TRANSLATIONS = ['esv', 'kjv', 'bsb', 'niv', 'nlt', 'nkjv', 'nasb'];
 
+
 export default function FlipCard({ verse, version, defaultVersion, verseTranslations, isFlipped, mode, onFlip, onVerseTranslationChange }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [cardHeight, setCardHeight] = useState(200);
