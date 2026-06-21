@@ -4,6 +4,8 @@ import './App.css';
 import { VERSES } from './data/verses.js';
 import { loadUsers, saveUsers, loadCurrentUserId, saveCurrentUserId, loadUserProgress, saveUserProgress, loadVerseTranslations, saveVerseTranslations } from './data/users.js';
 import { loadCustomVerses, addCustomVerse } from './data/customVerses.js';
+import { loadVerseCache, saveVerseCache, mergeVerseIntoCache } from './data/verseCache.js';
+import { fetchVerse } from './api/bible.js';
 import FlipCard from './components/FlipCard.jsx';
 import ModeTabs from './components/ModeTabs.jsx';
 import ProgressBar from './components/ProgressBar.jsx';
@@ -14,7 +16,7 @@ import VersionSelector from './components/VersionSelector.jsx';
 import UserPanel from './components/UserPanel.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 
-const APP_VERSION = '0.2.1';
+const APP_VERSION = '0.3.0';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -68,15 +70,33 @@ export default function App() {
     const id = loadCurrentUserId() || us[0].id;
     return loadVerseTranslations(id);
   });
+  const [verseCache, setVerseCache] = useState(() => loadVerseCache());
+
   const [customVerses, setCustomVerses] = useState(() => {
     const us = ensureDefaultUser(loadUsers());
     const id = loadCurrentUserId() || us[0].id;
     return loadCustomVerses(id);
   });
 
-  const allVerses = [...VERSES, ...customVerses];
+  const allVerses = [...VERSES, ...customVerses].map(v => ({
+    ...v,
+    ...(verseCache[v.reference] || {}),
+  }));
   const total = allVerses.length;
   const verse = allVerses[currentIndex] || allVerses[0];
+
+  // Fetch translation text for the current verse if not yet cached
+  useEffect(() => {
+    const activeVersion = verseTranslations[verse.id] || version;
+    if (verse[activeVersion]) return;
+    fetchVerse(verse.reference).then(data => {
+      setVerseCache(prev => {
+        const updated = mergeVerseIntoCache(prev, data);
+        saveVerseCache(updated);
+        return updated;
+      });
+    }).catch(() => {});
+  }, [verse.reference, verseTranslations[verse.id] || version]);
 
   // Persist progress for current user
   useEffect(() => {

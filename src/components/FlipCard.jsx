@@ -9,7 +9,7 @@ export default function FlipCard({ verse, version, defaultVersion, verseTranslat
   const backRef = useRef(null);
   const wrapRef = useRef(null);
 
-  const verseText = verse[version];
+  const verseText = verse[version] ?? null;
   const frontLabel = mode === 'revise' ? 'Recall the verse for…' : 'Reference';
   const showHint = mode === 'learn';
   const isOverride = version !== defaultVersion;
@@ -83,7 +83,10 @@ export default function FlipCard({ verse, version, defaultVersion, verseTranslat
               ))}
             </div>
           )}
-          <div className="vtxt" style={{ fontSize: vtxtFontSize }}>"{verseText}"</div>
+          {verseText === null
+            ? <div className="vtxt loading">Loading…</div>
+            : <div className="vtxt" style={{ fontSize: vtxtFontSize }}>"{verseText}"</div>
+          }
           <div className="vref">{verse.reference}</div>
         </div>
       </div>
