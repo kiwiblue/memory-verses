@@ -285,6 +285,8 @@ input[type=text] {
 
 /* Tighter tab font inside the profile modal bracket selector */
 .profile-field .tab { font-size: 11px; padding: 7px 4px; }
+.profile-field .tabs.trans-tabs { flex-wrap: wrap; margin-bottom: 0; }
+.profile-field .trans-tabs .tab { flex: 1 1 30%; }
 .profile-delete-btn {
   background: none; border: none; font-size: 13px; color: #c0392b;
   cursor: pointer; padding: 0; text-decoration: underline; text-decoration-color: #f5b8b0;

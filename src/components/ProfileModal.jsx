@@ -1,58 +1,46 @@
-import { useState, useRef } from 'react';
-import { saveUsers, saveCurrentUserId, loadUserPhoto, saveUserPhoto } from '../data/users.js';
+import { useState } from 'react';
+import { saveUsers, saveCurrentUserId } from '../data/users.js';
 import AuthPanel from './AuthPanel.jsx';
 
 const PRESETS = ['#3a8c5c','#2a6ab5','#9a3a3a','#7a5c9a','#9a6c10','#3a7a8c','#555555','#c0392b'];
+const TRANSLATIONS = [
+  { value: 'esv',  label: 'ESV' },
+  { value: 'kjv',  label: 'KJV' },
+  { value: 'bsb',  label: 'BSB' },
+  { value: 'niv',  label: 'NIV' },
+  { value: 'nkjv', label: 'NKJV' },
+  { value: 'nasb', label: 'NASB' },
+];
 
-function Avatar({ user, photo, size = 72, onClick }) {
+function Avatar({ user, size = 72 }) {
   return (
     <div
       className="profile-avatar"
-      style={{ background: photo ? 'transparent' : user.colour, width: size, height: size, cursor: onClick ? 'pointer' : 'default' }}
-      onClick={onClick}
-      title={onClick ? 'Change photo' : user.name}
+      style={{ background: user.colour, width: size, height: size }}
     >
-      {photo
-        ? <img src={photo} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-        : user.name.charAt(0).toUpperCase()
-      }
+      {user.name.charAt(0).toUpperCase()}
     </div>
   );
 }
 
 export default function ProfileModal({ user, users, stats, auth, syncStatus, lastSynced, onSave, onDelete, onClose, onAuthChange, onUsersChange }) {
-  const [name, setName]       = useState(user.name);
-  const [bracket, setBracket] = useState(user.bracket || 'adult');
-  const [colour, setColour]   = useState(user.colour || PRESETS[0]);
-  const [photo, setPhoto]     = useState(() => loadUserPhoto(user.id));
-  const [deleteStep, setDeleteStep] = useState(0); // 0=idle, 1=confirm
-  const [nameError, setNameError]   = useState('');
-  const fileRef = useRef();
+  const [name, setName]           = useState(user.name);
+  const [bracket, setBracket]     = useState(user.bracket || 'adult');
+  const [colour, setColour]       = useState(user.colour || PRESETS[0]);
+  const [translation, setTranslation] = useState(user.translation || 'esv');
+  const [deleteStep, setDeleteStep]   = useState(0);
+  const [nameError, setNameError]     = useState('');
 
   const canDelete = users.length > 1;
 
-  function handlePhotoClick() { fileRef.current?.click(); }
-
-  function handleFileChange(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => setPhoto(ev.target.result);
-    reader.readAsDataURL(file);
-  }
-
-  function handleRemovePhoto() { setPhoto(null); }
-
   function handleSave() {
     if (!name.trim()) { setNameError('Name is required.'); return; }
-    const updated = { ...user, name: name.trim(), bracket, colour, bracket_updated: Date.now() };
+    const updated = { ...user, name: name.trim(), bracket, colour, translation, bracket_updated: Date.now() };
     const updatedUsers = users.map(u => u.id === user.id ? updated : u);
     saveUsers(updatedUsers);
-    saveUserPhoto(user.id, photo);
     onSave(updated, updatedUsers);
   }
 
-  // Auto-save when dismissed without pressing Save (swipe down / tap backdrop / Back)
   function handleDismiss() {
     if (name.trim()) handleSave();
     else onClose();
@@ -61,7 +49,6 @@ export default function ProfileModal({ user, users, stats, auth, syncStatus, las
   function handleDeleteConfirm() {
     const remaining = users.filter(u => u.id !== user.id);
     saveUsers(remaining);
-    saveUserPhoto(user.id, null);
     if (remaining.length > 0) saveCurrentUserId(remaining[0].id);
     onDelete(remaining);
   }
@@ -75,37 +62,25 @@ export default function ProfileModal({ user, users, stats, auth, syncStatus, las
           <button className="profile-save-btn" onClick={handleSave}>Save</button>
         </div>
 
-        {/* Avatar / photo */}
+        {/* Avatar */}
         <div className="profile-avatar-row">
-          <Avatar user={{ ...user, colour }} photo={photo} size={72} onClick={handlePhotoClick} />
-          <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
-          <div className="profile-avatar-actions">
-            <button className="profile-link-btn" onClick={handlePhotoClick}>
-              {photo ? 'Change photo' : 'Upload photo'}
-            </button>
-            {photo && (
-              <button className="profile-link-btn muted" onClick={handleRemovePhoto}>Remove photo</button>
-            )}
-            <span className="profile-photo-note">Saved on this device only</span>
-          </div>
+          <Avatar user={{ ...user, colour }} size={72} />
         </div>
 
-        {/* Colour swatches (hidden when photo is set) */}
-        {!photo && (
-          <div className="profile-field">
-            <label className="profile-label">Colour</label>
-            <div className="swatches">
-              {PRESETS.map(c => (
-                <div
-                  key={c}
-                  className={`swatch${colour === c ? ' selected' : ''}`}
-                  style={{ background: c }}
-                  onClick={() => setColour(c)}
-                />
-              ))}
-            </div>
+        {/* Colour swatches */}
+        <div className="profile-field">
+          <label className="profile-label">Colour</label>
+          <div className="swatches">
+            {PRESETS.map(c => (
+              <div
+                key={c}
+                className={`swatch${colour === c ? ' selected' : ''}`}
+                style={{ background: c }}
+                onClick={() => setColour(c)}
+              />
+            ))}
           </div>
-        )}
+        </div>
 
         {/* Name */}
         <div className="profile-field">
@@ -136,6 +111,21 @@ export default function ProfileModal({ user, users, stats, auth, syncStatus, las
             ))}
           </div>
           <div className="profile-field-hint">Controls which verses appear in the deck.</div>
+        </div>
+
+        {/* Translation */}
+        <div className="profile-field">
+          <label className="profile-label">Preferred translation</label>
+          <div className="tabs trans-tabs">
+            {TRANSLATIONS.map(opt => (
+              <div
+                key={opt.value}
+                className={`tab${translation === opt.value ? ' on' : ''}`}
+                onClick={() => setTranslation(opt.value)}
+              >{opt.label}</div>
+            ))}
+          </div>
+          <div className="profile-field-hint">Used by default across the app. Individual verses can still use a different translation.</div>
         </div>
 
         {/* Stats */}

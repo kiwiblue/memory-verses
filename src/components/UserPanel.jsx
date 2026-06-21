@@ -1,21 +1,17 @@
 import { useState } from 'react';
-import { saveUsers, saveCurrentUserId, loadUserPhoto } from '../data/users.js';
+import { saveUsers, saveCurrentUserId } from '../data/users.js';
 
 const PRESETS = ['#3a8c5c','#2a6ab5','#9a3a3a','#7a5c9a','#9a6c10','#3a7a8c','#555555','#c0392b'];
 
 function Avatar({ user, onClick, size = 32 }) {
-  const photo = loadUserPhoto(user.id);
   return (
     <div
       className="avatar"
-      style={{ background: photo ? 'transparent' : user.colour, width: size, height: size, '--user-colour': user.colour }}
+      style={{ background: user.colour, width: size, height: size, '--user-colour': user.colour }}
       onClick={onClick}
       title={user.name}
     >
-      {photo
-        ? <img src={photo} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-        : user.name.charAt(0).toUpperCase()
-      }
+      {user.name.charAt(0).toUpperCase()}
     </div>
   );
 }
