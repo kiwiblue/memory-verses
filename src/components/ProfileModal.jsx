@@ -27,7 +27,7 @@ export default function ProfileModal({ user, users, stats, auth, syncStatus, las
   const [name, setName]           = useState(user.name);
   const [bracket, setBracket]     = useState(user.bracket || 'adult');
   const [colour, setColour]       = useState(user.colour || PRESETS[0]);
-  const [translation, setTranslation] = useState(user.translation || 'esv');
+  const [translation, setTranslation] = useState(user.translation || 'kjv');
   const [deleteStep, setDeleteStep]   = useState(0);
   const [nameError, setNameError]     = useState('');
 
@@ -116,15 +116,15 @@ export default function ProfileModal({ user, users, stats, auth, syncStatus, las
         {/* Translation */}
         <div className="profile-field">
           <label className="profile-label">Preferred translation</label>
-          <div className="tabs trans-tabs">
+          <select
+            className="profile-select"
+            value={translation}
+            onChange={e => setTranslation(e.target.value)}
+          >
             {TRANSLATIONS.map(opt => (
-              <div
-                key={opt.value}
-                className={`tab${translation === opt.value ? ' on' : ''}`}
-                onClick={() => setTranslation(opt.value)}
-              >{opt.label}</div>
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
-          </div>
+          </select>
           <div className="profile-field-hint">Used by default across the app. Individual verses can still use a different translation.</div>
         </div>
 

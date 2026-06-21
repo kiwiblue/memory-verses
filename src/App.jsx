@@ -24,7 +24,7 @@ import UserPanel from './components/UserPanel.jsx';
 import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 
-const APP_VERSION = '0.5.6';
+const APP_VERSION = '0.5.7';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -42,7 +42,7 @@ function ensureDefaultUser(users) {
     bracket: 'adult',
     bracket_updated: Date.now(),
     colour: '#3a8c5c',
-    translation: 'esv',
+    translation: 'kjv',
   };
   saveUsers([guest]);
   saveCurrentUserId(guest.id);
@@ -63,7 +63,7 @@ export default function App() {
 
   const [users, setUsers]             = useState(() => ensureDefaultUser(loadUsers()));
   const [currentUser, setCurrentUser] = useState(initUser);
-  const [version, setVersion]         = useState(() => initUser().translation || 'esv');
+  const [version, setVersion]         = useState(() => initUser().translation || 'kjv');
 
   const [progress, setProgress]             = useState(() => loadProgress(initUser().id));
   const [verseTranslations, setVerseTranslations] = useState(() => loadVerseTranslations(initUser().id));
@@ -201,7 +201,7 @@ export default function App() {
     setVerseTranslations(loadVerseTranslations(user.id));
     setCustomVerses(loadCustomVerses(user.id));
     setHiddenIds(loadHiddenVerseIds(user.id));
-    setVersion(user.translation || 'esv');
+    setVersion(user.translation || 'kjv');
     setQueueIndex(0);
     setBrowseIndex(0);
     setIsFlipped(false);

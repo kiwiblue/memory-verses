@@ -19,7 +19,7 @@ function Avatar({ user, onClick, size = 32 }) {
 export default function UserPanel({ users, currentUser, onUserChange, onUsersChange, onOpenProfile }) {
   const [open, setOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', bracket: 'adult', translation: 'esv', colour: PRESETS[0] });
+  const [form, setForm] = useState({ name: '', bracket: 'adult', translation: 'kjv', colour: PRESETS[0] });
   const [error, setError] = useState('');
 
   function handleToggle() {
@@ -54,14 +54,14 @@ export default function UserPanel({ users, currentUser, onUserChange, onUsersCha
     onUserChange(newUser);
     setShowForm(false);
     setOpen(false);
-    setForm({ name: '', bracket: 'adult', translation: 'esv', colour: PRESETS[0] });
+    setForm({ name: '', bracket: 'adult', translation: 'kjv', colour: PRESETS[0] });
     setError('');
   }
 
   function handleCancel() {
     setShowForm(false);
     setError('');
-    setForm({ name: '', bracket: 'adult', translation: 'esv', colour: PRESETS[0] });
+    setForm({ name: '', bracket: 'adult', translation: 'kjv', colour: PRESETS[0] });
   }
 
   return (
