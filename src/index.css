@@ -19,6 +19,7 @@ body {
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
+  padding-bottom: 2rem;
 }
 
 /* Header */
@@ -368,7 +369,8 @@ input[type=text] {
 }
 .search-row { display: flex; gap: 8px; }
 .search-row input { flex: 1; }
-.verse-preview { margin-top: 12px; max-height: 60vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.verse-preview { margin-top: 12px; max-height: 55vh; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+.verse-attribution { font-size: 10px; color: #bbb; line-height: 1.6; margin-top: 10px; padding-top: 8px; border-top: 0.5px solid #eee; }
 .preview-ref { font-size: 15px; font-weight: 500; margin-bottom: 10px; }
 .preview-block { margin-bottom: 8px; }
 .preview-label { font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }

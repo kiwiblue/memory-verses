@@ -10,6 +10,14 @@ const ALL_VERSIONS = [
   ['nasb', 'NASB'],
 ];
 
+const ATTRIBUTION = {
+  bsb:  'BSB © 2016, 2020 Bible Hub. All rights reserved.',
+  esv:  'ESV © 2001 Crossway. All rights reserved.',
+  niv:  'NIV © 1973–2011 Biblica, Inc. Used by permission.',
+  nkjv: 'NKJV © 1982 Thomas Nelson. Used by permission.',
+  nasb: 'NASB © 1960–2020 The Lockman Foundation. Used by permission.',
+};
+
 export default function AddVersePanel({ allVerses, customVerses, currentUser, preferredVersion, onAddVerse }) {
   const [open, setOpen]       = useState(false);
   const [query, setQuery]     = useState('');
@@ -119,6 +127,15 @@ export default function AddVersePanel({ allVerses, customVerses, currentUser, pr
                         {key === pref ? 'Add to deck' : '+'}
                       </button>
                     </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Attribution for translations shown */}
+              {!inDeck() && !added && orderedVersions.length > 0 && (
+                <div className="verse-attribution">
+                  {orderedVersions.map(([key]) => ATTRIBUTION[key]).filter(Boolean).map((line, i) => (
+                    <div key={i}>{line}</div>
                   ))}
                 </div>
               )}
