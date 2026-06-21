@@ -2,8 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { fetchVerse } from '../api/bible.js';
 
 const ALL_VERSIONS = [
-  ['kjv', 'KJV'],
-  ['bsb', 'BSB'],
+  ['kjv',  'KJV'],
+  ['bsb',  'BSB'],
+  ['esv',  'ESV'],
+  ['niv',  'NIV'],
+  ['nkjv', 'NKJV'],
+  ['nasb', 'NASB'],
 ];
 
 export default function AddVersePanel({ allVerses, customVerses, currentUser, preferredVersion, onAddVerse }) {

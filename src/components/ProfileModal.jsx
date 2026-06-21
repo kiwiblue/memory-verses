@@ -4,8 +4,12 @@ import AuthPanel from './AuthPanel.jsx';
 
 const PRESETS = ['#3a8c5c','#2a6ab5','#9a3a3a','#7a5c9a','#9a6c10','#3a7a8c','#555555','#c0392b'];
 const TRANSLATIONS = [
-  { value: 'kjv', label: 'KJV — King James Version' },
-  { value: 'bsb', label: 'BSB — Berean Study Bible' },
+  { value: 'kjv',  label: 'KJV — King James Version' },
+  { value: 'bsb',  label: 'BSB — Berean Study Bible' },
+  { value: 'esv',  label: 'ESV — English Standard Version' },
+  { value: 'niv',  label: 'NIV — New International Version' },
+  { value: 'nkjv', label: 'NKJV — New King James Version' },
+  { value: 'nasb', label: 'NASB — New American Standard Bible' },
 ];
 
 function Avatar({ user, size = 72 }) {
