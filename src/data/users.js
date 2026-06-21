@@ -42,6 +42,15 @@ export function saveUserProgress(userId, progress) {
   localStorage.setItem(`mv-progress-${userId}`, JSON.stringify(progress));
 }
 
+export function loadUserPhoto(userId) {
+  return localStorage.getItem(`mv-photo-${userId}`) || null;
+}
+
+export function saveUserPhoto(userId, dataUrl) {
+  if (dataUrl) localStorage.setItem(`mv-photo-${userId}`, dataUrl);
+  else localStorage.removeItem(`mv-photo-${userId}`);
+}
+
 export function loadVerseTranslations(userId) {
   try {
     const raw = localStorage.getItem(`mv-trans-${userId}`);

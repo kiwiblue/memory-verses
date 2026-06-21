@@ -1,22 +1,26 @@
 import { useState } from 'react';
-import { saveUsers, saveCurrentUserId } from '../data/users.js';
+import { saveUsers, saveCurrentUserId, loadUserPhoto } from '../data/users.js';
 
 const PRESETS = ['#3a8c5c','#2a6ab5','#9a3a3a','#7a5c9a','#9a6c10','#3a7a8c','#555555','#c0392b'];
 
 function Avatar({ user, onClick, size = 32 }) {
+  const photo = loadUserPhoto(user.id);
   return (
     <div
       className="avatar"
-      style={{ background: user.colour, width: size, height: size }}
+      style={{ background: photo ? 'transparent' : user.colour, width: size, height: size }}
       onClick={onClick}
       title={user.name}
     >
-      {user.name.charAt(0).toUpperCase()}
+      {photo
+        ? <img src={photo} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+        : user.name.charAt(0).toUpperCase()
+      }
     </div>
   );
 }
 
-export default function UserPanel({ users, currentUser, onUserChange, onUsersChange }) {
+export default function UserPanel({ users, currentUser, onUserChange, onUsersChange, onOpenProfile }) {
   const [open, setOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', bracket: 'adult', translation: 'esv', colour: PRESETS[0] });
@@ -78,26 +82,15 @@ export default function UserPanel({ users, currentUser, onUserChange, onUsersCha
             >
               <Avatar user={u} size={26} />
               <span className="uname">{u.name}</span>
-              <span className="utrans">{u.translation?.toUpperCase()}</span>
-              {users.length > 1 && (
-                <button
-                  className="user-delete-btn"
-                  title="Remove profile"
-                  onClick={e => {
-                    e.stopPropagation();
-                    const remaining = users.filter(x => x.id !== u.id);
-                    saveUsers(remaining);
-                    onUsersChange(remaining);
-                    if (u.id === currentUser?.id) {
-                      saveCurrentUserId(remaining[0].id);
-                      onUserChange(remaining[0]);
-                    }
-                    setOpen(false);
-                  }}
-                >✕</button>
-              )}
             </div>
           ))}
+
+          <button
+            className="profile-link-row"
+            onClick={() => { setOpen(false); onOpenProfile(); }}
+          >
+            Edit profile
+          </button>
 
           <div className="panel-divider" />
 

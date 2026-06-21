@@ -19,9 +19,10 @@ import StatPills from './components/StatPills.jsx';
 import QueueComplete from './components/QueueComplete.jsx';
 import VersionSelector from './components/VersionSelector.jsx';
 import UserPanel from './components/UserPanel.jsx';
+import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 
-const APP_VERSION = '0.4.1';
+const APP_VERSION = '0.4.2';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -67,6 +68,8 @@ export default function App() {
   const [customVerses, setCustomVerses]     = useState(() => loadCustomVerses(initUser().id));
   const [hiddenIds, setHiddenIds]           = useState(() => loadHiddenVerseIds(initUser().id));
   const [verseCache, setVerseCache]         = useState(() => loadVerseCache());
+
+  const [showProfile, setShowProfile] = useState(false);
 
   const [showBracketReminder, setShowBracketReminder] = useState(() => {
     const u = initUser();
@@ -225,9 +228,29 @@ export default function App() {
 
   return (
     <div className="scene">
+      {showProfile && (
+        <ProfileModal
+          user={currentUser}
+          users={users}
+          stats={stats}
+          onSave={(updated, updatedUsers) => {
+            setUsers(updatedUsers);
+            handleUserChange(updated);
+            setShowProfile(false);
+          }}
+          onDelete={(remaining) => {
+            setUsers(remaining);
+            if (remaining.length > 0) handleUserChange(remaining[0]);
+            setShowProfile(false);
+          }}
+          onClose={() => setShowProfile(false)}
+        />
+      )}
+
       <div className="hdr">
         <UserPanel users={users} currentUser={currentUser}
-          onUserChange={handleUserChange} onUsersChange={handleUsersChange} />
+          onUserChange={handleUserChange} onUsersChange={handleUsersChange}
+          onOpenProfile={() => setShowProfile(true)} />
         <div className="ttl">Bible Memory Deck</div>
         <VersionSelector version={version} onChange={setVersion} />
       </div>

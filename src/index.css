@@ -157,12 +157,95 @@ input[type=text] {
 .user-row.active { background: #f1f0eb; }
 .user-row .uname { font-size: 13px; font-weight: 500; flex: 1; }
 .user-row .utrans { font-size: 11px; color: #999; text-transform: uppercase; }
-.user-delete-btn {
-  background: none; border: none; color: #ccc; cursor: pointer;
-  font-size: 12px; padding: 2px 4px; border-radius: 4px; line-height: 1;
-  transition: color .15s, background .15s;
+.profile-link-row {
+  display: block; width: 100%; padding: 9px 14px;
+  background: none; border: none; text-align: left;
+  font-size: 12px; color: #3a8c5c; cursor: pointer;
+  transition: background .1s;
 }
-.user-delete-btn:hover { color: #c0392b; background: #fdf0ee; }
+.profile-link-row:hover { background: #f3faf6; }
+
+/* Profile modal overlay */
+.profile-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.35);
+  display: flex; align-items: flex-end; justify-content: center;
+  z-index: 200; animation: fadeIn .15s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.profile-modal {
+  width: 100%; max-width: 440px; background: #fff;
+  border-radius: 20px 20px 0 0; padding: 0 0 2rem;
+  max-height: 92vh; overflow-y: auto;
+  animation: slideUp .2s ease;
+}
+@keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.profile-modal-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 16px 12px; border-bottom: 0.5px solid #eee; position: sticky; top: 0;
+  background: #fff; border-radius: 20px 20px 0 0;
+}
+.profile-modal-title { font-size: 14px; font-weight: 600; }
+.profile-back {
+  background: none; border: none; font-size: 13px; color: #3a8c5c;
+  cursor: pointer; padding: 4px 0; font-weight: 500;
+}
+.profile-save-btn {
+  background: none; border: none; font-size: 13px; color: #3a8c5c;
+  cursor: pointer; padding: 4px 0; font-weight: 600;
+}
+
+.profile-avatar-row {
+  display: flex; align-items: center; gap: 16px; padding: 20px 20px 8px;
+}
+.profile-avatar {
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 28px; font-weight: 700; color: #fff; flex-shrink: 0;
+  overflow: hidden;
+}
+.profile-avatar-actions { display: flex; flex-direction: column; gap: 4px; }
+.profile-link-btn {
+  background: none; border: none; font-size: 13px; color: #3a8c5c;
+  cursor: pointer; padding: 2px 0; text-align: left; font-weight: 500;
+}
+.profile-link-btn.muted { color: #aaa; font-weight: 400; }
+
+.profile-field { padding: 12px 20px 0; }
+.profile-label {
+  display: block; font-size: 11px; color: #999;
+  text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px;
+}
+.profile-field input, .profile-field select {
+  width: 100%; padding: 10px 12px; border-radius: 8px;
+  border: 0.5px solid #ddd; font-size: 14px;
+  background: #f9f9f8; color: #1a1a18;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+.profile-field-hint { font-size: 11px; color: #bbb; margin-top: 5px; }
+.profile-field-error { font-size: 11px; color: #c0392b; margin-top: 4px; }
+
+.profile-stats { display: flex; gap: 8px; margin-top: 2px; }
+.profile-stat {
+  flex: 1; text-align: center; padding: 10px 4px;
+  border-radius: 8px; background: #f1f0eb;
+}
+.profile-stat .v { font-size: 22px; font-weight: 600; display: block; }
+.profile-stat .k { font-size: 11px; color: #888; }
+.profile-stat.un .v { color: #888; }
+.profile-stat.le .v { color: #9a6c10; }
+.profile-stat.ma .v { color: #2d7a52; }
+
+.profile-delete-section { padding: 28px 20px 0; }
+.profile-delete-btn {
+  background: none; border: none; font-size: 13px; color: #c0392b;
+  cursor: pointer; padding: 0; text-decoration: underline; text-decoration-color: #f5b8b0;
+}
+.profile-delete-confirm { background: #fdf0ee; border-radius: 10px; padding: 14px; }
+.profile-delete-warning { font-size: 13px; line-height: 1.5; color: #555; margin-bottom: 12px; }
+.profile-delete-actions { display: flex; gap: 8px; }
+.profile-delete-final { flex: 1; background: #c0392b !important; color: #fff !important; border-color: #c0392b !important; }
+.profile-delete-final:hover { background: #a93226 !important; }
 
 .panel-divider { height: 0.5px; background: #eee; margin: 0; }
 
