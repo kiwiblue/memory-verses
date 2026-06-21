@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import './App.css';
 
 import { VERSES } from './data/verses.js';
 import { loadUsers, saveUsers, loadCurrentUserId, saveCurrentUserId, loadVerseTranslations, saveVerseTranslations } from './data/users.js';
+import { loadAuth, saveAuth, clearAuth } from './data/auth.js';
+import { pushSync } from './data/syncService.js';
 import { loadProgress, saveProgress, getEntry } from './data/progress.js';
 import { recordAttempt, buildDailyQueue, progressStats } from './data/spacedRepetition.js';
 import { loadCustomVerses, addCustomVerse, removeCustomVerse } from './data/customVerses.js';
@@ -22,7 +24,7 @@ import UserPanel from './components/UserPanel.jsx';
 import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 
-const APP_VERSION = '0.4.4';
+const APP_VERSION = '0.5.0';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -70,6 +72,10 @@ export default function App() {
   const [verseCache, setVerseCache]         = useState(() => loadVerseCache());
 
   const [profileUser, setProfileUser] = useState(null);
+  const [auth, setAuth]               = useState(loadAuth);
+  const [syncStatus, setSyncStatus]   = useState(null); // null | 'syncing' | 'synced' | 'error'
+  const [lastSynced, setLastSynced]   = useState(null);
+  const syncTimer = useRef(null);
 
   const [showBracketReminder, setShowBracketReminder] = useState(() => {
     const u = initUser();
@@ -110,9 +116,12 @@ export default function App() {
     [allVerses, progress, currentUser.bracket]
   );
 
-  // Persist progress whenever it changes
+  // Persist progress whenever it changes, then schedule a cloud sync
   useEffect(() => {
-    if (currentUser) saveProgress(currentUser.id, progress);
+    if (currentUser) {
+      saveProgress(currentUser.id, progress);
+      scheduleSync(auth, users);
+    }
   }, [progress, currentUser]);
 
   // Fetch translation text for the active verse when not yet cached
@@ -128,6 +137,28 @@ export default function App() {
       });
     }).catch(() => {});
   }, [verse?.reference, verse ? (verseTranslations[verse.id] || version) : null]);
+
+  // Debounced cloud sync — fires 10s after any progress change, if signed in
+  const scheduleSync = useCallback((currentAuth, currentUsers) => {
+    if (!currentAuth?.token) return;
+    clearTimeout(syncTimer.current);
+    syncTimer.current = setTimeout(async () => {
+      setSyncStatus('syncing');
+      try {
+        await pushSync(currentAuth.token, currentUsers);
+        setSyncStatus('synced');
+        setLastSynced(Date.now());
+      } catch {
+        setSyncStatus('error');
+      }
+    }, 10_000);
+  }, []);
+
+  const handleAuthChange = useCallback((newAuth) => {
+    setAuth(newAuth);
+    if (newAuth.token) saveAuth(newAuth);
+    else clearAuth();
+  }, []);
 
   const handleModeChange = useCallback((newMode) => {
     setMode(newMode);
@@ -233,10 +264,19 @@ export default function App() {
           user={profileUser}
           users={users}
           stats={profileUser.id === currentUser.id ? stats : null}
+          auth={auth}
+          syncStatus={syncStatus}
+          lastSynced={lastSynced}
+          onAuthChange={handleAuthChange}
+          onUsersChange={(merged, switchTo) => {
+            setUsers(merged);
+            if (switchTo) handleUserChange(switchTo);
+          }}
           onSave={(updated, updatedUsers) => {
             setUsers(updatedUsers);
             if (updated.id === currentUser.id) handleUserChange(updated);
             setProfileUser(null);
+            scheduleSync(auth, updatedUsers);
           }}
           onDelete={(remaining) => {
             setUsers(remaining);

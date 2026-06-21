@@ -241,6 +241,29 @@ input[type=text] {
 .profile-stat.le .v { color: #9a6c10; }
 .profile-stat.ma .v { color: #2d7a52; }
 
+/* Auth panel (inside profile page) */
+.auth-panel { display: flex; flex-direction: column; gap: 8px; }
+.auth-row { display: flex; align-items: center; gap: 8px; }
+.auth-indicator { font-size: 10px; color: #ccc; }
+.auth-indicator.connected { color: #3a8c5c; }
+.auth-email { font-size: 13px; color: #444; flex: 1; }
+.auth-desc { font-size: 13px; color: #888; }
+.auth-sync-status { font-size: 11px; color: #bbb; }
+.auth-cta { font-size: 12px; color: #888; line-height: 1.5; }
+.auth-btns { display: flex; gap: 8px; }
+.auth-btns .btn { flex: 1; padding: 9px; font-size: 13px; }
+.auth-input {
+  width: 100%; padding: 10px 12px; border-radius: 8px;
+  border: 0.5px solid #ddd; font-size: 14px;
+  background: #f9f9f8; color: #1a1a18;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+.auth-error { font-size: 12px; color: #c0392b; }
+.auth-form-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+.auth-form-note { font-size: 11px; color: #aaa; line-height: 1.5; }
+.auth-switch { font-size: 12px; color: #aaa; text-align: center; }
+.auth-link { color: #3a8c5c; cursor: pointer; text-decoration: underline; text-decoration-color: #a3d4b8; }
+
 .profile-delete-section { padding: 28px 20px 0; }
 .profile-delete-btn {
   background: none; border: none; font-size: 13px; color: #c0392b;

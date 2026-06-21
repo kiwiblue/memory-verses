@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { saveUsers, saveCurrentUserId, loadUserPhoto, saveUserPhoto } from '../data/users.js';
+import AuthPanel from './AuthPanel.jsx';
 
 const PRESETS = ['#3a8c5c','#2a6ab5','#9a3a3a','#7a5c9a','#9a6c10','#3a7a8c','#555555','#c0392b'];
 
@@ -19,7 +20,7 @@ function Avatar({ user, photo, size = 72, onClick }) {
   );
 }
 
-export default function ProfileModal({ user, users, stats, onSave, onDelete, onClose }) {
+export default function ProfileModal({ user, users, stats, auth, syncStatus, lastSynced, onSave, onDelete, onClose, onAuthChange, onUsersChange }) {
   const [name, setName]       = useState(user.name);
   const [bracket, setBracket] = useState(user.bracket || 'adult');
   const [colour, setColour]   = useState(user.colour || PRESETS[0]);
@@ -150,6 +151,19 @@ export default function ProfileModal({ user, users, stats, onSave, onDelete, onC
             </div>
           </div>
         )}
+
+        {/* Cloud backup */}
+        <div className="profile-field">
+          <label className="profile-label">Cloud backup</label>
+          <AuthPanel
+            auth={auth}
+            users={users}
+            syncStatus={syncStatus}
+            lastSynced={lastSynced}
+            onAuthChange={onAuthChange}
+            onUsersChange={onUsersChange}
+          />
+        </div>
 
         {/* Delete */}
         {canDelete && (
