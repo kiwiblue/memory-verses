@@ -82,15 +82,13 @@ export default function UserPanel({ users, currentUser, onUserChange, onUsersCha
             >
               <Avatar user={u} size={26} />
               <span className="uname">{u.name}</span>
+              <button
+                className="user-edit-btn"
+                title="Edit profile"
+                onClick={e => { e.stopPropagation(); setOpen(false); onOpenProfile(u); }}
+              >✏</button>
             </div>
           ))}
-
-          <button
-            className="profile-link-row"
-            onClick={() => { setOpen(false); onOpenProfile(); }}
-          >
-            Edit profile
-          </button>
 
           <div className="panel-divider" />
 

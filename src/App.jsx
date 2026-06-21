@@ -22,7 +22,7 @@ import UserPanel from './components/UserPanel.jsx';
 import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 
-const APP_VERSION = '0.4.2';
+const APP_VERSION = '0.4.3';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -69,7 +69,7 @@ export default function App() {
   const [hiddenIds, setHiddenIds]           = useState(() => loadHiddenVerseIds(initUser().id));
   const [verseCache, setVerseCache]         = useState(() => loadVerseCache());
 
-  const [showProfile, setShowProfile] = useState(false);
+  const [profileUser, setProfileUser] = useState(null);
 
   const [showBracketReminder, setShowBracketReminder] = useState(() => {
     const u = initUser();
@@ -228,29 +228,29 @@ export default function App() {
 
   return (
     <div className="scene">
-      {showProfile && (
+      {profileUser && (
         <ProfileModal
-          user={currentUser}
+          user={profileUser}
           users={users}
-          stats={stats}
+          stats={profileUser.id === currentUser.id ? stats : null}
           onSave={(updated, updatedUsers) => {
             setUsers(updatedUsers);
-            handleUserChange(updated);
-            setShowProfile(false);
+            if (updated.id === currentUser.id) handleUserChange(updated);
+            setProfileUser(null);
           }}
           onDelete={(remaining) => {
             setUsers(remaining);
-            if (remaining.length > 0) handleUserChange(remaining[0]);
-            setShowProfile(false);
+            if (profileUser.id === currentUser.id && remaining.length > 0) handleUserChange(remaining[0]);
+            setProfileUser(null);
           }}
-          onClose={() => setShowProfile(false)}
+          onClose={() => setProfileUser(null)}
         />
       )}
 
       <div className="hdr">
         <UserPanel users={users} currentUser={currentUser}
           onUserChange={handleUserChange} onUsersChange={handleUsersChange}
-          onOpenProfile={() => setShowProfile(true)} />
+          onOpenProfile={(u) => setProfileUser(u)} />
         <div className="ttl">Bible Memory Deck</div>
         <VersionSelector version={version} onChange={setVersion} />
       </div>
@@ -295,14 +295,7 @@ export default function App() {
           />
 
           {mode === 'learn' && (
-            <>
-              <StudyControls onMark={handleMark} onNext={goNext} />
-              {dailyQueue.length > queueIndex + 1 && (
-                <div className="up-next">
-                  Up next: {dailyQueue.slice(queueIndex + 1, queueIndex + 4).map(v => v.reference).join(' · ')}
-                </div>
-              )}
-            </>
+            <StudyControls onMark={handleMark} onNext={goNext} />
           )}
           {mode === 'revise' && (
             <TestControls
