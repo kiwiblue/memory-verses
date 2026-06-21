@@ -52,6 +52,12 @@ export default function ProfileModal({ user, users, stats, auth, syncStatus, las
     onSave(updated, updatedUsers);
   }
 
+  // Auto-save when dismissed without pressing Save (swipe down / tap backdrop / Back)
+  function handleDismiss() {
+    if (name.trim()) handleSave();
+    else onClose();
+  }
+
   function handleDeleteConfirm() {
     const remaining = users.filter(u => u.id !== user.id);
     saveUsers(remaining);
@@ -61,10 +67,10 @@ export default function ProfileModal({ user, users, stats, auth, syncStatus, las
   }
 
   return (
-    <div className="profile-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="profile-overlay" onClick={e => { if (e.target === e.currentTarget) handleDismiss(); }}>
       <div className="profile-modal">
         <div className="profile-modal-hdr">
-          <button className="profile-back" onClick={onClose}>← Back</button>
+          <button className="profile-back" onClick={handleDismiss}>← Back</button>
           <span className="profile-modal-title">Profile</span>
           <button className="profile-save-btn" onClick={handleSave}>Save</button>
         </div>
