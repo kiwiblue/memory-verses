@@ -9,7 +9,6 @@ import ModeTabs from './components/ModeTabs.jsx';
 import ProgressBar from './components/ProgressBar.jsx';
 import StudyControls from './components/StudyControls.jsx';
 import TestControls from './components/TestControls.jsx';
-import BrowseControls from './components/BrowseControls.jsx';
 import StatPills from './components/StatPills.jsx';
 import VersionSelector from './components/VersionSelector.jsx';
 import UserPanel from './components/UserPanel.jsx';
@@ -32,7 +31,7 @@ function ensureDefaultUser(users) {
 export default function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [mode, setMode] = useState('study');
+  const [mode, setMode] = useState('learn');
   const [version, setVersion] = useState('esv');
   const [progress, setProgress] = useState(() => {
     const users = ensureDefaultUser(loadUsers());
@@ -56,9 +55,6 @@ export default function App() {
     return loadCustomVerses(id);
   });
 
-  // Timer ref for browse auto-flip
-  const browseTimerRef = useRef(null);
-
   const allVerses = [...VERSES, ...customVerses];
   const total = allVerses.length;
   const verse = allVerses[currentIndex] || allVerses[0];
@@ -68,31 +64,14 @@ export default function App() {
     if (currentUser) saveUserProgress(currentUser.id, progress);
   }, [progress, currentUser]);
 
-  // Browse auto-flip: trigger when mode is browse or index changes in browse
-  useEffect(() => {
-    if (mode !== 'browse') return;
-    if (browseTimerRef.current) clearTimeout(browseTimerRef.current);
-    setIsFlipped(false);
-    browseTimerRef.current = setTimeout(() => {
-      setIsFlipped(true);
-    }, 300);
-    return () => clearTimeout(browseTimerRef.current);
-  }, [mode, currentIndex]);
-
   const handleModeChange = useCallback((newMode) => {
     setMode(newMode);
-    if (newMode !== 'browse') {
-      setIsFlipped(false);
-    }
+    setIsFlipped(false);
   }, []);
 
   const goNext = useCallback(() => {
     setCurrentIndex(i => (i + 1) % total);
-    if (mode !== 'browse') setIsFlipped(false);
-  }, [total, mode]);
-
-  const goPrev = useCallback(() => {
-    setCurrentIndex(i => (i - 1 + total) % total);
+    setIsFlipped(false);
   }, [total]);
 
   const handleMark = useCallback((status) => {
@@ -101,7 +80,7 @@ export default function App() {
   }, [verse.id, goNext]);
 
   const handleFlip = useCallback(() => {
-    if (mode === 'study') setIsFlipped(f => !f);
+    if (mode === 'learn') setIsFlipped(f => !f);
   }, [mode]);
 
   const handleReveal = useCallback(() => {
@@ -146,18 +125,17 @@ export default function App() {
   useEffect(() => {
     function onKey(e) {
       if (e.target.tagName === 'INPUT') return;
-      if (e.code === 'Space' && mode === 'study') {
+      if (e.code === 'Space' && mode === 'learn') {
         e.preventDefault();
         handleFlip();
       }
       if (e.code === 'ArrowRight') goNext();
-      if (e.code === 'ArrowLeft' && mode === 'browse') goPrev();
-      if (e.code === 'KeyK' && mode === 'study') handleMark('mastered');
-      if (e.code === 'KeyL' && mode === 'study') handleMark('learning');
+      if (e.code === 'KeyK' && mode === 'learn') handleMark('mastered');
+      if (e.code === 'KeyL' && mode === 'learn') handleMark('learning');
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [mode, handleFlip, goNext, goPrev, handleMark]);
+  }, [mode, handleFlip, goNext, handleMark]);
 
   return (
     <div className="scene">
@@ -187,21 +165,17 @@ export default function App() {
         onVerseTranslationChange={handleVerseTranslationChange}
       />
 
-      {mode === 'study' && (
+      {mode === 'learn' && (
         <StudyControls onMark={handleMark} onNext={goNext} />
       )}
 
-      {mode === 'test' && (
+      {mode === 'revise' && (
         <TestControls
           verse={verse}
           version={version}
           onReveal={handleReveal}
           onNext={goNext}
         />
-      )}
-
-      {mode === 'browse' && (
-        <BrowseControls onPrev={goPrev} onNext={goNext} />
       )}
 
       <StatPills progress={progress} />

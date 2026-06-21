@@ -1,18 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const TRANSLATIONS = ['esv', 'kjv', 'bsb', 'niv', 'nlt', 'nkjv', 'nasb'];
 
 export default function FlipCard({ verse, version, defaultVersion, verseTranslations, isFlipped, mode, onFlip, onVerseTranslationChange }) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [cardHeight, setCardHeight] = useState(200);
+  const backRef = useRef(null);
+  const wrapRef = useRef(null);
+
   const verseText = verse[version];
-  const frontLabel = mode === 'test' ? 'Recall the verse for…' : 'Reference';
-  const showHint = mode === 'study';
+  const frontLabel = mode === 'revise' ? 'Recall the verse for…' : 'Reference';
+  const showHint = mode === 'learn';
   const isOverride = version !== defaultVersion;
-  const showPicker = mode === 'study' || mode === 'test';
+  const showPicker = mode === 'learn' || mode === 'revise';
+
+  useEffect(() => {
+    const el = backRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(() => {
+      setCardHeight(Math.max(200, el.scrollHeight));
+    });
+    observer.observe(el);
+    setCardHeight(Math.max(200, el.scrollHeight));
+    return () => observer.disconnect();
+  }, [verse, version, isFlipped]);
+
+  const verseLen = verseText ? verseText.length : 0;
+  const vtxtFontSize = verseLen > 300 ? '11px' : verseLen > 200 ? '12px' : '13px';
 
   function handleClick() {
     if (pickerOpen) return;
-    if (mode === 'browse') return;
     onFlip();
   }
 
@@ -37,14 +54,14 @@ export default function FlipCard({ verse, version, defaultVersion, verseTranslat
   }
 
   return (
-    <div className="wrap" onClick={handleClick}>
-      <div className={`card${isFlipped ? ' flip' : ''}`}>
+    <div className="wrap" ref={wrapRef} style={{ minHeight: cardHeight }} onClick={handleClick}>
+      <div className={`card${isFlipped ? ' flip' : ''}`} style={{ minHeight: cardHeight }}>
         <div className="face">
           <div className="lbl">{frontLabel}</div>
           <div className="ref">{verse.reference}</div>
           {showHint && <div className="hint">tap to reveal</div>}
         </div>
-        <div className="face back">
+        <div className="face back" ref={backRef}>
           <div
             className={`badge${isOverride ? ' badge-override' : ''}`}
             onClick={handleBadgeClick}
@@ -65,7 +82,7 @@ export default function FlipCard({ verse, version, defaultVersion, verseTranslat
               ))}
             </div>
           )}
-          <div className="vtxt">"{verseText}"</div>
+          <div className="vtxt" style={{ fontSize: vtxtFontSize }}>"{verseText}"</div>
           <div className="vref">{verse.reference}</div>
         </div>
       </div>

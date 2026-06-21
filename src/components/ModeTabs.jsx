@@ -1,15 +1,18 @@
-const MODES = ['study', 'test', 'browse'];
+const MODES = [
+  { value: 'learn', label: 'Learn' },
+  { value: 'revise', label: 'Revise' },
+];
 
 export default function ModeTabs({ mode, onChange }) {
   return (
     <div className="tabs">
       {MODES.map(m => (
         <div
-          key={m}
-          className={`tab${mode === m ? ' on' : ''}`}
-          onClick={() => onChange(m)}
+          key={m.value}
+          className={`tab${mode === m.value ? ' on' : ''}`}
+          onClick={() => onChange(m.value)}
         >
-          {m.charAt(0).toUpperCase() + m.slice(1)}
+          {m.label}
         </div>
       ))}
     </div>
