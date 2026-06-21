@@ -24,7 +24,7 @@ import UserPanel from './components/UserPanel.jsx';
 import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 
-const APP_VERSION = '0.5.2';
+const APP_VERSION = '0.5.3';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -258,7 +258,7 @@ export default function App() {
   const activeVersion = verse ? (verseTranslations[verse.id] || version) : version;
 
   return (
-    <div className="scene">
+    <>
       {profileUser && (
         <ProfileModal
           user={profileUser}
@@ -287,6 +287,7 @@ export default function App() {
         />
       )}
 
+      <div className="scene">
       <div className="hdr">
         <UserPanel users={users} currentUser={currentUser}
           onUserChange={handleUserChange} onUsersChange={handleUsersChange}
@@ -371,6 +372,7 @@ export default function App() {
           © {new Date().getFullYear()} Chris Sandford · v{APP_VERSION}
         </div>
       </footer>
-    </div>
+      </div>
+    </>
   );
 }
