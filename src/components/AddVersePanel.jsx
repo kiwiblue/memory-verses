@@ -2,12 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { fetchVerse } from '../api/bible.js';
 
 const ALL_VERSIONS = [
-  ['esv',  'ESV'],
-  ['kjv',  'KJV'],
-  ['bsb',  'BSB'],
-  ['niv',  'NIV'],
-  ['nkjv', 'NKJV'],
-  ['nasb', 'NASB'],
+  ['kjv', 'KJV'],
+  ['bsb', 'BSB'],
 ];
 
 export default function AddVersePanel({ allVerses, customVerses, currentUser, preferredVersion, onAddVerse }) {
@@ -106,17 +102,17 @@ export default function AddVersePanel({ allVerses, customVerses, currentUser, pr
               ) : (
                 <div className="version-list">
                   {orderedVersions.map(([key, label], i) => (
-                    <div key={key} className={`version-row${i === 0 ? ' version-row-pref' : ''}`}>
+                    <div key={key} className={`version-row${key === pref ? ' version-row-pref' : ''}`}>
                       <div className="version-row-meta">
                         <span className="version-tag">{label}</span>
-                        {i === 0 && <span className="version-pref-badge">your translation</span>}
+                        {key === pref && <span className="version-pref-badge">your translation</span>}
                       </div>
                       <div className="version-row-text">{result[key]}</div>
                       <button
-                        className={`version-add-btn${i === 0 ? ' version-add-btn-pref' : ''}`}
+                        className={`version-add-btn${key === pref ? ' version-add-btn-pref' : ''}`}
                         onClick={() => handleAdd(key)}
                       >
-                        {i === 0 ? 'Add to deck' : '+'}
+                        {key === pref ? 'Add to deck' : '+'}
                       </button>
                     </div>
                   ))}

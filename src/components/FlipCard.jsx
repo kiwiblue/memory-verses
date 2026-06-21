@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-const TRANSLATIONS = ['esv', 'kjv', 'bsb', 'niv', 'nlt', 'nkjv', 'nasb'];
+const TRANSLATIONS = ['kjv', 'bsb'];
 
 
 export default function FlipCard({ verse, version, defaultVersion, verseTranslations, isFlipped, mode, onFlip, onVerseTranslationChange }) {

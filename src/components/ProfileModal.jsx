@@ -4,12 +4,8 @@ import AuthPanel from './AuthPanel.jsx';
 
 const PRESETS = ['#3a8c5c','#2a6ab5','#9a3a3a','#7a5c9a','#9a6c10','#3a7a8c','#555555','#c0392b'];
 const TRANSLATIONS = [
-  { value: 'esv',  label: 'ESV' },
-  { value: 'kjv',  label: 'KJV' },
-  { value: 'bsb',  label: 'BSB' },
-  { value: 'niv',  label: 'NIV' },
-  { value: 'nkjv', label: 'NKJV' },
-  { value: 'nasb', label: 'NASB' },
+  { value: 'kjv', label: 'KJV — King James Version' },
+  { value: 'bsb', label: 'BSB — Berean Study Bible' },
 ];
 
 function Avatar({ user, size = 72 }) {

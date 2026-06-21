@@ -24,7 +24,7 @@ import UserPanel from './components/UserPanel.jsx';
 import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 
-const APP_VERSION = '0.5.7';
+const APP_VERSION = '0.5.8';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -255,7 +255,14 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [handleFlip, goNext, handleMark]);
 
-  const activeVersion = verse ? (verseTranslations[verse.id] || version) : version;
+  // Use the preferred version, but fall back to first available translation
+  // if the preferred one has no data (e.g. API key not configured)
+  const FALLBACK_ORDER = ['kjv', 'bsb', 'esv', 'niv', 'nkjv', 'nasb'];
+  const activeVersion = (() => {
+    const preferred = verse ? (verseTranslations[verse.id] || version) : version;
+    if (!verse || verse[preferred]) return preferred;
+    return FALLBACK_ORDER.find(t => verse[t]) || preferred;
+  })();
 
   return (
     <>
