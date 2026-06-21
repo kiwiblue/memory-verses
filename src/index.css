@@ -11,8 +11,8 @@ body {
   color: #1a1a18;
   min-height: 100vh;
   padding: 1rem 0.5rem;
-  overflow-x: hidden;
-  overscroll-behavior: none;
+  overflow-x: clip;
+  overscroll-behavior-x: none;
 }
 
 .scene {
