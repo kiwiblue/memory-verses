@@ -1,23 +1,27 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import './App.css';
 
 import { VERSES } from './data/verses.js';
-import { loadUsers, saveUsers, loadCurrentUserId, saveCurrentUserId, loadUserProgress, saveUserProgress, loadVerseTranslations, saveVerseTranslations } from './data/users.js';
+import { loadUsers, saveUsers, loadCurrentUserId, saveCurrentUserId, loadVerseTranslations, saveVerseTranslations } from './data/users.js';
+import { loadProgress, saveProgress, getEntry } from './data/progress.js';
+import { recordAttempt, buildDailyQueue, progressStats } from './data/spacedRepetition.js';
 import { loadCustomVerses, addCustomVerse, removeCustomVerse } from './data/customVerses.js';
 import { loadHiddenVerseIds, hideVerseId } from './data/hiddenVerses.js';
 import { loadVerseCache, saveVerseCache, mergeVerseIntoCache } from './data/verseCache.js';
 import { fetchVerse } from './api/bible.js';
+
 import FlipCard from './components/FlipCard.jsx';
 import ModeTabs from './components/ModeTabs.jsx';
 import ProgressBar from './components/ProgressBar.jsx';
 import StudyControls from './components/StudyControls.jsx';
 import TestControls from './components/TestControls.jsx';
 import StatPills from './components/StatPills.jsx';
+import QueueComplete from './components/QueueComplete.jsx';
 import VersionSelector from './components/VersionSelector.jsx';
 import UserPanel from './components/UserPanel.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 
-const APP_VERSION = '0.3.1';
+const APP_VERSION = '0.4.0';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -32,7 +36,8 @@ function ensureDefaultUser(users) {
   const guest = {
     id: crypto.randomUUID(),
     name: 'Guest',
-    age: 0,
+    bracket: 'adult',
+    bracket_updated: Date.now(),
     colour: '#3a8c5c',
     translation: 'esv',
   };
@@ -41,59 +46,66 @@ function ensureDefaultUser(users) {
   return [guest];
 }
 
+function initUser() {
+  const us = ensureDefaultUser(loadUsers());
+  const id = loadCurrentUserId() || us[0].id;
+  return us.find(u => u.id === id) || us[0];
+}
+
 export default function App() {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [mode, setMode]           = useState('learn');
   const [isFlipped, setIsFlipped] = useState(false);
-  const [mode, setMode] = useState('learn');
-  const [version, setVersion] = useState('esv');
-  const [progress, setProgress] = useState(() => {
-    const users = ensureDefaultUser(loadUsers());
-    const id = loadCurrentUserId() || users[0].id;
-    return loadUserProgress(id);
-  });
-  const [users, setUsers] = useState(() => ensureDefaultUser(loadUsers()));
-  const [currentUser, setCurrentUser] = useState(() => {
-    const us = ensureDefaultUser(loadUsers());
-    const id = loadCurrentUserId() || us[0].id;
-    return us.find(u => u.id === id) || us[0];
-  });
+  const [browseIndex, setBrowseIndex] = useState(0);  // used in revise mode
+  const [queueIndex, setQueueIndex]   = useState(0);  // used in learn mode
+
+  const [users, setUsers]             = useState(() => ensureDefaultUser(loadUsers()));
+  const [currentUser, setCurrentUser] = useState(initUser);
+  const [version, setVersion]         = useState(() => initUser().translation || 'esv');
+
+  const [progress, setProgress]             = useState(() => loadProgress(initUser().id));
+  const [verseTranslations, setVerseTranslations] = useState(() => loadVerseTranslations(initUser().id));
+  const [customVerses, setCustomVerses]     = useState(() => loadCustomVerses(initUser().id));
+  const [hiddenIds, setHiddenIds]           = useState(() => loadHiddenVerseIds(initUser().id));
+  const [verseCache, setVerseCache]         = useState(() => loadVerseCache());
+
   const [showBracketReminder, setShowBracketReminder] = useState(() => {
-    const us = ensureDefaultUser(loadUsers());
-    const id = loadCurrentUserId() || us[0].id;
-    const user = us.find(u => u.id === id) || us[0];
-    if (!user.bracket || user.bracket === 'adult') return false;
-    const msPerYear = 365 * 24 * 60 * 60 * 1000;
-    return user.bracket_updated && (Date.now() - user.bracket_updated) > msPerYear;
+    const u = initUser();
+    if (!u.bracket || u.bracket === 'adult') return false;
+    return u.bracket_updated && (Date.now() - u.bracket_updated) > 365 * 24 * 60 * 60 * 1000;
   });
 
-  const [verseTranslations, setVerseTranslations] = useState(() => {
-    const us = ensureDefaultUser(loadUsers());
-    const id = loadCurrentUserId() || us[0].id;
-    return loadVerseTranslations(id);
-  });
-  const [verseCache, setVerseCache] = useState(() => loadVerseCache());
+  // All eligible verses merged with cached text, hidden ones removed
+  const allVerses = useMemo(() =>
+    [...VERSES, ...customVerses]
+      .filter(v => !hiddenIds.has(v.id))
+      .map(v => ({ ...v, ...(verseCache[v.reference] || {}) })),
+    [customVerses, hiddenIds, verseCache]
+  );
 
-  const [customVerses, setCustomVerses] = useState(() => {
-    const us = ensureDefaultUser(loadUsers());
-    const id = loadCurrentUserId() || us[0].id;
-    return loadCustomVerses(id);
-  });
+  // Daily queue (learn mode) — recomputed when progress or verses change
+  const dailyQueue = useMemo(() =>
+    buildDailyQueue(allVerses, progress, currentUser.bracket || 'adult'),
+    [allVerses, progress, currentUser.bracket]
+  );
 
-  const [hiddenIds, setHiddenIds] = useState(() => {
-    const us = ensureDefaultUser(loadUsers());
-    const id = loadCurrentUserId() || us[0].id;
-    return loadHiddenVerseIds(id);
-  });
+  const queueDone  = mode === 'learn' && queueIndex >= dailyQueue.length;
+  const verse      = mode === 'learn'
+    ? (dailyQueue[queueIndex] ?? null)
+    : (allVerses[browseIndex] || allVerses[0]);
 
-  const allVerses = [...VERSES, ...customVerses].filter(v => !hiddenIds.has(v.id)).map(v => ({
-    ...v,
-    ...(verseCache[v.reference] || {}),
-  }));
-  const total = allVerses.length;
-  const verse = allVerses[currentIndex] || allVerses[0];
+  const stats = useMemo(() =>
+    progressStats(allVerses, progress, currentUser.bracket || 'adult'),
+    [allVerses, progress, currentUser.bracket]
+  );
 
-  // Fetch translation text for the current verse if not yet cached
+  // Persist progress whenever it changes
   useEffect(() => {
+    if (currentUser) saveProgress(currentUser.id, progress);
+  }, [progress, currentUser]);
+
+  // Fetch translation text for the active verse when not yet cached
+  useEffect(() => {
+    if (!verse) return;
     const activeVersion = verseTranslations[verse.id] || version;
     if (verse[activeVersion]) return;
     fetchVerse(verse.reference).then(data => {
@@ -103,45 +115,47 @@ export default function App() {
         return updated;
       });
     }).catch(() => {});
-  }, [verse.reference, verseTranslations[verse.id] || version]);
-
-  // Persist progress for current user
-  useEffect(() => {
-    if (currentUser) saveUserProgress(currentUser.id, progress);
-  }, [progress, currentUser]);
+  }, [verse?.reference, verse ? (verseTranslations[verse.id] || version) : null]);
 
   const handleModeChange = useCallback((newMode) => {
     setMode(newMode);
     setIsFlipped(false);
   }, []);
 
-  const goNext = useCallback(() => {
-    setCurrentIndex(i => (i + 1) % total);
+  // Learn mode: record score (1=know it, 0=still learning) then advance queue
+  const handleMark = useCallback((score) => {
+    if (!verse) return;
+    setProgress(prev => ({
+      ...prev,
+      [verse.id]: recordAttempt(getEntry(prev, verse.id), score),
+    }));
+    setQueueIndex(i => i + 1);
     setIsFlipped(false);
-  }, [total]);
+  }, [verse]);
 
-  const handleMark = useCallback((status) => {
-    setProgress(prev => ({ ...prev, [verse.id]: status }));
-    goNext();
-  }, [verse.id, goNext]);
+  // Revise mode / skip: advance without scoring
+  const goNext = useCallback(() => {
+    if (mode === 'learn') {
+      setQueueIndex(i => i + 1);
+    } else {
+      setBrowseIndex(i => (i + 1) % allVerses.length);
+    }
+    setIsFlipped(false);
+  }, [mode, allVerses.length]);
 
-  const handleFlip = useCallback(() => {
-    if (mode === 'learn') setIsFlipped(f => !f);
-  }, [mode]);
-
-  const handleReveal = useCallback(() => {
-    setIsFlipped(true);
-  }, []);
+  const handleFlip   = useCallback(() => { setIsFlipped(f => !f); }, []);
+  const handleReveal = useCallback(() => { setIsFlipped(true); }, []);
 
   const handleUserChange = useCallback((user) => {
     setCurrentUser(user);
     saveCurrentUserId(user.id);
-    setProgress(loadUserProgress(user.id));
+    setProgress(loadProgress(user.id));
     setVerseTranslations(loadVerseTranslations(user.id));
     setCustomVerses(loadCustomVerses(user.id));
-    setVersion(user.translation);
     setHiddenIds(loadHiddenVerseIds(user.id));
-    setCurrentIndex(0);
+    setVersion(user.translation || 'esv');
+    setQueueIndex(0);
+    setBrowseIndex(0);
     setIsFlipped(false);
     if (user.bracket && user.bracket !== 'adult') {
       const msPerYear = 365 * 24 * 60 * 60 * 1000;
@@ -151,67 +165,55 @@ export default function App() {
     }
   }, []);
 
-  const handleAddVerse = useCallback((verse) => {
-    const updated = addCustomVerse(currentUser.id, verse);
-    setCustomVerses(updated);
+  const handleAddVerse = useCallback((v) => {
+    setCustomVerses(addCustomVerse(currentUser.id, v));
   }, [currentUser.id]);
 
   const handleRemoveVerse = useCallback(() => {
-    const id = verse.id;
+    if (!verse) return;
     if (verse.custom) {
-      const updated = removeCustomVerse(currentUser.id, id);
-      setCustomVerses(updated);
+      setCustomVerses(removeCustomVerse(currentUser.id, verse.id));
     } else {
-      const updated = hideVerseId(currentUser.id, id);
-      setHiddenIds(new Set(updated));
+      setHiddenIds(new Set(hideVerseId(currentUser.id, verse.id)));
     }
-    setCurrentIndex(i => Math.min(i, Math.max(0, total - 2)));
     setIsFlipped(false);
-  }, [verse, currentUser.id, total]);
+  }, [verse, currentUser.id]);
 
   const handleVerseTranslationChange = useCallback((verseId, translation) => {
     setVerseTranslations(prev => {
       const updated = { ...prev };
-      if (!translation || translation === version) {
-        delete updated[verseId];
-      } else {
-        updated[verseId] = translation;
-      }
+      if (!translation || translation === version) delete updated[verseId];
+      else updated[verseId] = translation;
       saveVerseTranslations(currentUser.id, updated);
       return updated;
     });
   }, [currentUser.id, version]);
 
-  const handleUsersChange = useCallback((updatedUsers) => {
-    setUsers(updatedUsers);
-    saveUsers(updatedUsers);
+  const handleUsersChange = useCallback((updated) => {
+    setUsers(updated);
+    saveUsers(updated);
   }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
     function onKey(e) {
       if (e.target.tagName === 'INPUT') return;
-      if (e.code === 'Space' && mode === 'learn') {
-        e.preventDefault();
-        handleFlip();
-      }
+      if (e.code === 'Space') { e.preventDefault(); handleFlip(); }
       if (e.code === 'ArrowRight') goNext();
-      if (e.code === 'KeyK' && mode === 'learn') handleMark('mastered');
-      if (e.code === 'KeyL' && mode === 'learn') handleMark('learning');
+      if (e.code === 'KeyK') handleMark(1);
+      if (e.code === 'KeyL') handleMark(0);
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [mode, handleFlip, goNext, handleMark]);
+  }, [handleFlip, goNext, handleMark]);
+
+  const activeVersion = verse ? (verseTranslations[verse.id] || version) : version;
 
   return (
     <div className="scene">
       <div className="hdr">
-        <UserPanel
-          users={users}
-          currentUser={currentUser}
-          onUserChange={handleUserChange}
-          onUsersChange={handleUsersChange}
-        />
+        <UserPanel users={users} currentUser={currentUser}
+          onUserChange={handleUserChange} onUsersChange={handleUsersChange} />
         <div className="ttl">Bible Memory Deck</div>
         <VersionSelector version={version} onChange={setVersion} />
       </div>
@@ -226,54 +228,53 @@ export default function App() {
         </div>
       )}
 
-      <ProgressBar current={currentIndex + 1} total={total} />
+      {mode === 'learn'
+        ? <ProgressBar current={Math.min(queueIndex + 1, dailyQueue.length)} total={dailyQueue.length} label="today" />
+        : <ProgressBar current={browseIndex + 1} total={allVerses.length} />
+      }
 
       <ModeTabs mode={mode} onChange={handleModeChange} />
 
-      <FlipCard
-        verse={verse}
-        version={verseTranslations[verse.id] || version}
-        defaultVersion={version}
-        verseTranslations={verseTranslations}
-        isFlipped={isFlipped}
-        mode={mode}
-        onFlip={handleFlip}
-        onVerseTranslationChange={handleVerseTranslationChange}
-      />
+      {queueDone ? (
+        <QueueComplete stats={stats} onBrowse={() => handleModeChange('revise')} />
+      ) : (
+        <>
+          <FlipCard
+            verse={verse}
+            version={activeVersion}
+            defaultVersion={version}
+            verseTranslations={verseTranslations}
+            isFlipped={isFlipped}
+            mode={mode}
+            onFlip={handleFlip}
+            onVerseTranslationChange={handleVerseTranslationChange}
+          />
 
-      {mode === 'learn' && (
-        <StudyControls onMark={handleMark} onNext={goNext} />
+          {mode === 'learn' && (
+            <StudyControls onMark={handleMark} onNext={goNext} />
+          )}
+          {mode === 'revise' && (
+            <TestControls verse={verse} version={version} onReveal={handleReveal} onNext={goNext} />
+          )}
+
+          <div className="remove-row">
+            <button className="remove-verse-btn" onClick={handleRemoveVerse}>
+              Remove from my deck
+            </button>
+          </div>
+        </>
       )}
 
-      {mode === 'revise' && (
-        <TestControls
-          verse={verse}
-          version={version}
-          onReveal={handleReveal}
-          onNext={goNext}
-        />
-      )}
+      <StatPills stats={stats} />
 
-      <div className="remove-row">
-        <button className="remove-verse-btn" onClick={handleRemoveVerse}>
-          Remove from my deck
-        </button>
-      </div>
-
-      <StatPills progress={progress} />
-
-      <AddVersePanel
-        allVerses={allVerses}
-        customVerses={customVerses}
-        currentUser={currentUser}
-        onAddVerse={handleAddVerse}
-      />
+      <AddVersePanel allVerses={allVerses} customVerses={customVerses}
+        currentUser={currentUser} onAddVerse={handleAddVerse} />
 
       <footer className="app-footer">
-        {ATTRIBUTION[verseTranslations[verse.id] || version] && (
+        {ATTRIBUTION[activeVersion] && (
           <div className="footer-attribution">
-            {ATTRIBUTION[verseTranslations[verse.id] || version]}
-            {['niv','nkjv','nasb'].includes(verseTranslations[verse.id] || version) && (
+            {ATTRIBUTION[activeVersion]}
+            {['niv','nkjv','nasb'].includes(activeVersion) && (
               <>{' '}<a href="https://api.bible" target="_blank" rel="noopener noreferrer" className="footer-link">api.bible</a></>
             )}
           </div>

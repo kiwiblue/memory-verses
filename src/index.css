@@ -74,6 +74,18 @@ select {
 .bracket-reminder-link { color: #3a8c5c; cursor: pointer; text-decoration: underline; flex: 1; }
 .bracket-reminder-close { background: none; border: none; color: #aaa; cursor: pointer; font-size: 11px; padding: 0; }
 
+/* Queue complete screen */
+.queue-complete { text-align: center; padding: 2.5rem 1rem; }
+.qc-icon { font-size: 36px; color: #3a8c5c; margin-bottom: 0.5rem; }
+.qc-title { font-size: 17px; font-weight: 600; margin-bottom: 0.4rem; }
+.qc-sub { font-size: 13px; color: #888; margin-bottom: 1.25rem; }
+.qc-stats { display: flex; gap: 8px; justify-content: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.qc-pill { font-size: 11px; padding: 4px 10px; border-radius: 20px; }
+.qc-unseen  { background: #f1f0eb; color: #888; }
+.qc-learning { background: #fef6e4; color: #9a6c10; }
+.qc-mastered { background: #edf7f1; color: #3a8c5c; }
+.qc-browse { margin-top: 0.5rem; }
+
 .remove-row { text-align: center; margin: 0.5rem 0 0; }
 .remove-verse-btn { background: none; border: none; font-size: 11px; color: #ccc; cursor: pointer; padding: 4px 8px; }
 .remove-verse-btn:hover { color: #c0392b; }

@@ -1,9 +1,5 @@
-export default function StatPills({ progress }) {
-  const vals = Object.values(progress);
-  const unseen = vals.filter(s => s === 'unseen').length;
-  const learning = vals.filter(s => s === 'learning').length;
-  const mastered = vals.filter(s => s === 'mastered').length;
-
+export default function StatPills({ stats }) {
+  const { unseen = 0, learning = 0, mastered = 0 } = stats || {};
   return (
     <div className="stats">
       <div className="pill un">
