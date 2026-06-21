@@ -19,7 +19,7 @@ function Avatar({ user, onClick, size = 32 }) {
 export default function UserPanel({ users, currentUser, onUserChange, onUsersChange }) {
   const [open, setOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', age: '', translation: 'esv', colour: PRESETS[0] });
+  const [form, setForm] = useState({ name: '', bracket: 'adult', translation: 'esv', colour: PRESETS[0] });
   const [error, setError] = useState('');
 
   function handleToggle() {
@@ -42,7 +42,8 @@ export default function UserPanel({ users, currentUser, onUserChange, onUsersCha
     const newUser = {
       id: crypto.randomUUID(),
       name: form.name.trim(),
-      age: Number(form.age) || 0,
+      bracket: form.bracket,
+      bracket_updated: Date.now(),
       colour: form.colour,
       translation: form.translation,
     };
@@ -53,14 +54,14 @@ export default function UserPanel({ users, currentUser, onUserChange, onUsersCha
     onUserChange(newUser);
     setShowForm(false);
     setOpen(false);
-    setForm({ name: '', age: '', translation: 'esv', colour: PRESETS[0] });
+    setForm({ name: '', bracket: 'adult', translation: 'esv', colour: PRESETS[0] });
     setError('');
   }
 
   function handleCancel() {
     setShowForm(false);
     setError('');
-    setForm({ name: '', age: '', translation: 'esv', colour: PRESETS[0] });
+    setForm({ name: '', bracket: 'adult', translation: 'esv', colour: PRESETS[0] });
   }
 
   return (
@@ -105,14 +106,15 @@ export default function UserPanel({ users, currentUser, onUserChange, onUsersCha
                 />
               </div>
               <div>
-                <label>Age</label>
-                <input
-                  type="number"
-                  placeholder="Age"
-                  value={form.age}
-                  min={0}
-                  onChange={e => setForm(f => ({ ...f, age: e.target.value }))}
-                />
+                <label>Age group</label>
+                <select
+                  value={form.bracket}
+                  onChange={e => setForm(f => ({ ...f, bracket: e.target.value }))}
+                >
+                  <option value="child">Child (under 10)</option>
+                  <option value="youth">Youth (10–17)</option>
+                  <option value="adult">Adult (18+)</option>
+                </select>
               </div>
               <div>
                 <label>Translation</label>

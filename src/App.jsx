@@ -14,7 +14,7 @@ import VersionSelector from './components/VersionSelector.jsx';
 import UserPanel from './components/UserPanel.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 
-const APP_VERSION = '0.1.0';
+const APP_VERSION = '0.2.0';
 
 const ATTRIBUTION = {
   niv:  'NIV © 1973, 1978, 1984, 2011 Biblica, Inc. All rights reserved.',
@@ -52,6 +52,15 @@ export default function App() {
     const id = loadCurrentUserId() || us[0].id;
     return us.find(u => u.id === id) || us[0];
   });
+  const [showBracketReminder, setShowBracketReminder] = useState(() => {
+    const us = ensureDefaultUser(loadUsers());
+    const id = loadCurrentUserId() || us[0].id;
+    const user = us.find(u => u.id === id) || us[0];
+    if (!user.bracket || user.bracket === 'adult') return false;
+    const msPerYear = 365 * 24 * 60 * 60 * 1000;
+    return user.bracket_updated && (Date.now() - user.bracket_updated) > msPerYear;
+  });
+
   const [verseTranslations, setVerseTranslations] = useState(() => {
     const us = ensureDefaultUser(loadUsers());
     const id = loadCurrentUserId() || us[0].id;
@@ -104,6 +113,12 @@ export default function App() {
     setVersion(user.translation);
     setCurrentIndex(0);
     setIsFlipped(false);
+    if (user.bracket && user.bracket !== 'adult') {
+      const msPerYear = 365 * 24 * 60 * 60 * 1000;
+      setShowBracketReminder(user.bracket_updated && (Date.now() - user.bracket_updated) > msPerYear);
+    } else {
+      setShowBracketReminder(false);
+    }
   }, []);
 
   const handleAddVerse = useCallback((verse) => {
@@ -157,6 +172,16 @@ export default function App() {
         <div className="ttl">Bible Memory Deck</div>
         <VersionSelector version={version} onChange={setVersion} />
       </div>
+
+      {showBracketReminder && (
+        <div className="bracket-reminder">
+          Is <strong>{currentUser.name}</strong>'s age group still correct?{' '}
+          <span className="bracket-reminder-link" onClick={() => setShowBracketReminder(false)}>
+            Update in profile
+          </span>
+          <button className="bracket-reminder-close" onClick={() => setShowBracketReminder(false)}>✕</button>
+        </div>
+      )}
 
       <ProgressBar current={currentIndex + 1} total={total} />
 
