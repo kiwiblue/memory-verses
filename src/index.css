@@ -74,6 +74,10 @@ select {
 .bracket-reminder-link { color: #3a8c5c; cursor: pointer; text-decoration: underline; flex: 1; }
 .bracket-reminder-close { background: none; border: none; color: #aaa; cursor: pointer; font-size: 11px; padding: 0; }
 
+.remove-row { text-align: center; margin: 0.5rem 0 0; }
+.remove-verse-btn { background: none; border: none; font-size: 11px; color: #ccc; cursor: pointer; padding: 4px 8px; }
+.remove-verse-btn:hover { color: #c0392b; }
+
 .app-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 0.5px solid #e8e7e2; text-align: center; }
 .footer-attribution { font-size: 9px; color: #bbb; line-height: 1.5; margin-bottom: 0.4rem; }
 .footer-credit { font-size: 10px; color: #ccc; }

@@ -3,7 +3,8 @@ import './App.css';
 
 import { VERSES } from './data/verses.js';
 import { loadUsers, saveUsers, loadCurrentUserId, saveCurrentUserId, loadUserProgress, saveUserProgress, loadVerseTranslations, saveVerseTranslations } from './data/users.js';
-import { loadCustomVerses, addCustomVerse } from './data/customVerses.js';
+import { loadCustomVerses, addCustomVerse, removeCustomVerse } from './data/customVerses.js';
+import { loadHiddenVerseIds, hideVerseId } from './data/hiddenVerses.js';
 import { loadVerseCache, saveVerseCache, mergeVerseIntoCache } from './data/verseCache.js';
 import { fetchVerse } from './api/bible.js';
 import FlipCard from './components/FlipCard.jsx';
@@ -16,7 +17,7 @@ import VersionSelector from './components/VersionSelector.jsx';
 import UserPanel from './components/UserPanel.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 
-const APP_VERSION = '0.3.0';
+const APP_VERSION = '0.3.1';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -78,7 +79,13 @@ export default function App() {
     return loadCustomVerses(id);
   });
 
-  const allVerses = [...VERSES, ...customVerses].map(v => ({
+  const [hiddenIds, setHiddenIds] = useState(() => {
+    const us = ensureDefaultUser(loadUsers());
+    const id = loadCurrentUserId() || us[0].id;
+    return loadHiddenVerseIds(id);
+  });
+
+  const allVerses = [...VERSES, ...customVerses].filter(v => !hiddenIds.has(v.id)).map(v => ({
     ...v,
     ...(verseCache[v.reference] || {}),
   }));
@@ -133,6 +140,7 @@ export default function App() {
     setVerseTranslations(loadVerseTranslations(user.id));
     setCustomVerses(loadCustomVerses(user.id));
     setVersion(user.translation);
+    setHiddenIds(loadHiddenVerseIds(user.id));
     setCurrentIndex(0);
     setIsFlipped(false);
     if (user.bracket && user.bracket !== 'adult') {
@@ -147,6 +155,19 @@ export default function App() {
     const updated = addCustomVerse(currentUser.id, verse);
     setCustomVerses(updated);
   }, [currentUser.id]);
+
+  const handleRemoveVerse = useCallback(() => {
+    const id = verse.id;
+    if (verse.custom) {
+      const updated = removeCustomVerse(currentUser.id, id);
+      setCustomVerses(updated);
+    } else {
+      const updated = hideVerseId(currentUser.id, id);
+      setHiddenIds(new Set(updated));
+    }
+    setCurrentIndex(i => Math.min(i, Math.max(0, total - 2)));
+    setIsFlipped(false);
+  }, [verse, currentUser.id, total]);
 
   const handleVerseTranslationChange = useCallback((verseId, translation) => {
     setVerseTranslations(prev => {
@@ -232,6 +253,12 @@ export default function App() {
           onNext={goNext}
         />
       )}
+
+      <div className="remove-row">
+        <button className="remove-verse-btn" onClick={handleRemoveVerse}>
+          Remove from my deck
+        </button>
+      </div>
 
       <StatPills progress={progress} />
 
