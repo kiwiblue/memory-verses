@@ -13,28 +13,27 @@ function calcAccuracy(input, target) {
 export default function TestControls({ verse, version, onReveal, onNext, onPrev, hasPrev }) {
   const [input, setInput]       = useState('');
   const [feedback, setFeedback] = useState({ text: '', color: '#aaa' });
-  const [hintLevel, setHintLevel] = useState(0); // how many words revealed
+  const [hintWord, setHintWord] = useState(null); // single word currently shown
 
   const verseText = verse[version] || '';
   const targetWords = clean(verseText);
 
-  // Reset when verse/version changes
   useEffect(() => {
     setInput('');
     setFeedback({ text: '', color: '#aaa' });
-    setHintLevel(0);
+    setHintWord(null);
   }, [verse.id, version]);
 
   function handleChange(e) {
     const val = e.target.value;
     setInput(val);
 
-    // Auto-advance hint to stay one word ahead of what user has typed correctly
-    if (hintLevel > 0 && targetWords.length > 0) {
+    // Hide hint once the user has typed the hinted word correctly
+    if (hintWord) {
       const typed = clean(val);
       const correctCount = typed.filter((w, i) => w === targetWords[i]).length;
-      const nextNeeded = Math.min(correctCount + 1, targetWords.length);
-      if (nextNeeded > hintLevel) setHintLevel(nextNeeded);
+      const hintIndex = targetWords.indexOf(hintWord);
+      if (correctCount > hintIndex) setHintWord(null);
     }
 
     if (val.trim().length < 6) {
@@ -53,18 +52,13 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
 
   function handleHint() {
     if (!verseText) return;
-    // On first press, start from position after correctly-typed words
-    if (hintLevel === 0) {
-      const typed = clean(input);
-      const correctCount = typed.filter((w, i) => w === targetWords[i]).length;
-      setHintLevel(Math.max(1, correctCount + 1));
-    } else {
-      setHintLevel(h => Math.min(h + 1, targetWords.length));
-    }
+    const typed = clean(input);
+    const correctCount = typed.filter((w, i) => w === targetWords[i]).length;
+    const nextIndex = Math.min(correctCount, targetWords.length - 1);
+    setHintWord(targetWords[nextIndex] || null);
   }
 
-  const hintWords = hintLevel > 0 ? targetWords.slice(0, hintLevel).join(' ') : null;
-  const hintExhausted = hintLevel >= targetWords.length;
+  const allDone = clean(input).filter((w, i) => w === targetWords[i]).length >= targetWords.length;
 
   return (
     <div className="ti">
@@ -76,16 +70,13 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
       />
       <div className="fb" style={{ color: feedback.color }}>{feedback.text}</div>
 
-      {/* Hint */}
       <div className="hint-row">
-        {hintWords && (
-          <div className="hint-text">{hintWords}…</div>
-        )}
-        {!hintExhausted && verseText && (
-          <button className="hint-btn" onClick={handleHint}>
-            {hintLevel === 0 ? 'Hint' : 'Next word'}
-          </button>
-        )}
+        {hintWord
+          ? <div className="hint-text">Next word: <strong>{hintWord}</strong></div>
+          : !allDone && verseText && (
+              <button className="hint-btn" onClick={handleHint}>Hint</button>
+            )
+        }
       </div>
 
       <div className="test-btns">

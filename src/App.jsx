@@ -24,7 +24,7 @@ import UserPanel from './components/UserPanel.jsx';
 import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 
-const APP_VERSION = '0.5.13';
+const APP_VERSION = '0.5.14';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
