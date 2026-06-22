@@ -1,33 +1,83 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const clean = s => s.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
 
 // Treat trailing punctuation (. , ! ?) as a word terminator
 const endsCommitted = s => /[\s.,!?]$/.test(s);
 
-export default function TestControls({ verse, version, onReveal, onNext, onPrev, hasPrev }) {
-  const [input, setInput]   = useState('');
+function freshMetrics() {
+  return { hintsStart: 0, hintsMid: 0, wrongCommits: 0, startedAt: null, completed: false };
+}
+
+export default function TestControls({ verse, version, onReveal, onNext, onPrev, hasPrev, onAttemptEnd }) {
+  const [input, setInput]       = useState('');
   const [hintWord, setHintWord] = useState(null);
 
-  const verseText = verse[version] || '';
-  const targetWords = clean(verseText);
-  const typedWords = clean(input);
+  const verseText    = verse[version] || '';
+  const targetWords  = clean(verseText);
+  const typedWords   = clean(input);
   const correctCount = typedWords.filter((w, i) => w === targetWords[i]).length;
-  const allDone = correctCount >= targetWords.length && targetWords.length > 0;
-  const progress = targetWords.length > 0 ? Math.round((correctCount / targetWords.length) * 100) : 0;
+  const allDone      = correctCount >= targetWords.length && targetWords.length > 0;
+  const progress     = targetWords.length > 0 ? Math.round((correctCount / targetWords.length) * 100) : 0;
+
+  // All tracking state lives in refs so cleanup closures always see fresh values
+  const metrics       = useRef(freshMetrics());
+  const prevWrongRef  = useRef(0); // tracks last committed-wrong count to detect increases
+
+  // Count currently committed wrong words
+  const committed = endsCommitted(input);
+  const wrongNow = typedWords.filter((w, i) => {
+    const isLast = i === typedWords.length - 1;
+    return (!isLast || committed) && w !== targetWords[i];
+  }).length;
+
+  // Accumulate wrong commits (don't subtract when user backspaces and fixes)
+  if (wrongNow > prevWrongRef.current) {
+    metrics.current.wrongCommits += wrongNow - prevWrongRef.current;
+  }
+  prevWrongRef.current = wrongNow;
+
+  // Reset when verse or translation changes; record abandoned attempt first
+  useEffect(() => {
+    return () => {
+      const m = metrics.current;
+      if (m.startedAt && !m.completed && onAttemptEnd) {
+        onAttemptEnd({
+          ts: m.startedAt, verseId: verse.id, ref: verse.reference, version,
+          hintsStart: m.hintsStart, hintsMid: m.hintsMid,
+          wrongCommits: m.wrongCommits, completed: false, durationSecs: null,
+        });
+      }
+      metrics.current  = freshMetrics();
+      prevWrongRef.current = 0;
+    };
+  }, [verse.id, version]);
 
   useEffect(() => {
     setInput('');
     setHintWord(null);
   }, [verse.id, version]);
 
-  // Auto-flip the card when the verse is completed
+  // Auto-flip and record completed attempt
   useEffect(() => {
-    if (allDone) onReveal();
+    if (!allDone) return;
+    const m = metrics.current;
+    if (!m.completed) {
+      m.completed = true;
+      const durationSecs = m.startedAt ? Math.round((Date.now() - m.startedAt) / 1000) : null;
+      onReveal();
+      if (onAttemptEnd) onAttemptEnd({
+        ts: m.startedAt || Date.now(), verseId: verse.id, ref: verse.reference, version,
+        hintsStart: m.hintsStart, hintsMid: m.hintsMid,
+        wrongCommits: m.wrongCommits, completed: true, durationSecs,
+      });
+    }
   }, [allDone]);
 
   function handleChange(e) {
     const val = e.target.value;
+    // Start timer on first character
+    if (!metrics.current.startedAt && val.trim()) metrics.current.startedAt = Date.now();
     setInput(val);
 
     if (hintWord) {
@@ -40,8 +90,10 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
 
   function handleHint() {
     if (!verseText) return;
-    const typed = clean(input);
-    const cnt = typed.filter((w, i) => w === targetWords[i]).length;
+    const cnt = clean(input).filter((w, i) => w === targetWords[i]).length;
+    // Record whether hint is at the very start or partway through
+    if (cnt === 0) metrics.current.hintsStart++;
+    else           metrics.current.hintsMid++;
     const nextIndex = Math.min(cnt, targetWords.length - 1);
     setHintWord(targetWords[nextIndex] || null);
   }

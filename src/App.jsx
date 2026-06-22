@@ -11,6 +11,7 @@ import { loadCustomVerses, addCustomVerse, removeCustomVerse } from './data/cust
 import { loadHiddenVerseIds, hideVerseId } from './data/hiddenVerses.js';
 import { loadVerseCache, saveVerseCache, mergeVerseIntoCache } from './data/verseCache.js';
 import { fetchVerse } from './api/bible.js';
+import { appendReviseLog } from './data/reviseLog.js';
 
 import FlipCard from './components/FlipCard.jsx';
 import ModeTabs from './components/ModeTabs.jsx';
@@ -24,7 +25,7 @@ import UserPanel from './components/UserPanel.jsx';
 import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 
-const APP_VERSION = '0.5.24';
+const APP_VERSION = '0.5.25';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -349,6 +350,7 @@ export default function App() {
               verse={verse} version={version}
               onReveal={handleReveal} onNext={goNext}
               onPrev={goPrev} hasPrev={browseIndex > 0}
+              onAttemptEnd={entry => appendReviseLog(currentUser.id, entry)}
             />
           )}
 
