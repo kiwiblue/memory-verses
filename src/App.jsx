@@ -27,7 +27,7 @@ import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 import VerseDeckPanel from './components/VerseDeckPanel.jsx';
 
-const APP_VERSION = '0.5.40';
+const APP_VERSION = '0.5.41';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -369,7 +369,7 @@ export default function App() {
           onUserChange={handleUserChange} onUsersChange={handleUsersChange}
           onOpenProfile={(u) => setProfileUser(u)} />
         <div className="ttl">
-          <span className="ttl-memory">Memory</span><span className="ttl-dot-bible">.bible</span>
+          <span className="ttl-memory">Memory</span><span className="ttl-dot-bible" style={{ color: currentUser?.colour || '#3a8c5c' }}>.bible</span>
         </div>
       </div>
 
