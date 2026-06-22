@@ -129,6 +129,10 @@ input[type=text] {
   font-family: system-ui, -apple-system, sans-serif;
 }
 .fb { font-size: 12px; text-align: center; min-height: 18px; color: #aaa; }
+.hint-row { display: flex; align-items: flex-start; gap: 8px; min-height: 24px; }
+.hint-text { flex: 1; font-size: 13px; color: #777; font-style: italic; line-height: 1.5; }
+.hint-btn { flex-shrink: 0; background: none; border: 0.5px solid #ccc; border-radius: 6px; font-size: 11px; color: #999; padding: 3px 10px; cursor: pointer; white-space: nowrap; transition: border-color .15s, color .15s; }
+.hint-btn:hover { border-color: #aaa; color: #555; }
 .test-btns { display: flex; gap: 8px; }
 
 /* Stats */
