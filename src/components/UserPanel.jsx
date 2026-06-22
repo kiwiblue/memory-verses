@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { saveUsers, saveCurrentUserId } from '../data/users.js';
+import { avatarStyle } from '../data/avatarStyle.js';
 
 const PRESETS = ['#3a8c5c','#2a6ab5','#9a3a3a','#7a5c9a','#9a6c10','#3a7a8c','#555555','#c0392b'];
 
@@ -7,7 +8,7 @@ function Avatar({ user, onClick, size = 32 }) {
   return (
     <div
       className="avatar"
-      style={{ background: user.colour, width: size, height: size, '--user-colour': user.colour }}
+      style={{ ...avatarStyle(user.colour, user.pattern), width: size, height: size, '--user-colour': user.colour }}
       onClick={onClick}
       title={user.name}
     >

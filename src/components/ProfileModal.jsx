@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { saveUsers, saveCurrentUserId } from '../data/users.js';
 import AuthPanel from './AuthPanel.jsx';
+import { PATTERNS, avatarStyle } from '../data/avatarStyle.js';
 
 const PRESETS = ['#3a8c5c','#2a6ab5','#9a3a3a','#7a5c9a','#9a6c10','#3a7a8c','#555555','#c0392b'];
 const TRANSLATIONS = [
@@ -16,7 +17,7 @@ function Avatar({ user, size = 72 }) {
   return (
     <div
       className="profile-avatar"
-      style={{ background: user.colour, width: size, height: size }}
+      style={{ ...avatarStyle(user.colour, user.pattern), width: size, height: size }}
     >
       {user.name.charAt(0).toUpperCase()}
     </div>
@@ -27,6 +28,7 @@ export default function ProfileModal({ user, users, stats, auth, syncStatus, las
   const [name, setName]           = useState(user.name);
   const [bracket, setBracket]     = useState(user.bracket || 'adult');
   const [colour, setColour]       = useState(user.colour || PRESETS[0]);
+  const [pattern, setPattern]     = useState(user.pattern || 'none');
   const [translation, setTranslation] = useState(user.translation || 'kjv');
   const [deleteStep, setDeleteStep]   = useState(0);
   const [nameError, setNameError]     = useState('');
@@ -35,7 +37,7 @@ export default function ProfileModal({ user, users, stats, auth, syncStatus, las
 
   function handleSave() {
     if (!name.trim()) { setNameError('Name is required.'); return; }
-    const updated = { ...user, name: name.trim(), bracket, colour, translation, bracket_updated: Date.now() };
+    const updated = { ...user, name: name.trim(), bracket, colour, pattern, translation, bracket_updated: Date.now() };
     const updatedUsers = users.map(u => u.id === user.id ? updated : u);
     saveUsers(updatedUsers);
     onSave(updated, updatedUsers);
@@ -62,23 +64,35 @@ export default function ProfileModal({ user, users, stats, auth, syncStatus, las
           <button className="profile-save-btn" onClick={handleSave}>Save</button>
         </div>
 
-        {/* Avatar */}
-        <div className="profile-avatar-row">
-          <Avatar user={{ ...user, colour }} size={72} />
-        </div>
-
-        {/* Colour swatches */}
-        <div className="profile-field">
-          <label className="profile-label">Colour</label>
-          <div className="swatches">
-            {PRESETS.map(c => (
-              <div
-                key={c}
-                className={`swatch${colour === c ? ' selected' : ''}`}
-                style={{ background: c }}
-                onClick={() => setColour(c)}
-              />
-            ))}
+        {/* Personalise: colour + pattern left, big avatar preview right */}
+        <div className="profile-personalise">
+          <div className="profile-personalise-pickers">
+            <label className="profile-label">Colour</label>
+            <div className="swatches">
+              {PRESETS.map(c => (
+                <div
+                  key={c}
+                  className={`swatch${colour === c ? ' selected' : ''}`}
+                  style={{ background: c }}
+                  onClick={() => setColour(c)}
+                />
+              ))}
+            </div>
+            <label className="profile-label" style={{ marginTop: 14 }}>Pattern</label>
+            <div className="swatches">
+              {PATTERNS.map(p => (
+                <div
+                  key={p.id}
+                  className={`swatch${pattern === p.id ? ' selected' : ''}`}
+                  style={avatarStyle(colour, p.id)}
+                  onClick={() => setPattern(p.id)}
+                  title={p.label}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="profile-personalise-preview">
+            <Avatar user={{ ...user, colour, pattern }} size={80} />
           </div>
         </div>
 
