@@ -11,7 +11,7 @@ export const PATTERNS = [
 
 export function avatarStyle(colour, patternId) {
   const p = PATTERNS.find(x => x.id === patternId);
-  const style = { background: colour };
+  const style = { backgroundColor: colour };
   if (p?.svg) {
     style.backgroundImage = `url("data:image/svg+xml,${encodeURIComponent(p.svg)}")`;
     style.backgroundSize = p.size || '8px 8px';
