@@ -17,6 +17,11 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
     setHintWord(null);
   }, [verse.id, version]);
 
+  // Auto-flip the card when the verse is completed
+  useEffect(() => {
+    if (allDone) onReveal();
+  }, [allDone]);
+
   const typedWords = clean(input);
   const correctCount = typedWords.filter((w, i) => w === targetWords[i]).length;
   const allDone = correctCount >= targetWords.length && targetWords.length > 0;
@@ -87,7 +92,10 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
 
       <div className="test-btns">
         <button className="btn btn-sk" onClick={onPrev} disabled={!hasPrev}>← Back</button>
-        <button className="btn btn-learn" onClick={onReveal}>Reveal</button>
+        {allDone
+          ? <button className="btn btn-ok" onClick={onNext}>Continue →</button>
+          : <button className="btn btn-learn" onClick={onReveal}>Reveal</button>
+        }
         <button className="btn btn-sk" onClick={onNext}>Next →</button>
       </div>
     </div>
