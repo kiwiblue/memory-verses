@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { saveUsers, saveCurrentUserId } from '../data/users.js';
 
 const PRESETS = ['#3a8c5c','#2a6ab5','#9a3a3a','#7a5c9a','#9a6c10','#3a7a8c','#555555','#c0392b'];
@@ -18,6 +18,20 @@ function Avatar({ user, onClick, size = 32 }) {
 
 export default function UserPanel({ users, currentUser, onUserChange, onUsersChange, onOpenProfile }) {
   const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('touchstart', handleClick);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('touchstart', handleClick);
+    };
+  }, [open]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', bracket: 'adult', translation: 'kjv', colour: PRESETS[0] });
   const [error, setError] = useState('');
@@ -65,7 +79,7 @@ export default function UserPanel({ users, currentUser, onUserChange, onUsersCha
   }
 
   return (
-    <div className="user-panel-wrap">
+    <div className="user-panel-wrap" ref={wrapRef}>
       {currentUser && <Avatar user={currentUser} onClick={handleToggle} />}
 
       {open && (
