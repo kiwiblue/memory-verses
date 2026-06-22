@@ -24,7 +24,7 @@ import UserPanel from './components/UserPanel.jsx';
 import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 
-const APP_VERSION = '0.5.16';
+const APP_VERSION = '0.5.17';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -245,8 +245,8 @@ export default function App() {
   // Keyboard shortcuts
   useEffect(() => {
     function onKey(e) {
-      if (e.target.tagName === 'INPUT') return;
-      if (e.code === 'Space') { e.preventDefault(); handleFlip(); }
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.code === 'Space' && mode === 'learn') { e.preventDefault(); handleFlip(); }
       if (e.code === 'ArrowRight') goNext();
       if (e.code === 'KeyK') handleMark(1);
       if (e.code === 'KeyL') handleMark(0);
