@@ -26,7 +26,7 @@ export async function onRequestPost({ request, env }) {
 
   // Send via Resend if configured
   if (env.RESEND_API_KEY) {
-    const fromEmail = env.RESEND_FROM_EMAIL || 'Bible Memory Deck <noreply@memory.bible>';
+    const fromEmail = env.RESEND_FROM_EMAIL || 'Memory.bible <noreply@memory.bible>';
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -36,7 +36,7 @@ export async function onRequestPost({ request, env }) {
       body: JSON.stringify({
         from: fromEmail,
         to: email,
-        subject: 'Your Bible Memory Deck reset code',
+        subject: 'Your Memory.bible reset code',
         html: `
           <p>Hi,</p>
           <p>Your password reset code is:</p>

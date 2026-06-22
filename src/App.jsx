@@ -27,7 +27,7 @@ import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 import VerseDeckPanel from './components/VerseDeckPanel.jsx';
 
-const APP_VERSION = '0.5.32';
+const APP_VERSION = '0.5.33';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -368,7 +368,9 @@ export default function App() {
         <UserPanel users={users} currentUser={currentUser}
           onUserChange={handleUserChange} onUsersChange={handleUsersChange}
           onOpenProfile={(u) => setProfileUser(u)} />
-        <div className="ttl">Bible Memory Deck</div>
+        <div className="ttl">
+          <span className="ttl-memory">Memory</span><span className="ttl-dot-bible">.bible</span>
+        </div>
       </div>
 
       {showBracketReminder && (

@@ -24,7 +24,15 @@ body {
 
 /* Header */
 .hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; }
-.ttl { font-size: 15px; font-weight: 500; }
+.ttl { display: flex; align-items: baseline; gap: 0; line-height: 1; }
+.ttl-memory {
+  font-size: 20px; font-weight: 700; letter-spacing: -0.03em;
+  color: #1a1a18;
+}
+.ttl-dot-bible {
+  font-size: 13px; font-weight: 400; letter-spacing: 0.01em;
+  color: #3a8c5c;
+}
 select {
   font-size: 12px; padding: 4px 8px; border-radius: 8px;
   border: 0.5px solid #ccc; background: #f1f0eb; color: #555; cursor: pointer;
