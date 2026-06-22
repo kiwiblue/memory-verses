@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 
 const clean = s => s.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
 
+// Treat trailing punctuation (. , ! ?) as a word terminator
+const endsCommitted = s => /[\s.,!?]$/.test(s);
+
 export default function TestControls({ verse, version, onReveal, onNext, onPrev, hasPrev }) {
-  const [input, setInput]       = useState('');
-  const [feedback, setFeedback] = useState({ text: '', color: '#aaa' });
+  const [input, setInput]   = useState('');
   const [hintWord, setHintWord] = useState(null);
 
   const verseText = verse[version] || '';
@@ -12,7 +14,6 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
 
   useEffect(() => {
     setInput('');
-    setFeedback({ text: '', color: '#aaa' });
     setHintWord(null);
   }, [verse.id, version]);
 
@@ -31,22 +32,6 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
       const hintIndex = targetWords.indexOf(hintWord);
       if (cnt > hintIndex) setHintWord(null);
     }
-
-    if (val.trim().length < 6) {
-      setFeedback({ text: '', color: '#aaa' });
-      return;
-    }
-    const tgt = clean(verseText);
-    const given = clean(val);
-    const hits = given.filter((w, j) => w === tgt[j]).length;
-    const pct = Math.round((hits / Math.max(given.length, 1)) * 100);
-    if (pct >= 85) {
-      setFeedback({ text: `${pct}% — excellent!`, color: '#2d7a52' });
-    } else if (pct >= 60) {
-      setFeedback({ text: `${pct}% — keep going`, color: '#9a6c10' });
-    } else {
-      setFeedback({ text: `${pct}% — try again`, color: '#888' });
-    }
   }
 
   function handleHint() {
@@ -58,14 +43,17 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
   }
 
   // Word-by-word colour chips shown below the input
-  const inputEndsWithSpace = /\s$/.test(input);
+  const committed = endsCommitted(input);
   const wordChips = typedWords.map((w, i) => {
     const isLast = i === typedWords.length - 1;
-    const committed = !isLast || inputEndsWithSpace;
+    const isCommitted = !isLast || committed;
     const isCorrect = w === targetWords[i];
-    const cls = !committed ? 'ti-word-partial' : isCorrect ? 'ti-word-ok' : 'ti-word-err';
+    const cls = !isCommitted ? 'ti-word-partial' : isCorrect ? 'ti-word-ok' : 'ti-word-err';
     return <span key={i} className={cls}>{w}</span>;
   });
+
+  const fbText = allDone ? 'Congratulations!' : progress > 0 ? `${progress}% complete` : '';
+  const fbColor = allDone ? '#2d7a52' : '#bbb';
 
   return (
     <div className="ti">
@@ -85,7 +73,7 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
         <div className="ti-progress-fill" style={{ width: `${progress}%` }} />
       </div>
 
-      <div className="fb" style={{ color: feedback.color }}>{feedback.text || (allDone ? '✓ Complete!' : '')}</div>
+      <div className="fb" style={{ color: fbColor }}>{fbText}</div>
 
       <div className="hint-row">
         {hintWord
