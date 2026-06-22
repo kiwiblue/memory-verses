@@ -26,7 +26,7 @@ export async function onRequestPost({ request, env }) {
 
   // Send via Resend if configured
   if (env.RESEND_API_KEY) {
-    const fromEmail = env.RESEND_FROM_EMAIL || 'Memory Verses <noreply@resend.dev>';
+    const fromEmail = env.RESEND_FROM_EMAIL || 'Bible Memory Deck <noreply@memory.bible>';
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -36,13 +36,13 @@ export async function onRequestPost({ request, env }) {
       body: JSON.stringify({
         from: fromEmail,
         to: email,
-        subject: 'Your Memory Verses reset code',
+        subject: 'Your Bible Memory Deck reset code',
         html: `
           <p>Hi,</p>
           <p>Your password reset code is:</p>
           <h2 style="letter-spacing:6px;font-family:monospace">${code}</h2>
-          <p>Enter this code in the app. It expires in 1 hour.</p>
-          <p>If you didn't request this, you can ignore this email.</p>
+          <p>Enter this code at <a href="https://memory.bible">memory.bible</a>. It expires in 1 hour.</p>
+          <p>If you didn't request this, you can safely ignore this email.</p>
         `,
       }),
     }).catch(() => {}); // fire-and-forget; don't fail the request if Resend is down
