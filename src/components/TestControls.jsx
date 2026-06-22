@@ -58,11 +58,13 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
   }
 
   // Word-by-word colour chips shown below the input
+  const inputEndsWithSpace = /\s$/.test(input);
   const wordChips = typedWords.map((w, i) => {
+    const isLast = i === typedWords.length - 1;
+    const committed = !isLast || inputEndsWithSpace;
     const isCorrect = w === targetWords[i];
-    return (
-      <span key={i} className={isCorrect ? 'ti-word-ok' : 'ti-word-err'}>{w}</span>
-    );
+    const cls = !committed ? 'ti-word-partial' : isCorrect ? 'ti-word-ok' : 'ti-word-err';
+    return <span key={i} className={cls}>{w}</span>;
   });
 
   return (

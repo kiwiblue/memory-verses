@@ -150,6 +150,10 @@ input[type=text] {
   font-size: 12px; padding: 2px 6px; border-radius: 4px;
   background: #fdf0ee; color: #c0392b;
 }
+.ti-word-partial {
+  font-size: 12px; padding: 2px 6px; border-radius: 4px;
+  background: #f1f0eb; color: #999;
+}
 
 /* Verse progress bar */
 .ti-progress-bar {
