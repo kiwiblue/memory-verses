@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { saveUsers, saveCurrentUserId } from '../data/users.js';
 import AuthPanel from './AuthPanel.jsx';
 import { PATTERNS, avatarStyle } from '../data/avatarStyle.js';
+import { isPushSupported, getSubscriptionState, subscribePush, unsubscribePush } from '../data/pushNotifications.js';
 
 const PRESETS = ['#3a8c5c','#2a6ab5','#9a3a3a','#7a5c9a','#9a6c10','#3a7a8c','#555555','#c0392b'];
 const TRANSLATIONS = [
@@ -32,6 +33,12 @@ export default function ProfileModal({ user, users, stats, auth, syncStatus, las
   const [translation, setTranslation] = useState(user.translation || 'kjv');
   const [deleteStep, setDeleteStep]   = useState(0);
   const [nameError, setNameError]     = useState('');
+  const [pushState, setPushState]     = useState('loading'); // loading | unsupported | unsubscribed | subscribed | denied
+  const [pushBusy, setPushBusy]       = useState(false);
+
+  useEffect(() => {
+    getSubscriptionState().then(setPushState);
+  }, []);
 
   const canDelete = users.length > 1;
 
@@ -175,6 +182,43 @@ export default function ProfileModal({ user, users, stats, auth, syncStatus, las
             onUsersChange={onUsersChange}
           />
         </div>
+
+        {/* Push notifications */}
+        {auth?.token && isPushSupported() && pushState !== 'loading' && (
+          <div className="profile-field">
+            <label className="profile-label">Reminders</label>
+            {pushState === 'denied' ? (
+              <div className="profile-field-hint">Notifications are blocked in your browser settings.</div>
+            ) : (
+              <div className="push-toggle-row">
+                <span className="push-toggle-label">
+                  {pushState === 'subscribed' ? 'Daily reminders enabled' : 'Daily reminders off'}
+                </span>
+                <button
+                  className={`push-toggle-btn${pushState === 'subscribed' ? ' on' : ''}`}
+                  disabled={pushBusy}
+                  onClick={async () => {
+                    setPushBusy(true);
+                    try {
+                      if (pushState === 'subscribed') {
+                        await unsubscribePush(auth.token);
+                        setPushState('unsubscribed');
+                      } else {
+                        await subscribePush(auth.token);
+                        setPushState('subscribed');
+                      }
+                    } catch {
+                      setPushState(await getSubscriptionState());
+                    }
+                    setPushBusy(false);
+                  }}
+                >
+                  {pushState === 'subscribed' ? 'On' : 'Off'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Delete */}
         {canDelete && (

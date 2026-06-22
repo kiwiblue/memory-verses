@@ -426,6 +426,16 @@ input[type=text] {
 .merge-btn-title { font-size: 14px; font-weight: 600; color: #1a1a18; }
 .merge-btn-desc { font-size: 12px; color: #999; }
 
+.push-toggle-row { display: flex; align-items: center; justify-content: space-between; }
+.push-toggle-label { font-size: 13px; color: #555; }
+.push-toggle-btn {
+  padding: 4px 14px; border-radius: 20px; border: 0.5px solid #ccc;
+  background: #f1f0eb; color: #888; font-size: 12px; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.push-toggle-btn.on { background: #3a8c5c; border-color: #3a8c5c; color: #fff; }
+.push-toggle-btn:disabled { opacity: .5; cursor: default; }
+
 .profile-delete-section { padding: 28px 16px 0; }
 
 /* Tighter tab font inside the profile modal bracket selector */
