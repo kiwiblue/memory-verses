@@ -100,10 +100,10 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
   }
 
   // Word-by-word colour chips shown below the input
-  const committed = endsCommitted(input);
+  const inputCommitted = endsCommitted(input);
   const wordChips = typedWords.map((w, i) => {
     const isLast = i === typedWords.length - 1;
-    const isCommitted = !isLast || committed;
+    const isCommitted = !isLast || inputCommitted;
     const isCorrect = w === targetWords[i];
     // Green as soon as exact match, red only when committed+wrong, grey otherwise
     const cls = isCorrect ? 'ti-word-ok' : isCommitted ? 'ti-word-err' : 'ti-word-partial';
