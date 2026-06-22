@@ -15,6 +15,7 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
 
   const verseText    = verse[version] || '';
   const targetWords  = clean(verseText);
+  const targetRaw    = verseText.split(/\s+/).filter(Boolean); // original casing + punctuation
   const typedWords   = clean(input);
   const correctCount = typedWords.filter((w, i) => w === targetWords[i]).length;
   const allDone      = correctCount >= targetWords.length && targetWords.length > 0;
@@ -106,7 +107,8 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
     const isCorrect = w === targetWords[i];
     // Green as soon as exact match, red only when committed+wrong, grey otherwise
     const cls = isCorrect ? 'ti-word-ok' : isCommitted ? 'ti-word-err' : 'ti-word-partial';
-    return <span key={i} className={cls}>{w}</span>;
+    const display = isCorrect ? (targetRaw[i] || w) : w;
+    return <span key={i} className={cls}>{display}</span>;
   });
 
   const fbText = allDone ? 'Congratulations!' : progress > 0 ? `${progress}% complete` : '';
