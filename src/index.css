@@ -98,9 +98,78 @@ select {
 .revise-empty-title { font-size: 17px; font-weight: 600; margin-bottom: 0.4rem; }
 .revise-empty-sub { font-size: 13px; color: #888; margin-bottom: 1.25rem; line-height: 1.5; }
 
-.remove-row { text-align: center; margin: 0.5rem 0 0; }
+.remove-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0.5rem 0 0; flex-wrap: wrap; }
 .remove-verse-btn { background: none; border: none; font-size: 11px; color: #ccc; cursor: pointer; padding: 4px 8px; }
 .remove-verse-btn:hover { color: #c0392b; }
+.remove-confirm-label { font-size: 11px; color: #888; }
+.remove-confirm-yes { font-size: 11px; padding: 3px 10px; border-radius: 6px; border: 0.5px solid #f5b8b0; background: none; color: #c0392b; cursor: pointer; }
+.remove-confirm-yes:hover { background: #fdf0ee; }
+.remove-confirm-no { font-size: 11px; padding: 3px 10px; border-radius: 6px; border: 0.5px solid #ddd; background: none; color: #aaa; cursor: pointer; }
+.remove-confirm-no:hover { background: #f5f5f2; }
+
+/* Deck management */
+.deck-manage-row { text-align: center; margin-top: 6px; }
+.deck-manage-btn {
+  background: none; border: none; font-size: 12px; color: #bbb;
+  cursor: pointer; padding: 4px 8px; text-decoration: underline;
+  text-decoration-color: #ddd;
+}
+.deck-manage-btn:hover { color: #555; }
+
+.deck-list { padding: 8px 0; max-height: 60vh; overflow-y: auto; }
+.deck-empty { text-align: center; padding: 2rem; font-size: 13px; color: #aaa; }
+.deck-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; border-bottom: 0.5px solid #f0f0ee;
+  cursor: grab; transition: background .1s;
+}
+.deck-row:hover { background: #fafaf8; }
+.deck-row-dragging { background: #f0f9f4; opacity: .8; }
+.deck-drag { font-size: 16px; color: #ccc; cursor: grab; user-select: none; flex-shrink: 0; }
+.deck-info { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.deck-ref { font-size: 13px; font-weight: 500; }
+.deck-badge { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 500; }
+.deck-badge-unseen  { background: #f1f0eb; color: #888; }
+.deck-badge-learning { background: #fef6e4; color: #9a6c10; }
+.deck-badge-mastered { background: #edf7f1; color: #3a8c5c; }
+.deck-remove-btn {
+  flex-shrink: 0; background: none; border: none; color: #ccc;
+  font-size: 14px; cursor: pointer; padding: 2px 4px; border-radius: 4px;
+  transition: color .15s;
+}
+.deck-remove-btn:hover { color: #c0392b; }
+.deck-confirm { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.deck-confirm-label { font-size: 11px; color: #888; }
+.deck-confirm-yes {
+  font-size: 11px; padding: 2px 8px; border-radius: 5px;
+  border: 0.5px solid #f5b8b0; background: none; color: #c0392b; cursor: pointer;
+}
+.deck-confirm-yes:hover { background: #fdf0ee; }
+.deck-confirm-no {
+  font-size: 11px; padding: 2px 8px; border-radius: 5px;
+  border: 0.5px solid #ddd; background: none; color: #aaa; cursor: pointer;
+}
+
+.deck-mirror-section { padding: 0 0 16px; }
+.deck-mirror-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px 10px; cursor: pointer;
+}
+.deck-mirror-title { font-size: 13px; font-weight: 500; }
+.deck-mirror-chevron { font-size: 10px; color: #aaa; }
+.deck-mirror-body { padding: 0 16px 4px; display: flex; flex-direction: column; gap: 10px; }
+.deck-mirror-note { font-size: 11px; color: #aaa; line-height: 1.5; }
+.deck-mirror-row { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.deck-mirror-row input { cursor: pointer; }
+.deck-mirror-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: #fff; flex-shrink: 0;
+}
+.deck-mirror-name { font-size: 13px; flex: 1; }
+.deck-mirror-bracket { font-size: 11px; color: #aaa; text-transform: capitalize; }
+.deck-mirror-btn { margin-top: 4px; }
+.deck-mirror-done { font-size: 13px; color: #3a8c5c; font-weight: 500; padding: 6px 0; }
 
 .app-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 0.5px solid #e8e7e2; text-align: center; }
 .footer-attribution { font-size: 9px; color: #bbb; line-height: 1.5; margin-bottom: 0.4rem; }

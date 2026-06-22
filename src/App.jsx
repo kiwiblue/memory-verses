@@ -7,11 +7,12 @@ import { loadAuth, saveAuth, clearAuth } from './data/auth.js';
 import { pushSync } from './data/syncService.js';
 import { loadProgress, saveProgress, getEntry } from './data/progress.js';
 import { recordAttempt, buildDailyQueue, progressStats } from './data/spacedRepetition.js';
-import { loadCustomVerses, addCustomVerse, removeCustomVerse } from './data/customVerses.js';
-import { loadHiddenVerseIds, hideVerseId } from './data/hiddenVerses.js';
+import { loadCustomVerses, addCustomVerse, removeCustomVerse, saveCustomVerses } from './data/customVerses.js';
+import { loadHiddenVerseIds, hideVerseId, saveHiddenVerseIds } from './data/hiddenVerses.js';
 import { loadVerseCache, saveVerseCache, mergeVerseIntoCache } from './data/verseCache.js';
 import { fetchVerse } from './api/bible.js';
 import { appendReviseLog } from './data/reviseLog.js';
+import { loadVerseOrder, saveVerseOrder } from './data/verseOrder.js';
 
 import FlipCard from './components/FlipCard.jsx';
 import ModeTabs from './components/ModeTabs.jsx';
@@ -24,8 +25,9 @@ import VersionSelector from './components/VersionSelector.jsx';
 import UserPanel from './components/UserPanel.jsx';
 import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
+import VerseDeckPanel from './components/VerseDeckPanel.jsx';
 
-const APP_VERSION = '0.5.27';
+const APP_VERSION = '0.5.28';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -72,6 +74,10 @@ export default function App() {
   const [hiddenIds, setHiddenIds]           = useState(() => loadHiddenVerseIds(initUser().id));
   const [verseCache, setVerseCache]         = useState(() => loadVerseCache());
 
+  const [verseOrder, setVerseOrder]   = useState(() => loadVerseOrder(initUser().id));
+  const [showDeckPanel, setShowDeckPanel] = useState(false);
+  const [removeConfirm, setRemoveConfirm] = useState(false);
+
   const [profileUser, setProfileUser] = useState(null);
   const [auth, setAuth]               = useState(loadAuth);
   const [syncStatus, setSyncStatus]   = useState(null); // null | 'syncing' | 'synced' | 'error'
@@ -84,13 +90,19 @@ export default function App() {
     return u.bracket_updated && (Date.now() - u.bracket_updated) > 365 * 24 * 60 * 60 * 1000;
   });
 
-  // All eligible verses merged with cached text, hidden ones removed
-  const allVerses = useMemo(() =>
-    [...VERSES, ...customVerses]
+  // All eligible verses merged with cached text, hidden ones removed, custom order applied
+  const allVerses = useMemo(() => {
+    const base = [...VERSES, ...customVerses]
       .filter(v => !hiddenIds.has(v.id))
-      .map(v => ({ ...v, ...(verseCache[v.reference] || {}) })),
-    [customVerses, hiddenIds, verseCache]
-  );
+      .map(v => ({ ...v, ...(verseCache[v.reference] || {}) }));
+    if (verseOrder.length === 0) return base;
+    const orderMap = new Map(verseOrder.map((id, i) => [String(id), i]));
+    return [...base].sort((a, b) => {
+      const ai = orderMap.has(String(a.id)) ? orderMap.get(String(a.id)) : Infinity;
+      const bi = orderMap.has(String(b.id)) ? orderMap.get(String(b.id)) : Infinity;
+      return ai - bi;
+    });
+  }, [customVerses, hiddenIds, verseCache, verseOrder]);
 
   // Daily queue (learn mode) — recomputed when progress or verses change
   const dailyQueue = useMemo(() =>
@@ -195,6 +207,9 @@ export default function App() {
   const handleFlip   = useCallback(() => { setIsFlipped(f => !f); }, []);
   const handleReveal = useCallback(() => { setIsFlipped(true); }, []);
 
+  // Reset remove confirm whenever the active verse changes
+  useEffect(() => { setRemoveConfirm(false); }, [verse?.id]);
+
   const handleUserChange = useCallback((user) => {
     setCurrentUser(user);
     saveCurrentUserId(user.id);
@@ -203,9 +218,11 @@ export default function App() {
     setCustomVerses(loadCustomVerses(user.id));
     setHiddenIds(loadHiddenVerseIds(user.id));
     setVersion(user.translation || 'kjv');
+    setVerseOrder(loadVerseOrder(user.id));
     setQueueIndex(0);
     setBrowseIndex(0);
     setIsFlipped(false);
+    setRemoveConfirm(false);
     if (user.bracket && user.bracket !== 'adult') {
       const msPerYear = 365 * 24 * 60 * 60 * 1000;
       setShowBracketReminder(user.bracket_updated && (Date.now() - user.bracket_updated) > msPerYear);
@@ -243,6 +260,27 @@ export default function App() {
     saveUsers(updated);
   }, []);
 
+  const handleReorderDeck = useCallback((orderedIds) => {
+    setVerseOrder(orderedIds);
+    saveVerseOrder(currentUser.id, orderedIds);
+  }, [currentUser.id]);
+
+  const handleRemoveVerseById = useCallback((verse) => {
+    if (verse.custom) {
+      setCustomVerses(removeCustomVerse(currentUser.id, verse.id));
+    } else {
+      setHiddenIds(new Set(hideVerseId(currentUser.id, verse.id)));
+    }
+  }, [currentUser.id]);
+
+  const handleMirrorDeck = useCallback((targetUserIds) => {
+    targetUserIds.forEach(uid => {
+      saveCustomVerses(uid, customVerses);
+      saveHiddenVerseIds(uid, hiddenIds);
+      saveVerseOrder(uid, verseOrder);
+    });
+  }, [customVerses, hiddenIds, verseOrder]);
+
   // Keyboard shortcuts
   useEffect(() => {
     function onKey(e) {
@@ -267,6 +305,19 @@ export default function App() {
 
   return (
     <>
+      {showDeckPanel && (
+        <VerseDeckPanel
+          verses={allVerses}
+          progress={progress}
+          currentUser={currentUser}
+          users={users}
+          onReorder={handleReorderDeck}
+          onRemoveVerse={handleRemoveVerseById}
+          onMirror={handleMirrorDeck}
+          onClose={() => setShowDeckPanel(false)}
+        />
+      )}
+
       {profileUser && (
         <ProfileModal
           user={profileUser}
@@ -355,14 +406,28 @@ export default function App() {
           )}
 
           <div className="remove-row">
-            <button className="remove-verse-btn" onClick={handleRemoveVerse}>
-              Remove from my deck
-            </button>
+            {removeConfirm ? (
+              <>
+                <span className="remove-confirm-label">Remove this verse?</span>
+                <button className="remove-confirm-yes" onClick={() => { handleRemoveVerse(); setRemoveConfirm(false); }}>Yes, remove</button>
+                <button className="remove-confirm-no" onClick={() => setRemoveConfirm(false)}>Cancel</button>
+              </>
+            ) : (
+              <button className="remove-verse-btn" onClick={() => setRemoveConfirm(true)}>
+                Remove from my deck
+              </button>
+            )}
           </div>
         </>
       )}
 
       <StatPills stats={stats} />
+
+      <div className="deck-manage-row">
+        <button className="deck-manage-btn" onClick={() => setShowDeckPanel(true)}>
+          Manage my deck ({allVerses.length})
+        </button>
+      </div>
 
       <AddVersePanel allVerses={allVerses} customVerses={customVerses}
         currentUser={currentUser} preferredVersion={version} onAddVerse={handleAddVerse} />
