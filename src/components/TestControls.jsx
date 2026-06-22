@@ -11,6 +11,10 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
 
   const verseText = verse[version] || '';
   const targetWords = clean(verseText);
+  const typedWords = clean(input);
+  const correctCount = typedWords.filter((w, i) => w === targetWords[i]).length;
+  const allDone = correctCount >= targetWords.length && targetWords.length > 0;
+  const progress = targetWords.length > 0 ? Math.round((correctCount / targetWords.length) * 100) : 0;
 
   useEffect(() => {
     setInput('');
@@ -21,11 +25,6 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
   useEffect(() => {
     if (allDone) onReveal();
   }, [allDone]);
-
-  const typedWords = clean(input);
-  const correctCount = typedWords.filter((w, i) => w === targetWords[i]).length;
-  const allDone = correctCount >= targetWords.length && targetWords.length > 0;
-  const progress = targetWords.length > 0 ? Math.round((correctCount / targetWords.length) * 100) : 0;
 
   function handleChange(e) {
     const val = e.target.value;
