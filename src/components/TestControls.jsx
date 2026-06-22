@@ -48,7 +48,8 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
     const isLast = i === typedWords.length - 1;
     const isCommitted = !isLast || committed;
     const isCorrect = w === targetWords[i];
-    const cls = !isCommitted ? 'ti-word-partial' : isCorrect ? 'ti-word-ok' : 'ti-word-err';
+    // Green as soon as exact match, red only when committed+wrong, grey otherwise
+    const cls = isCorrect ? 'ti-word-ok' : isCommitted ? 'ti-word-err' : 'ti-word-partial';
     return <span key={i} className={cls}>{w}</span>;
   });
 
