@@ -12,9 +12,10 @@ function verseStatus(progress, verseId) {
 }
 
 export default function VerseDeckPanel({
-  verses, progress, currentUser, users,
-  onReorder, onRemoveVerse, onMirror, onClose,
+  verses, progress, dailyQueue, currentUser, users,
+  onReorder, onRemoveVerse, onLearnNow, onMirror, onClose,
 }) {
+  const queueIds = new Set((dailyQueue || []).map(v => String(v.id)));
   const [list, setList]               = useState(verses);
   const [confirmId, setConfirmId]     = useState(null);   // verse id awaiting remove confirm
   const [mirrorOpen, setMirrorOpen]   = useState(false);
@@ -78,7 +79,8 @@ export default function VerseDeckPanel({
             return list.map((verse, i) => {
             const status = verseStatus(progress, verse.id);
             const isConfirming = confirmId === verse.id;
-            const isUpNext = i === upNextIdx;
+            const inQueue = queueIds.has(String(verse.id));
+            const isUpNext = !inQueue && i === upNextIdx;
             return (
               <div
                 key={verse.id}
@@ -92,9 +94,11 @@ export default function VerseDeckPanel({
                 <span className="deck-drag">⠿</span>
                 <div className="deck-info">
                   <div className="deck-ref">{verse.reference}</div>
-                  {isUpNext
-                    ? <span className="deck-badge deck-badge-upnext">Up Next</span>
-                    : <span className={`deck-badge ${STATUS_CLASS[status]}`}>{STATUS_LABEL[status]}</span>
+                  {inQueue
+                    ? <span className="deck-badge deck-badge-today">Today</span>
+                    : isUpNext
+                      ? <span className="deck-badge deck-badge-upnext">Up Next</span>
+                      : <span className={`deck-badge ${STATUS_CLASS[status]}`}>{STATUS_LABEL[status]}</span>
                   }
                 </div>
                 {isConfirming ? (
@@ -104,7 +108,16 @@ export default function VerseDeckPanel({
                     <button className="deck-confirm-no" onClick={() => setConfirmId(null)}>No</button>
                   </div>
                 ) : (
-                  <button className="deck-remove-btn" onClick={() => setConfirmId(verse.id)}>✕</button>
+                  <div className="deck-row-actions">
+                    {!inQueue && (
+                      <button
+                        className="deck-learn-btn"
+                        title="Add to today's queue"
+                        onClick={() => onLearnNow(verse)}
+                      >▶</button>
+                    )}
+                    <button className="deck-remove-btn" onClick={() => setConfirmId(verse.id)}>✕</button>
+                  </div>
                 )}
               </div>
             );

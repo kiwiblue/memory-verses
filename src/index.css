@@ -98,7 +98,9 @@ select {
 .qc-unseen  { background: #f1f0eb; color: #888; }
 .qc-learning { background: #fef6e4; color: #9a6c10; }
 .qc-mastered { background: #edf7f1; color: #3a8c5c; }
-.qc-browse { margin-top: 0.5rem; }
+.qc-actions { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 0.5rem; }
+.qc-browse { width: 100%; max-width: 240px; }
+.qc-again  { width: 100%; max-width: 240px; font-size: 12px; color: #888; }
 
 /* Revise empty state */
 .revise-empty { text-align: center; padding: 2.5rem 1rem; }
@@ -141,6 +143,14 @@ select {
 .deck-badge-learning { background: #fef6e4; color: #9a6c10; }
 .deck-badge-mastered { background: #edf7f1; color: #3a8c5c; }
 .deck-badge-upnext   { background: #e8f0fb; color: #2a6ab5; }
+.deck-badge-today    { background: #edf7f1; color: #2d7a52; font-weight: 600; }
+.deck-row-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.deck-learn-btn {
+  background: none; border: none; font-size: 10px; color: #3a8c5c;
+  cursor: pointer; padding: 4px 6px; border-radius: 4px; opacity: 0.6;
+  transition: opacity .15s, background .15s;
+}
+.deck-learn-btn:hover { opacity: 1; background: #edf7f1; }
 .deck-remove-btn {
   flex-shrink: 0; background: none; border: none; color: #ccc;
   font-size: 14px; cursor: pointer; padding: 2px 4px; border-radius: 4px;

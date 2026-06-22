@@ -1,4 +1,4 @@
-export default function QueueComplete({ stats, onBrowse }) {
+export default function QueueComplete({ stats, onBrowse, onRestart }) {
   return (
     <div className="queue-complete">
       <div className="qc-icon">✓</div>
@@ -9,7 +9,10 @@ export default function QueueComplete({ stats, onBrowse }) {
         <span className="qc-pill qc-learning">{stats.learning} learning</span>
         <span className="qc-pill qc-mastered">{stats.mastered} mastered</span>
       </div>
-      <button className="btn qc-browse" onClick={onBrowse}>Browse full deck →</button>
+      <div className="qc-actions">
+        <button className="btn qc-browse" onClick={onBrowse}>Revise full deck →</button>
+        <button className="btn qc-again" onClick={onRestart}>Practice again ↺</button>
+      </div>
     </div>
   );
 }

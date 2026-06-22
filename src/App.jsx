@@ -27,7 +27,7 @@ import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 import VerseDeckPanel from './components/VerseDeckPanel.jsx';
 
-const APP_VERSION = '0.5.42';
+const APP_VERSION = '0.5.43';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -126,6 +126,12 @@ export default function App() {
     buildDailyQueue(allVerses, progress, currentUser.bracket || 'adult'),
     [allVerses, progress, currentUser.bracket]
   );
+
+  // Capture the queue at session start so it can be replayed after completion
+  const sessionQueueRef = useRef([]);
+  useEffect(() => {
+    if (dailyQueue.length > 0) sessionQueueRef.current = dailyQueue;
+  }, [dailyQueue]);
 
   // Revise mode only shows verses the user has started (learning or mastered)
   const reviseVerses = useMemo(() =>
@@ -290,6 +296,29 @@ export default function App() {
     }
   }, [currentUser.id]);
 
+  const handleLearnNow = useCallback((verse) => {
+    setProgress(p => ({
+      ...p,
+      [verse.id]: {
+        ...(p[verse.id] || {}),
+        status: 'learning',
+        next_review: Date.now() - 1,
+      },
+    }));
+  }, []);
+
+  const handleRestartQueue = useCallback(() => {
+    const now = Date.now() - 1;
+    setProgress(p => {
+      const updates = {};
+      for (const v of sessionQueueRef.current) {
+        if (p[v.id]) updates[v.id] = { ...p[v.id], next_review: now };
+      }
+      return { ...p, ...updates };
+    });
+    setQueueIndex(0);
+  }, []);
+
   const handleMirrorDeck = useCallback((targetUserIds) => {
     targetUserIds.forEach(uid => {
       saveCustomVerses(uid, customVerses);
@@ -326,10 +355,12 @@ export default function App() {
         <VerseDeckPanel
           verses={allVerses}
           progress={progress}
+          dailyQueue={dailyQueue}
           currentUser={currentUser}
           users={users}
           onReorder={handleReorderDeck}
           onRemoveVerse={handleRemoveVerseById}
+          onLearnNow={handleLearnNow}
           onMirror={handleMirrorDeck}
           onClose={() => setShowDeckPanel(false)}
         />
@@ -391,7 +422,7 @@ export default function App() {
       <ModeTabs mode={mode} onChange={handleModeChange} />
 
       {queueDone ? (
-        <QueueComplete stats={stats} onBrowse={() => handleModeChange('revise')} />
+        <QueueComplete stats={stats} onBrowse={() => handleModeChange('revise')} onRestart={handleRestartQueue} />
       ) : mode === 'revise' && reviseVerses.length === 0 ? (
         <div className="revise-empty">
           <div className="revise-empty-icon">📖</div>
