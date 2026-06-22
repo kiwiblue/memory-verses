@@ -27,7 +27,7 @@ import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 import VerseDeckPanel from './components/VerseDeckPanel.jsx';
 
-const APP_VERSION = '0.5.29';
+const APP_VERSION = '0.5.30';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -399,7 +399,7 @@ export default function App() {
           {mode === 'revise' && (
             <TestControls
               verse={verse} version={version}
-              onReveal={handleReveal} onNext={goNext}
+              isFlipped={isFlipped} onFlip={handleFlip} onReveal={handleReveal} onNext={goNext}
               onPrev={goPrev} hasPrev={browseIndex > 0}
               onAttemptEnd={entry => appendReviseLog(currentUser.id, entry)}
             />

@@ -9,7 +9,7 @@ function freshMetrics() {
   return { hintsStart: 0, hintsMid: 0, wrongCommits: 0, startedAt: null, completed: false };
 }
 
-export default function TestControls({ verse, version, onReveal, onNext, onPrev, hasPrev, onAttemptEnd }) {
+export default function TestControls({ verse, version, isFlipped, onFlip, onReveal, onNext, onPrev, hasPrev, onAttemptEnd }) {
   const [input, setInput]       = useState('');
   const [hintWord, setHintWord] = useState(null);
 
@@ -145,7 +145,9 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
         <button className="btn btn-sk" onClick={onPrev} disabled={!hasPrev}>← Back</button>
         {allDone
           ? <button className="btn btn-ok" onClick={onNext}>Continue →</button>
-          : <button className="btn btn-learn" onClick={onReveal}>Reveal</button>
+          : isFlipped
+            ? <button className="btn btn-learn" onClick={onFlip}>Hide</button>
+            : <button className="btn btn-learn" onClick={onReveal}>Reveal</button>
         }
         <button className="btn btn-sk" onClick={onNext}>Next →</button>
       </div>
