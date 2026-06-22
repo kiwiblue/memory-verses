@@ -130,13 +130,27 @@ input[type=text] {
 }
 
 /* Textarea for revise mode */
+.ti-textarea-wrap { position: relative; }
 .ti-textarea {
-  width: 100%; padding: 10px; border-radius: 8px; border: 0.5px solid #ddd;
+  width: 100%; padding: 10px 10px 28px 10px; border-radius: 8px; border: 0.5px solid #ddd;
   font-size: 14px; line-height: 1.5; font-family: system-ui, -apple-system, sans-serif;
   color: #1a1a18; background: #f9f9f8; resize: none; outline: none;
   display: block; min-height: 68px;
 }
 .ti-textarea:focus { border-color: #b6d9c7; }
+.ti-hint-btn {
+  position: absolute; bottom: 7px; right: 8px;
+  background: none; border: 0.5px solid #ccc; border-radius: 5px;
+  font-size: 11px; color: #aaa; padding: 2px 8px; cursor: pointer;
+  transition: border-color .15s, color .15s; line-height: 1.4;
+}
+.ti-hint-btn:hover { border-color: #999; color: #555; }
+.ti-hint-word {
+  position: absolute; bottom: 8px; right: 8px;
+  font-size: 11px; color: #3a8c5c; font-weight: 600;
+  background: #edf7f1; border-radius: 5px; padding: 2px 8px; line-height: 1.4;
+  pointer-events: none;
+}
 
 /* Coloured word chips */
 .ti-words {
@@ -165,10 +179,6 @@ input[type=text] {
 }
 
 .fb { font-size: 12px; text-align: center; min-height: 18px; color: #aaa; }
-.hint-row { display: flex; align-items: flex-start; gap: 8px; min-height: 24px; }
-.hint-text { flex: 1; font-size: 13px; color: #777; font-style: italic; line-height: 1.5; }
-.hint-btn { flex-shrink: 0; background: none; border: 0.5px solid #ccc; border-radius: 6px; font-size: 11px; color: #999; padding: 3px 10px; cursor: pointer; white-space: nowrap; transition: border-color .15s, color .15s; }
-.hint-btn:hover { border-color: #aaa; color: #555; }
 .test-btns { display: flex; gap: 8px; }
 
 /* Stats */

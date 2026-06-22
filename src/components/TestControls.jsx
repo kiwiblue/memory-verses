@@ -62,13 +62,20 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
 
   return (
     <div className="ti">
-      <textarea
-        className="ti-textarea"
-        placeholder="Type the verse from memory…"
-        value={input}
-        onChange={handleChange}
-        rows={3}
-      />
+      <div className="ti-textarea-wrap">
+        <textarea
+          className="ti-textarea"
+          placeholder="Type the verse from memory…"
+          value={input}
+          onChange={handleChange}
+          rows={3}
+        />
+        {!allDone && verseText && (
+          hintWord
+            ? <span className="ti-hint-word">{hintWord}</span>
+            : <button className="ti-hint-btn" onClick={handleHint}>Hint</button>
+        )}
+      </div>
 
       {typedWords.length > 0 && (
         <div className="ti-words">{wordChips}</div>
@@ -79,15 +86,6 @@ export default function TestControls({ verse, version, onReveal, onNext, onPrev,
       </div>
 
       <div className="fb" style={{ color: fbColor }}>{fbText}</div>
-
-      <div className="hint-row">
-        {hintWord
-          ? <div className="hint-text">Next word: <strong>{hintWord}</strong></div>
-          : !allDone && verseText && (
-              <button className="hint-btn" onClick={handleHint}>Hint</button>
-            )
-        }
-      </div>
 
       <div className="test-btns">
         <button className="btn btn-sk" onClick={onPrev} disabled={!hasPrev}>← Back</button>
