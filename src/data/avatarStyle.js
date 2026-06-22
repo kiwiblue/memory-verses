@@ -15,6 +15,7 @@ export function avatarStyle(colour, patternId) {
   if (p?.svg) {
     style.backgroundImage = `url("data:image/svg+xml,${encodeURIComponent(p.svg)}")`;
     style.backgroundSize = p.size || '8px 8px';
+    style.backgroundBlendMode = 'overlay';
   }
   return style;
 }
