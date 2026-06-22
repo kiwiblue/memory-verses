@@ -27,7 +27,7 @@ import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 import VerseDeckPanel from './components/VerseDeckPanel.jsx';
 
-const APP_VERSION = '0.5.28';
+const APP_VERSION = '0.5.29';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -409,8 +409,8 @@ export default function App() {
             {removeConfirm ? (
               <>
                 <span className="remove-confirm-label">Remove this verse?</span>
-                <button className="remove-confirm-yes" onClick={() => { handleRemoveVerse(); setRemoveConfirm(false); }}>Yes, remove</button>
                 <button className="remove-confirm-no" onClick={() => setRemoveConfirm(false)}>Cancel</button>
+                <button className="remove-confirm-yes" onClick={() => { handleRemoveVerse(); setRemoveConfirm(false); }}>Yes, remove</button>
               </>
             ) : (
               <button className="remove-verse-btn" onClick={() => setRemoveConfirm(true)}>
