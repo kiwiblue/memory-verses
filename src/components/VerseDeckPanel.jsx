@@ -3,6 +3,10 @@ import { useState, useEffect, useRef } from 'react';
 const STATUS_LABEL = { mastered: 'Mastered', learning: 'Learning', unseen: 'New' };
 const STATUS_CLASS = { mastered: 'deck-badge-mastered', learning: 'deck-badge-learning', unseen: 'deck-badge-unseen' };
 
+function firstUnseenIndex(verses, progress) {
+  return verses.findIndex(v => (progress[v.id]?.status || 'unseen') === 'unseen');
+}
+
 function verseStatus(progress, verseId) {
   return progress[verseId]?.status || 'unseen';
 }
@@ -69,9 +73,12 @@ export default function VerseDeckPanel({
           {list.length === 0 && (
             <div className="deck-empty">No verses in your deck yet. Add some below!</div>
           )}
-          {list.map((verse, i) => {
+          {(() => {
+            const upNextIdx = firstUnseenIndex(list, progress);
+            return list.map((verse, i) => {
             const status = verseStatus(progress, verse.id);
             const isConfirming = confirmId === verse.id;
+            const isUpNext = i === upNextIdx;
             return (
               <div
                 key={verse.id}
@@ -85,7 +92,10 @@ export default function VerseDeckPanel({
                 <span className="deck-drag">⠿</span>
                 <div className="deck-info">
                   <div className="deck-ref">{verse.reference}</div>
-                  <span className={`deck-badge ${STATUS_CLASS[status]}`}>{STATUS_LABEL[status]}</span>
+                  {isUpNext
+                    ? <span className="deck-badge deck-badge-upnext">Up Next</span>
+                    : <span className={`deck-badge ${STATUS_CLASS[status]}`}>{STATUS_LABEL[status]}</span>
+                  }
                 </div>
                 {isConfirming ? (
                   <div className="deck-confirm">
@@ -98,7 +108,8 @@ export default function VerseDeckPanel({
                 )}
               </div>
             );
-          })}
+          });
+          })()}
         </div>
 
         {otherUsers.length > 0 && (

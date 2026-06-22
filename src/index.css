@@ -129,9 +129,10 @@ select {
 .deck-info { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .deck-ref { font-size: 13px; font-weight: 500; }
 .deck-badge { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 500; }
-.deck-badge-unseen  { background: #f1f0eb; color: #888; }
+.deck-badge-unseen   { background: #f1f0eb; color: #888; }
 .deck-badge-learning { background: #fef6e4; color: #9a6c10; }
 .deck-badge-mastered { background: #edf7f1; color: #3a8c5c; }
+.deck-badge-upnext   { background: #e8f0fb; color: #2a6ab5; }
 .deck-remove-btn {
   flex-shrink: 0; background: none; border: none; color: #ccc;
   font-size: 14px; cursor: pointer; padding: 2px 4px; border-radius: 4px;

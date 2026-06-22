@@ -27,7 +27,7 @@ import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 import VerseDeckPanel from './components/VerseDeckPanel.jsx';
 
-const APP_VERSION = '0.5.30';
+const APP_VERSION = '0.5.31';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -95,14 +95,31 @@ export default function App() {
     const base = [...VERSES, ...customVerses]
       .filter(v => !hiddenIds.has(v.id))
       .map(v => ({ ...v, ...(verseCache[v.reference] || {}) }));
-    if (verseOrder.length === 0) return base;
-    const orderMap = new Map(verseOrder.map((id, i) => [String(id), i]));
+
+    if (verseOrder.length > 0) {
+      // User has set a custom order via drag/drop — respect it exactly
+      const orderMap = new Map(verseOrder.map((id, i) => [String(id), i]));
+      return [...base].sort((a, b) => {
+        const ai = orderMap.has(String(a.id)) ? orderMap.get(String(a.id)) : Infinity;
+        const bi = orderMap.has(String(b.id)) ? orderMap.get(String(b.id)) : Infinity;
+        return ai - bi;
+      });
+    }
+
+    // Default sort: learning → unseen (custom-added first) → mastered
+    const STATUS_PRI = { learning: 0, unseen: 1, mastered: 2 };
     return [...base].sort((a, b) => {
-      const ai = orderMap.has(String(a.id)) ? orderMap.get(String(a.id)) : Infinity;
-      const bi = orderMap.has(String(b.id)) ? orderMap.get(String(b.id)) : Infinity;
-      return ai - bi;
+      const as = progress[a.id]?.status || 'unseen';
+      const bs = progress[b.id]?.status || 'unseen';
+      if (STATUS_PRI[as] !== STATUS_PRI[bs]) return STATUS_PRI[as] - STATUS_PRI[bs];
+      // Within unseen: custom (user-added) verses rise to the top
+      if (as === 'unseen') {
+        if (a.custom && !b.custom) return -1;
+        if (!a.custom && b.custom) return 1;
+      }
+      return 0;
     });
-  }, [customVerses, hiddenIds, verseCache, verseOrder]);
+  }, [customVerses, hiddenIds, verseCache, verseOrder, progress]);
 
   // Daily queue (learn mode) — recomputed when progress or verses change
   const dailyQueue = useMemo(() =>
