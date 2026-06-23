@@ -140,22 +140,18 @@ function VerseScreen({ selectedId, onSelect, onNext }) {
 
   return (
     <div className="ob-screen">
-      <div className="ob-content ob-content-full">
-        <div className="ob-content-inner">
-          <Logo />
-          <StepDots step={2} />
-          <h2 className="ob-title">Pick your first verse</h2>
-          <p className="ob-note">Choose a verse to start memorising. You can add more later.</p>
-        </div>
+      <div className="ob-content">
+        <Logo />
+        <StepDots step={2} />
+        <h2 className="ob-title">Pick your first verse</h2>
+        <p className="ob-note">Choose a verse to start memorising. You can add more later.</p>
 
-        <div className="ob-verse-search-row">
-          <input
-            className="ob-verse-search"
-            placeholder="Search references…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
+        <input
+          className="ob-verse-search"
+          placeholder="Search references…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
 
         <div className="ob-verse-list">
           {visible.map(v => {
@@ -185,12 +181,10 @@ function VerseScreen({ selectedId, onSelect, onNext }) {
           )}
         </div>
 
-        <div className="ob-verse-footer">
-          <button className="ob-btn-primary" onClick={onNext}>
-            {selectedId ? 'Next →' : 'Skip for now →'}
-          </button>
-          <ObFooter />
-        </div>
+        <button className="ob-btn-primary" onClick={onNext} style={{ marginTop: 16 }}>
+          {selectedId ? 'Next →' : 'Skip for now →'}
+        </button>
+        <ObFooter />
       </div>
     </div>
   );
