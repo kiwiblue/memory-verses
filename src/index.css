@@ -644,12 +644,18 @@ input[type=text] {
 .ob-check { color: #3a8c5c; font-weight: 700; font-size: 14px; margin-left: auto; }
 
 /* Verse picker */
+.ob-verse-search-wrap { position: relative; margin-bottom: 12px; }
 .ob-verse-search {
-  width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
+  width: 100%; padding: 10px 36px 10px 12px; border: 1px solid #ddd; border-radius: 8px;
   font-size: 14px; background: #f9f9f8; outline: none; box-sizing: border-box;
-  margin-bottom: 12px;
 }
 .ob-verse-search:focus { border-color: #3a8c5c; }
+.ob-verse-search-clear {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: #aaa; font-size: 14px; cursor: pointer;
+  padding: 2px 4px; line-height: 1;
+}
+.ob-verse-search-clear:hover { color: #555; }
 .ob-verse-list { display: flex; flex-direction: column; gap: 10px; }
 .ob-verse-card {
   width: 100%; padding: 14px 16px; border: 1.5px solid #e8e8e4; border-radius: 12px;

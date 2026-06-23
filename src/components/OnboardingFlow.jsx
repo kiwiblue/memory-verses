@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { VERSES } from '../data/verses.js';
 import { PATTERNS, avatarStyle } from '../data/avatarStyle.js';
 import { saveAuth } from '../data/auth.js';
+import { fetchKJV } from '../api/bible.js';
 import { APP_VERSION } from '../data/version.js';
 
 function ObFooter() {
@@ -132,11 +133,40 @@ function verseText(v) {
 function VerseScreen({ selectedId, onSelect, onNext }) {
   const [search, setSearch] = useState('');
   const [limit, setLimit] = useState(10);
+  // apiResult: null | 'loading' | { reference, kjv } | 'not-found'
+  const [apiResult, setApiResult] = useState(null);
+  const debounceRef = useRef(null);
 
   const filtered = VERSES.filter(v =>
     v.reference.toLowerCase().includes(search.toLowerCase())
   );
   const visible = search ? filtered : filtered.slice(0, limit);
+
+  // When search changes, debounce an API lookup if curated list has no matches
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    if (!search.trim()) { setApiResult(null); return; }
+    if (filtered.length > 0) { setApiResult(null); return; }
+
+    setApiResult('loading');
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const text = await fetchKJV(search.trim());
+        setApiResult(text ? { reference: search.trim(), kjv: text } : 'not-found');
+      } catch {
+        setApiResult('not-found');
+      }
+    }, 500);
+    return () => clearTimeout(debounceRef.current);
+  }, [search, filtered.length]);
+
+  function clearSearch() {
+    setSearch('');
+    setApiResult(null);
+  }
+
+  // A custom verse from the API — give it a synthetic id (negative) so selection works
+  const API_VERSE_ID = -1;
 
   return (
     <div className="ob-screen">
@@ -146,12 +176,17 @@ function VerseScreen({ selectedId, onSelect, onNext }) {
         <h2 className="ob-title">Pick your first verse</h2>
         <p className="ob-note">Choose a verse to start memorising. You can add more later.</p>
 
-        <input
-          className="ob-verse-search"
-          placeholder="Search references…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
+        <div className="ob-verse-search-wrap">
+          <input
+            className="ob-verse-search"
+            placeholder="Search references…"
+            value={search}
+            onChange={e => { setSearch(e.target.value); setLimit(10); }}
+          />
+          {search && (
+            <button className="ob-verse-search-clear" onClick={clearSearch} aria-label="Clear search">✕</button>
+          )}
+        </div>
 
         <div className="ob-verse-list">
           {visible.map(v => {
@@ -174,6 +209,34 @@ function VerseScreen({ selectedId, onSelect, onNext }) {
               </button>
             );
           })}
+
+          {/* API fallback when no curated results */}
+          {search && filtered.length === 0 && apiResult === 'loading' && (
+            <p className="ob-verse-text ob-verse-text-empty" style={{ textAlign: 'center', padding: '12px 0' }}>Searching…</p>
+          )}
+          {search && filtered.length === 0 && apiResult === 'not-found' && (
+            <p className="ob-verse-text ob-verse-text-empty" style={{ textAlign: 'center', padding: '12px 0' }}>Verse not found. Try a format like "John 3:16".</p>
+          )}
+          {search && filtered.length === 0 && apiResult && apiResult !== 'loading' && apiResult !== 'not-found' && (
+            <button
+              className={`ob-verse-card${selectedId === API_VERSE_ID ? ' ob-verse-selected' : ''}`}
+              onClick={() => {
+                if (selectedId === API_VERSE_ID) {
+                  onSelect(null);
+                } else {
+                  // Pass the api result as a special selection
+                  onSelect(API_VERSE_ID, apiResult);
+                }
+              }}
+            >
+              <div className="ob-verse-card-hdr">
+                <span className="ob-verse-ref">{apiResult.reference}</span>
+                {selectedId === API_VERSE_ID && <span className="ob-check">✓</span>}
+              </div>
+              <p className="ob-verse-text">{apiResult.kjv}</p>
+            </button>
+          )}
+
           {!search && limit < filtered.length && (
             <button className="ob-verse-more" onClick={() => setLimit(l => l + 10)}>
               Show more ({filtered.length - limit} remaining) ↓
@@ -340,6 +403,7 @@ export default function OnboardingFlow({ currentUser, onComplete, onLogin }) {
   const [step, setStep] = useState(0); // 0=welcome 1=translation 2=verse 3=personalise
   const [translation, setTranslation] = useState(currentUser.translation || 'kjv');
   const [selectedVerseId, setSelectedVerseId] = useState(null);
+  const [customVerse, setCustomVerse] = useState(null); // { reference, kjv } for API-fetched verses
   const [name, setName] = useState(currentUser.name === 'Guest' ? '' : currentUser.name);
   const [bracket, setBracket] = useState(currentUser.bracket || 'adult');
   const [colour, setColour] = useState(currentUser.colour || PRESETS[0]);
@@ -355,7 +419,7 @@ export default function OnboardingFlow({ currentUser, onComplete, onLogin }) {
       pattern,
       bracket_updated: Date.now(),
     };
-    onComplete(updatedUser, selectedVerseId, auth || null);
+    onComplete(updatedUser, selectedVerseId, auth || null, customVerse);
   }
 
   if (step === 0) return (
@@ -377,7 +441,10 @@ export default function OnboardingFlow({ currentUser, onComplete, onLogin }) {
   if (step === 2) return (
     <VerseScreen
       selectedId={selectedVerseId}
-      onSelect={setSelectedVerseId}
+      onSelect={(id, apiVerse) => {
+        setSelectedVerseId(id);
+        setCustomVerse(apiVerse || null);
+      }}
       onNext={() => setStep(3)}
     />
   );

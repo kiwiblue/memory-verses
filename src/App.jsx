@@ -298,7 +298,7 @@ export default function App() {
     }
   }, [currentUser.id]);
 
-  const handleOnboardingComplete = useCallback((updatedUser, selectedVerseId, auth) => {
+  const handleOnboardingComplete = useCallback((updatedUser, selectedVerseId, auth, customVerse) => {
     // Save updated user profile
     const updatedUsers = users.map(u => u.id === updatedUser.id ? updatedUser : u);
     saveUsers(updatedUsers);
@@ -306,10 +306,21 @@ export default function App() {
     setCurrentUser(updatedUser);
     setVersion(updatedUser.translation || 'kjv');
 
+    // If user picked a custom (API-fetched) verse, add it to their deck
+    let resolvedVerseId = selectedVerseId;
+    if (selectedVerseId === -1 && customVerse) {
+      const newVerse = addCustomVerse(updatedUser.id, {
+        reference: customVerse.reference,
+        kjv: customVerse.kjv,
+      });
+      setCustomVerses(prev => [...prev, newVerse]);
+      resolvedVerseId = newVerse.id;
+    }
+
     // Move selected verse to front of queue
-    if (selectedVerseId) {
+    if (resolvedVerseId && resolvedVerseId !== -1) {
       const allIds = [...VERSES.map(v => String(v.id))];
-      const ordered = [String(selectedVerseId), ...allIds.filter(id => id !== String(selectedVerseId))];
+      const ordered = [String(resolvedVerseId), ...allIds.filter(id => id !== String(resolvedVerseId))];
       saveVerseOrder(updatedUser.id, ordered);
       setVerseOrder(ordered);
     }
