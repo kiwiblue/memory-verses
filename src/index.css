@@ -775,7 +775,6 @@ input[type=text] {
 }
 .fill-blank-active {
   background: #e6f4ec; border-bottom-color: #3a8c5c;
-  animation: fill-pulse 1.2s ease-in-out infinite;
 }
 @keyframes fill-pulse {
   0%, 100% { border-bottom-color: #3a8c5c; }
@@ -986,3 +985,17 @@ input[type=text] {
   cursor: pointer; transition: border-color .15s, color .15s;
 }
 .learn-repeat-btn:hover { border-color: #3a8c5c; color: #3a8c5c; }
+
+/* Fill option intro wiggle — draws attention for first 2s */
+@keyframes fill-option-wiggle {
+  0%, 100% { transform: translateY(0);    border-color: #ddd; }
+  25%       { transform: translateY(-4px); border-color: #3a8c5c; }
+  75%       { transform: translateY(2px);  border-color: #3a8c5c; }
+}
+.fill-option-intro {
+  animation: fill-option-wiggle .5s ease both;
+  animation-iteration-count: 3;
+}
+/* Stop wiggling after the animation completes (~2s total) */
+.fill-option-intro:hover,
+.fill-option-intro:active { animation: none; }

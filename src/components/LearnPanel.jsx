@@ -52,9 +52,11 @@ export default function LearnPanel({
           />
         </div>
 
-        {!isFlipped && (
-          <p className="learn-hint">Tap the card to see the verse, then read it aloud a few times.</p>
-        )}
+        <p className="learn-hint">
+          {isFlipped
+            ? 'Read it aloud a few times before starting the exercises.'
+            : 'Tap the card to see the verse, then read it aloud a few times.'}
+        </p>
 
         <div className="learn-card-actions">
           <button

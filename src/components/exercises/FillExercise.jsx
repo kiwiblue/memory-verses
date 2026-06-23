@@ -1,18 +1,10 @@
 import { useState, useMemo } from 'react';
 
-// Split verse text into tokens preserving punctuation
 function parseTokens(text) {
   return text.split(/\s+/).filter(Boolean).map(raw => {
     const m = raw.match(/^(.*?)([,;:.!?'"]+)?$/);
     return { raw, word: m?.[1] || raw, punct: m?.[2] || '' };
   });
-}
-
-function blankIndicesFor(tokens, difficulty) {
-  const indices = tokens.map((_, i) => i);
-  if (difficulty === 'hard')     return indices;
-  if (difficulty === 'moderate') return indices.filter(i => i % 2 === 1);
-  return indices.filter(i => (i + 1) % 3 === 0); // every 3rd (positions 2,5,8…)
 }
 
 function shuffle(arr) {
@@ -24,11 +16,26 @@ function shuffle(arr) {
   return a;
 }
 
+function blankIndicesFor(tokens, difficulty) {
+  if (difficulty === 'hard') return tokens.map((_, i) => i);
+
+  // Sentence starters should never be blanked (position 0, or word after sentence-ending punct)
+  const sentenceStarters = new Set([0]);
+  tokens.forEach((token, i) => {
+    if (/[.!?]$/.test(token.punct) && i + 1 < tokens.length) sentenceStarters.add(i + 1);
+  });
+
+  const eligible = tokens.map((_, i) => i).filter(i => !sentenceStarters.has(i));
+  const ratio = difficulty === 'moderate' ? 0.5 : 0.34;
+  const count = Math.max(1, Math.round(eligible.length * ratio));
+  // Randomly pick `count` eligible indices, returned in order
+  return shuffle(eligible).slice(0, count).sort((a, b) => a - b);
+}
+
 function buildOptions(tokens, blankIndices, activeBi, difficulty) {
   const correctWord = tokens[blankIndices[activeBi]].word;
   const optionCount = difficulty === 'easy' ? 2 : 4;
 
-  // Distractors: other blanked words, deduplicated, excluding the correct word
   const pool = [...new Set(
     blankIndices
       .filter(i => tokens[i].word.toLowerCase() !== correctWord.toLowerCase())
@@ -43,13 +50,14 @@ const DIFFICULTY_LABEL = { easy: 'Easy', moderate: 'Moderate', hard: 'Hard' };
 
 export default function FillExercise({ verse, difficulty = 'easy', onComplete }) {
   const tokens = useMemo(() => parseTokens(verse.kjv || verse.text || ''), [verse]);
-  const blankIndices = useMemo(() => blankIndicesFor(tokens, difficulty), [tokens, difficulty]);
+  // useState initializer so blanks are randomised once per mount, not on every render
+  const [blankIndices] = useState(() => blankIndicesFor(tokens, difficulty));
 
-  const [activeBi, setActiveBi] = useState(0);       // position in blankIndices
-  const [filled, setFilled] = useState({});           // tokenIndex → filled word
-  const [wrongWord, setWrongWord] = useState(null);   // word that just flashed red
-  const [errors, setErrors] = useState(0);
-  const [done, setDone] = useState(false);
+  const [activeBi, setActiveBi] = useState(0);
+  const [filled, setFilled]     = useState({});
+  const [wrongWord, setWrongWord] = useState(null);
+  const [errors, setErrors]     = useState(0);
+  const [done, setDone]         = useState(false);
 
   const options = useMemo(() => {
     if (done || activeBi >= blankIndices.length) return [];
@@ -79,13 +87,11 @@ export default function FillExercise({ verse, difficulty = 'easy', onComplete })
 
   return (
     <div className="fill-ex">
-      {/* Header */}
       <div className="fill-ex-header">
         <span className="fill-ex-ref">{verse.reference}</span>
         <span className={`fill-ex-badge fill-ex-badge-${difficulty}`}>{DIFFICULTY_LABEL[difficulty]}</span>
       </div>
 
-      {/* Progress */}
       <div className="fill-ex-progress">
         <div
           className="fill-ex-progress-bar"
@@ -96,15 +102,12 @@ export default function FillExercise({ verse, difficulty = 'easy', onComplete })
         {done ? 'Complete!' : `Blank ${currentBlankNum} of ${blankIndices.length}`}
       </p>
 
-      {/* Verse with blanks */}
       <div className="fill-ex-verse">
         {tokens.map((token, i) => {
           const bi = blankIndices.indexOf(i);
           const isBlank = bi !== -1;
 
-          if (!isBlank) {
-            return <span key={i} className="fill-word">{token.raw} </span>;
-          }
+          if (!isBlank) return <span key={i} className="fill-word">{token.raw} </span>;
 
           if (filled[i] !== undefined) {
             return (
@@ -121,20 +124,19 @@ export default function FillExercise({ verse, difficulty = 'easy', onComplete })
               className={`fill-blank${isActive ? ' fill-blank-active' : ''}`}
               style={{ minWidth: `${Math.max(3, token.word.length) * 0.6}em` }}
             >
-              {isActive ? <span className="fill-blank-cursor" /> : null}
               {token.punct}{' '}
             </span>
           );
         })}
       </div>
 
-      {/* Word options */}
       {!done && (
         <div className="fill-options">
-          {options.map(word => (
+          {options.map((word, idx) => (
             <button
               key={word}
-              className={`fill-option${wrongWord === word ? ' fill-option-wrong' : ''}`}
+              className={`fill-option fill-option-intro${wrongWord === word ? ' fill-option-wrong' : ''}`}
+              style={{ animationDelay: `${idx * 0.12}s` }}
               onClick={() => handleOption(word)}
             >
               {word}
@@ -146,9 +148,7 @@ export default function FillExercise({ verse, difficulty = 'easy', onComplete })
       {done && (
         <div className="fill-done">
           <span className="fill-done-icon">✓</span>
-          <span className="fill-done-msg">
-            {errors === 0 ? 'Perfect!' : `Done — ${errors} mistake${errors !== 1 ? 's' : ''}`}
-          </span>
+          <span className="fill-done-msg">{errors === 0 ? 'Perfect!' : 'Well done!'}</span>
         </div>
       )}
     </div>
