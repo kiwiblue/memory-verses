@@ -865,3 +865,7 @@ input[type=text] {
   color: #888; cursor: pointer; transition: border-color .15s, color .15s;
 }
 .type-hint-btn:hover { border-color: #3a8c5c; color: #3a8c5c; }
+.type-hint-inline {
+  font-size: 14px; font-weight: 700; color: #3a8c5c;
+  animation: fill-pop .15s ease;
+}
