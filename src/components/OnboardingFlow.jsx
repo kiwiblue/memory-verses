@@ -58,8 +58,7 @@ function WelcomeScreen({ onStart, onSkip, onLogin }) {
 
         <div className="ob-links">
           <button className="ob-link" onClick={onSkip}>Skip setup</button>
-          <span className="ob-link-sep">·</span>
-          <button className="ob-link" onClick={onLogin}>Already have an account? Log in</button>
+          <button className="ob-link ob-link-login" onClick={onLogin}>Already have an account? Log in</button>
         </div>
       </div>
     </div>
@@ -100,8 +99,8 @@ function TranslationScreen({ translation, onChange, onNext }) {
         <button className="ob-btn-primary" onClick={onNext} disabled={!translation}>Next →</button>
 
         {showHelp && (
-          <div className="ob-overlay" onClick={() => setShowHelp(false)}>
-            <div className="ob-popup" onClick={e => e.stopPropagation()}>
+          <div className="ob-overlay ob-overlay-center" onClick={() => setShowHelp(false)}>
+            <div className="ob-popup ob-popup-center" onClick={e => e.stopPropagation()}>
               <div className="ob-popup-hdr">
                 <span className="ob-popup-title">About Bible Translations</span>
                 <button className="ob-popup-close" onClick={() => setShowHelp(false)}>✕</button>
@@ -119,9 +118,18 @@ function TranslationScreen({ translation, onChange, onNext }) {
 
 // ── Screen 2: Pick first verse ──────────────────────────────────────────────
 
-function VerseScreen({ selectedId, onSelect, onNext }) {
+const PREF_VERSION_ORDER = ['kjv', 'bsb', 'esv', 'niv', 'nkjv', 'nasb'];
+
+function verseText(v, verseCache) {
+  const cached = verseCache?.[v.reference] || {};
+  for (const t of PREF_VERSION_ORDER) {
+    if (cached[t]) return cached[t];
+  }
+  return null;
+}
+
+function VerseScreen({ selectedId, onSelect, onNext, verseCache }) {
   const [search, setSearch] = useState('');
-  const [showSearch, setShowSearch] = useState(false);
 
   const filtered = VERSES.filter(v =>
     v.reference.toLowerCase().includes(search.toLowerCase())
@@ -147,23 +155,30 @@ function VerseScreen({ selectedId, onSelect, onNext }) {
         </div>
 
         <div className="ob-verse-list">
-          {filtered.map(v => (
-            <button
-              key={v.id}
-              className={`ob-verse-row${selectedId === v.id ? ' ob-verse-selected' : ''}`}
-              onClick={() => onSelect(v.id === selectedId ? null : v.id)}
-            >
-              <span className="ob-verse-ref">{v.reference}</span>
-              {selectedId === v.id && <span className="ob-check">✓</span>}
-            </button>
-          ))}
+          {filtered.map(v => {
+            const text = verseText(v, verseCache);
+            const selected = selectedId === v.id;
+            return (
+              <button
+                key={v.id}
+                className={`ob-verse-card${selected ? ' ob-verse-selected' : ''}`}
+                onClick={() => onSelect(selected ? null : v.id)}
+              >
+                <div className="ob-verse-card-hdr">
+                  <span className="ob-verse-ref">{v.reference}</span>
+                  {selected && <span className="ob-check">✓</span>}
+                </div>
+                {text
+                  ? <p className="ob-verse-text">{text}</p>
+                  : <p className="ob-verse-text ob-verse-text-empty">Tap to select this verse</p>
+                }
+              </button>
+            );
+          })}
         </div>
 
         <div className="ob-verse-footer">
-          <button
-            className="ob-btn-primary"
-            onClick={onNext}
-          >
+          <button className="ob-btn-primary" onClick={onNext}>
             {selectedId ? 'Next →' : 'Skip for now →'}
           </button>
         </div>
@@ -317,7 +332,7 @@ function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, s
 
 // ── Main flow ───────────────────────────────────────────────────────────────
 
-export default function OnboardingFlow({ currentUser, onComplete, onLogin }) {
+export default function OnboardingFlow({ currentUser, verseCache, onComplete, onLogin }) {
   const [step, setStep] = useState(0); // 0=welcome 1=translation 2=verse 3=personalise
   const [translation, setTranslation] = useState(currentUser.translation || 'kjv');
   const [selectedVerseId, setSelectedVerseId] = useState(null);
@@ -360,6 +375,7 @@ export default function OnboardingFlow({ currentUser, onComplete, onLogin }) {
       selectedId={selectedVerseId}
       onSelect={setSelectedVerseId}
       onNext={() => setStep(3)}
+      verseCache={verseCache}
     />
   );
 

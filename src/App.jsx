@@ -29,7 +29,7 @@ import VerseDeckPanel from './components/VerseDeckPanel.jsx';
 import OnboardingFlow from './components/OnboardingFlow.jsx';
 import { isOnboarded, markOnboarded } from './data/onboarding.js';
 
-const APP_VERSION = '0.5.44';
+const APP_VERSION = '0.5.45';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -381,6 +381,7 @@ export default function App() {
   if (!onboarded) return (
     <OnboardingFlow
       currentUser={currentUser}
+      verseCache={verseCache}
       onComplete={handleOnboardingComplete}
       onLogin={() => { markOnboarded(); setOnboarded(true); setProfileUser(currentUser); }}
     />
