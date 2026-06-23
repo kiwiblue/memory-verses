@@ -116,6 +116,7 @@ select {
 .revise-empty-icon, .revise-done-icon { font-size: 36px; margin-bottom: 0.5rem; }
 .revise-empty-title, .revise-done-title { font-size: 17px; font-weight: 600; margin-bottom: 0.4rem; }
 .revise-empty-sub, .revise-done-sub { font-size: 13px; color: #888; margin-bottom: 1.25rem; line-height: 1.5; }
+.revise-done-actions { display: flex; flex-direction: column; gap: 10px; align-items: center; }
 
 .remove-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0.5rem 0 0; flex-wrap: wrap; }
 .remove-verse-btn { background: none; border: none; font-size: 11px; color: #ccc; cursor: pointer; padding: 4px 8px; }

@@ -508,6 +508,7 @@ export default function App() {
             ...prev,
             [v.id]: recordAttempt(getEntry(prev, v.id), score),
           }))}
+          onLearnNew={() => handleModeChange('learn')}
         />
       ) : (
         <>

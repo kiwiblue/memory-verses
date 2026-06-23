@@ -72,17 +72,43 @@ export function buildDailyQueue(verses, progress, userBracket = 'adult') {
   return [...due, ...newVerses];
 }
 
-// Skill level for a verse based on attempt history
-// beginner  → FILL easy  + TYPE easy
-// intermediate → FILL moderate + TYPE moderate
-// advanced  → TYPE hard  (skip FILL)
+// Skill level for a verse based on attempt history and recency.
+//
+// Base level (from recent scores):
+//   0–1 correct of last 5  → beginner
+//   2–3 correct of last 5  → intermediate
+//   4–5 correct of last 5  → advanced
+//
+// Recency adjustments:
+//   Practiced within 5 min → bump up one level (harder exercise on immediate repeat)
+//   Gap > 30 days          → drop to beginner (ease them back in)
+//   Gap 8–30 days          → drop advanced → intermediate
 export function getSkillLevel(entry) {
   if (!entry || (entry.seen_count || 0) < 3) return 'beginner';
+
   const recent = (entry.scores || []).slice(-5);
   const correct = recent.filter(s => s === 1).length;
-  if (correct >= 4) return 'advanced';
-  if (correct >= 2) return 'intermediate';
-  return 'beginner';
+  const msSinceLast = entry.last_seen ? Date.now() - entry.last_seen : Infinity;
+  const daysSinceLast = msSinceLast / DAY;
+
+  let level;
+  if (correct >= 4) level = 'advanced';
+  else if (correct >= 2) level = 'intermediate';
+  else level = 'beginner';
+
+  // Just practiced — bump up so repeating immediately gives a harder exercise
+  if (msSinceLast < 5 * 60 * 1000) {
+    if (level === 'beginner') level = 'intermediate';
+    else if (level === 'intermediate') level = 'advanced';
+  }
+  // Long gap — ease back in
+  else if (daysSinceLast > 30) {
+    level = 'beginner';
+  } else if (daysSinceLast > 7 && level === 'advanced') {
+    level = 'intermediate';
+  }
+
+  return level;
 }
 
 // Up to `limit` most-urgent verses due for revision (learning or mastered, most overdue first)
