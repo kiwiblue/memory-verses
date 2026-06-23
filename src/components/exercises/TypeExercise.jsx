@@ -10,48 +10,78 @@ function parseTokens(text) {
 function blankIndicesFor(tokens, difficulty) {
   if (difficulty === 'hard') return tokens.map((_, i) => i);
   if (difficulty === 'moderate') return tokens.map((_, i) => i);
-  return tokens.map((_, i) => i).filter(i => i % 2 === 1); // every 2nd word
+  return tokens.map((_, i) => i).filter(i => i % 2 === 1);
 }
 
 const DIFFICULTY_LABEL = { easy: 'Easy', moderate: 'Moderate', hard: 'Hard' };
 
-// ── Easy / Moderate mode: type first letter of each hidden word ─────────────
+// ── Easy / Moderate: type first letter of each hidden word ──────────────────
 
-function FirstLetterMode({ tokens, blankIndices, difficulty, onComplete }) {
-  const [activeBi, setActiveBi] = useState(0);
-  const [revealed, setRevealed] = useState({});   // tokenIndex → true
-  const [shake, setShake] = useState(false);
-  const [errors, setErrors] = useState(0);
-  const [done, setDone] = useState(false);
+function FirstLetterMode({ tokens, blankIndices, difficulty, verseCount = 1, onComplete }) {
+  const [activeBi, setActiveBi]         = useState(0);
+  const [revealed, setRevealed]         = useState({});  // tokenIndex → 'correct'|'auto'|'hint'
+  const [consecutiveErrors, setConsecutiveErrors] = useState(0);
+  const [shake, setShake]               = useState(false);
+  const [errors, setErrors]             = useState(0);
+  const [done, setDone]                 = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
+  function advance(newRevealed, bi) {
+    const next = bi + 1;
+    if (next >= blankIndices.length) {
+      setDone(true);
+      setTimeout(() => onComplete?.({ errors, total: blankIndices.length }), 700);
+    } else {
+      setActiveBi(next);
+      setConsecutiveErrors(0);
+    }
+    return newRevealed;
+  }
+
   const handleKey = useCallback((e) => {
     if (done || activeBi >= blankIndices.length) return;
     const key = e.key;
-    if (key.length !== 1) return; // ignore modifier keys
+    if (key.length !== 1) return;
     e.preventDefault();
 
     const targetWord = tokens[blankIndices[activeBi]].word;
     if (key.toLowerCase() === targetWord[0].toLowerCase()) {
-      const newRevealed = { ...revealed, [blankIndices[activeBi]]: true };
-      setRevealed(newRevealed);
-      const next = activeBi + 1;
-      if (next >= blankIndices.length) {
-        setDone(true);
-        setTimeout(() => onComplete?.({ errors, total: blankIndices.length }), 700);
-      } else {
-        setActiveBi(next);
-      }
+      const nr = { ...revealed, [blankIndices[activeBi]]: 'correct' };
+      setRevealed(nr);
+      setConsecutiveErrors(0);
+      advance(nr, activeBi);
     } else {
+      const newConsec = consecutiveErrors + 1;
       setErrors(e => e + 1);
+      setConsecutiveErrors(newConsec);
       setShake(true);
       setTimeout(() => setShake(false), 400);
+
+      // Auto-reveal after 2 consecutive wrong answers
+      if (newConsec >= 2) {
+        const nr = { ...revealed, [blankIndices[activeBi]]: 'auto' };
+        setRevealed(nr);
+        setConsecutiveErrors(0);
+        setTimeout(() => advance(nr, activeBi), 600);
+      }
     }
-  }, [done, activeBi, blankIndices, tokens, revealed, errors, onComplete]);
+  }, [done, activeBi, blankIndices, tokens, revealed, consecutiveErrors, errors, onComplete]);
+
+  function handleHint() {
+    if (done || activeBi >= blankIndices.length) return;
+    const nr = { ...revealed, [blankIndices[activeBi]]: 'hint' };
+    setRevealed(nr);
+    setErrors(e => e + 1);
+    setConsecutiveErrors(0);
+    advance(nr, activeBi);
+  }
 
   const activeTokenIndex = blankIndices[activeBi];
+  const targetWord = tokens[activeTokenIndex]?.word ?? '';
+  // Show letter prompt: always on easy, on moderate show for first blank or if only 1 verse
+  const showLetterHint = difficulty === 'easy' || verseCount <= 1 || activeBi === 0;
 
   return (
     <>
@@ -59,14 +89,20 @@ function FirstLetterMode({ tokens, blankIndices, difficulty, onComplete }) {
         {tokens.map((token, i) => {
           const bi = blankIndices.indexOf(i);
           const isBlank = bi !== -1;
-          const isRevealed = revealed[i];
+          const revealState = revealed[i];
           const isActive = bi === activeBi;
 
           if (!isBlank) {
             return <span key={i} className="fill-word">{token.raw} </span>;
           }
-          if (isRevealed) {
+          if (revealState === 'correct') {
             return <span key={i} className="type-word-revealed">{token.raw} </span>;
+          }
+          if (revealState === 'auto') {
+            return <span key={i} className="type-word-auto">{token.raw} </span>;
+          }
+          if (revealState === 'hint') {
+            return <span key={i} className="type-word-hint">{token.raw} </span>;
           }
           if (isActive) {
             return (
@@ -84,13 +120,19 @@ function FirstLetterMode({ tokens, blankIndices, difficulty, onComplete }) {
         })}
       </div>
 
-      <div className="type-ex-hint">
-        {!done && (
-          <span>Type the first letter: <strong className="type-hint-letter">
-            {tokens[activeTokenIndex]?.word[0]?.toUpperCase() ?? ''}
-          </strong></span>
-        )}
-      </div>
+      {!done && (
+        <div className="type-ex-controls">
+          <div className="type-ex-hint">
+            {showLetterHint && targetWord ? (
+              <>Type: <strong className="type-hint-letter">{targetWord[0].toUpperCase()}</strong>
+              {difficulty === 'moderate' && <span className="type-hint-word">… ({targetWord.length} letters)</span>}</>
+            ) : (
+              <span>Type the first letter of each hidden word</span>
+            )}
+          </div>
+          <button className="type-hint-btn" onClick={handleHint}>Hint</button>
+        </div>
+      )}
 
       <input
         ref={inputRef}
@@ -103,52 +145,66 @@ function FirstLetterMode({ tokens, blankIndices, difficulty, onComplete }) {
   );
 }
 
-// ── Hard mode: type every character ────────────────────────────────────────
+// ── Hard: type every letter (spaces and punctuation auto-advance) ───────────
 
 function FullTypeMode({ tokens, onComplete }) {
-  // Build the full target string with single spaces
   const target = useMemo(() => tokens.map(t => t.raw).join(' '), [tokens]);
 
-  const [typed, setTyped] = useState('');
-  const [shake, setShake] = useState(false);
+  // Pre-compute which positions require a keypress (letters/digits only)
+  const requiredPositions = useMemo(() =>
+    [...target].map((ch, i) => ({ ch, i, required: /[a-zA-Z0-9]/.test(ch) })),
+  [target]);
+
+  const [pos, setPos]       = useState(0);  // position in target string
+  const [shake, setShake]   = useState(false);
   const [errors, setErrors] = useState(0);
-  const [done, setDone] = useState(false);
+  const [done, setDone]     = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
+  // Auto-advance past spaces and punctuation
+  function advancePast(startPos) {
+    let p = startPos;
+    while (p < target.length && !/[a-zA-Z0-9]/.test(target[p])) p++;
+    return p;
+  }
+
+  // Start at first required character
+  const firstPos = useMemo(() => advancePast(0), [target]);
+  useEffect(() => { setPos(firstPos); }, [firstPos]);
+
   const handleKey = useCallback((e) => {
     if (done) return;
     const key = e.key;
-
     if (key === 'Backspace') {
       e.preventDefault();
-      setTyped(t => t.slice(0, -1));
+      // Go back to previous required position
+      let p = pos - 1;
+      while (p > firstPos && !/[a-zA-Z0-9]/.test(target[p])) p--;
+      setPos(Math.max(firstPos, p));
       return;
     }
     if (key.length !== 1) return;
     e.preventDefault();
 
-    const pos = typed.length;
     const expected = target[pos];
-
-    if (key === expected) {
-      const newTyped = typed + key;
-      setTyped(newTyped);
-      if (newTyped.length >= target.length) {
+    if (key.toLowerCase() === expected.toLowerCase()) {
+      const nextPos = advancePast(pos + 1);
+      setPos(nextPos);
+      if (nextPos >= target.length) {
         setDone(true);
-        setTimeout(() => onComplete?.({ errors, total: target.split(' ').length }), 700);
+        setTimeout(() => onComplete?.({ errors, total: tokens.length }), 700);
       }
     } else {
       setErrors(e => e + 1);
       setShake(true);
       setTimeout(() => setShake(false), 400);
     }
-  }, [done, typed, target, errors, onComplete]);
+  }, [done, pos, target, firstPos, errors, tokens.length, onComplete]);
 
-  // Render target split into typed (revealed), current char (cursor), remaining (hidden)
-  const typedPart   = target.slice(0, typed.length);
-  const remaining   = target.slice(typed.length);
+  const typedPart   = target.slice(0, pos);
+  const remaining   = target.slice(pos);
 
   return (
     <>
@@ -159,11 +215,11 @@ function FullTypeMode({ tokens, onComplete }) {
             <span className="fill-blank-cursor" />
           </span>
         )}
-        <span className="type-remaining">{remaining.replace(/[^\s]/g, '_')}</span>
+        <span className="type-remaining">{remaining.replace(/[a-zA-Z0-9]/g, '_')}</span>
       </div>
 
       <div className="type-ex-hint">
-        {!done && <span>Type every letter — backspace to correct</span>}
+        {!done && <span>Type every word — spaces and punctuation are added automatically</span>}
       </div>
 
       <input
@@ -179,11 +235,11 @@ function FullTypeMode({ tokens, onComplete }) {
 
 // ── Main component ──────────────────────────────────────────────────────────
 
-export default function TypeExercise({ verse, difficulty = 'easy', onComplete }) {
+export default function TypeExercise({ verse, difficulty = 'easy', verseCount = 1, onComplete }) {
   const tokens = useMemo(() => parseTokens(verse.kjv || verse.text || ''), [verse]);
   const blankIndices = useMemo(() => blankIndicesFor(tokens, difficulty), [tokens, difficulty]);
 
-  const [done, setDone] = useState(false);
+  const [done, setDone]     = useState(false);
   const [result, setResult] = useState(null);
 
   function handleComplete(r) {
@@ -191,10 +247,6 @@ export default function TypeExercise({ verse, difficulty = 'easy', onComplete })
     setDone(true);
     setTimeout(() => onComplete?.(r), 700);
   }
-
-  const progress = result
-    ? 1
-    : 0; // individual modes track their own progress; parent can override
 
   return (
     <div className="fill-ex type-ex">
@@ -207,12 +259,16 @@ export default function TypeExercise({ verse, difficulty = 'easy', onComplete })
         <div className="fill-ex-progress-bar" style={{ width: done ? '100%' : undefined }} />
       </div>
       <p className="fill-ex-progress-label">
-        {done ? 'Complete!' : difficulty === 'hard' ? 'Type the full verse' : 'Type the first letter of each hidden word'}
+        {done
+          ? 'Complete!'
+          : difficulty === 'hard'
+            ? 'Type the full verse'
+            : 'Type the first letter of each hidden word'}
       </p>
 
       {difficulty === 'hard'
         ? <FullTypeMode tokens={tokens} onComplete={handleComplete} />
-        : <FirstLetterMode tokens={tokens} blankIndices={blankIndices} difficulty={difficulty} onComplete={handleComplete} />
+        : <FirstLetterMode tokens={tokens} blankIndices={blankIndices} difficulty={difficulty} verseCount={verseCount} onComplete={handleComplete} />
       }
 
       {done && (

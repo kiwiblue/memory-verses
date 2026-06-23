@@ -855,3 +855,13 @@ input[type=text] {
   position: fixed; left: -9999px; top: 0;
   width: 1px; height: 1px; opacity: 0;
 }
+.type-word-auto { color: #888; font-style: italic; opacity: 0.5; }
+.type-word-hint { color: #888; font-style: italic; opacity: 0.4; }
+.type-ex-controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 12px; }
+.type-hint-word { font-size: 12px; color: #aaa; margin-left: 6px; }
+.type-hint-btn {
+  flex-shrink: 0; padding: 7px 16px; border-radius: 20px;
+  border: 1.5px solid #ddd; background: #fff; font-size: 13px;
+  color: #888; cursor: pointer; transition: border-color .15s, color .15s;
+}
+.type-hint-btn:hover { border-color: #3a8c5c; color: #3a8c5c; }
