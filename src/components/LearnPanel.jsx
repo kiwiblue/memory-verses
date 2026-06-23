@@ -19,12 +19,14 @@ export default function LearnPanel({
   const [step, setStep]       = useState('card');
   const [isFlipped, setIsFlipped] = useState(false);
   const [wobble, setWobble]   = useState(false);
+  const [removeArmed, setRemoveArmed] = useState(false);
 
   // Reset flow when the verse changes
   useEffect(() => {
     setStep('card');
     setIsFlipped(false);
     setWobble(false);
+    setRemoveArmed(false);
   }, [verse?.id]);
 
   // Nudge the card after 4 s if user hasn't flipped yet
@@ -71,7 +73,16 @@ export default function LearnPanel({
               Know it ✓
             </button>
             {onRemove && (
-              <button className="learn-remove-btn" onClick={onRemove} title="Remove from deck">✕</button>
+              <button
+                className={`learn-remove-btn${removeArmed ? ' learn-remove-armed' : ''}`}
+                onClick={() => {
+                  if (removeArmed) { onRemove(); setRemoveArmed(false); }
+                  else { setRemoveArmed(true); }
+                }}
+                onBlur={() => setRemoveArmed(false)}
+              >
+                {removeArmed ? 'Delete' : '✕'}
+              </button>
             )}
           </div>
         </div>

@@ -1042,9 +1042,15 @@ input[type=text] {
 .learn-remove-btn {
   background: none; border: 1.5px solid #e0ddd8; color: #ccc;
   border-radius: 12px; padding: 12px 14px; font-size: 15px;
-  cursor: pointer; transition: border-color .15s, color .15s;
+  cursor: pointer; white-space: nowrap; overflow: hidden;
+  transition: border-color .2s, color .2s, background .2s, padding .25s ease, min-width .25s ease;
+  min-width: 46px;
 }
 .learn-remove-btn:hover { border-color: #e05252; color: #e05252; }
+.learn-remove-btn.learn-remove-armed {
+  border-color: #e05252; color: #fff; background: #e05252;
+  padding: 12px 20px; min-width: 90px;
+}
 .learn-intro {
   display: flex; flex-direction: column; gap: 6px;
   margin-top: 20px; padding: 14px 16px;
