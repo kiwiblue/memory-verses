@@ -152,18 +152,22 @@ function VerseScreen({ selectedId, onSelect, onNext }) {
   );
   const visible = search ? filtered : filtered.slice(0, limit);
 
-  // When search changes, debounce an API lookup if curated list has no matches
+  // When search changes, debounce an API lookup if the exact reference isn't in the curated list
   useEffect(() => {
     clearTimeout(debounceRef.current);
-    if (!search.trim()) { setApiResult(null); return; }
-    if (filtered.length > 0) { setApiResult(null); return; }
+    setApiResult(null);
+    if (!search.trim()) return;
+
+    const parsed = parseRef(search.trim());
+    if (!parsed) return; // not a recognisable reference format
+
+    const reference = toDisplayRef(parsed);
+    const exactInCurated = VERSES.some(v => v.reference.toLowerCase() === reference.toLowerCase());
+    if (exactInCurated) return; // already in curated list, no need to fetch
 
     setApiResult('loading');
     debounceRef.current = setTimeout(async () => {
       try {
-        const parsed = parseRef(search.trim());
-        if (!parsed) { setApiResult('not-found'); return; }
-        const reference = toDisplayRef(parsed);
         const text = await fetchKJV(reference);
         setApiResult(text ? { reference, kjv: text } : 'not-found');
       } catch {
@@ -171,7 +175,7 @@ function VerseScreen({ selectedId, onSelect, onNext }) {
       }
     }, 500);
     return () => clearTimeout(debounceRef.current);
-  }, [search, filtered.length]);
+  }, [search]);
 
   function clearSearch() {
     setSearch('');
@@ -223,14 +227,14 @@ function VerseScreen({ selectedId, onSelect, onNext }) {
             );
           })}
 
-          {/* API fallback when no curated results */}
-          {search && filtered.length === 0 && apiResult === 'loading' && (
+          {/* API result for exact reference not in curated list */}
+          {search && apiResult === 'loading' && (
             <p className="ob-verse-text ob-verse-text-empty" style={{ textAlign: 'center', padding: '12px 0' }}>Searching…</p>
           )}
-          {search && filtered.length === 0 && apiResult === 'not-found' && (
+          {search && apiResult === 'not-found' && filtered.length === 0 && (
             <p className="ob-verse-text ob-verse-text-empty" style={{ textAlign: 'center', padding: '12px 0' }}>Verse not found. Try a format like "John 3:16".</p>
           )}
-          {search && filtered.length === 0 && apiResult && apiResult !== 'loading' && apiResult !== 'not-found' && (
+          {search && apiResult && apiResult !== 'loading' && apiResult !== 'not-found' && (
             <button
               className={`ob-verse-card${selectedId === API_VERSE_ID ? ' ob-verse-selected' : ''}`}
               onClick={() => {
