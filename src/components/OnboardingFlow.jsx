@@ -3,6 +3,11 @@ import { VERSES } from '../data/verses.js';
 import { PATTERNS, avatarStyle } from '../data/avatarStyle.js';
 import { saveAuth } from '../data/auth.js';
 import { fetchKJV, fetchBSB } from '../api/bible.js';
+import { APP_VERSION } from '../data/version.js';
+
+function ObFooter() {
+  return <div className="ob-footer">v{APP_VERSION}</div>;
+}
 
 const TRANSLATIONS = [
   { value: 'kjv',  abbr: 'KJV',  name: 'King James Version' },
@@ -61,6 +66,7 @@ function WelcomeScreen({ onStart, onSkip, onLogin }) {
           <button className="ob-link" onClick={onSkip}>Skip setup</button>
           <button className="ob-link ob-link-login" onClick={onLogin}>Already have an account? Log in</button>
         </div>
+        <ObFooter />
       </div>
     </div>
   );
@@ -98,6 +104,7 @@ function TranslationScreen({ translation, onChange, onNext }) {
         </div>
 
         <button className="ob-btn-primary" onClick={onNext} disabled={!translation}>Next →</button>
+        <ObFooter />
 
         {showHelp && (
           <div className="ob-overlay ob-overlay-center" onClick={() => setShowHelp(false)}>
@@ -209,6 +216,7 @@ function VerseScreen({ selectedId, onSelect, onNext, verseCache }) {
           <button className="ob-btn-primary" onClick={onNext}>
             {selectedId ? 'Next →' : 'Skip for now →'}
           </button>
+          <ObFooter />
         </div>
       </div>
     </div>
@@ -353,6 +361,7 @@ function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, s
         <button className="ob-btn-primary" onClick={handleComplete} disabled={accountBusy}>
           {accountBusy ? 'Setting up…' : 'Complete →'}
         </button>
+        <ObFooter />
       </div>
     </div>
   );
