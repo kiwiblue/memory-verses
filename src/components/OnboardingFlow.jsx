@@ -158,8 +158,8 @@ function VerseScreen({ selectedId, onSelect, onNext }) {
 
   const filtered = VERSES.filter(v => {
     const matchesSearch = v.reference.toLowerCase().includes(normSearch || search.toLowerCase());
-    // Without a search, only show adult-rated verses; searching reveals all brackets
-    const matchesBracket = search.trim() ? true : v.bracket === 'adult';
+    // Without a search, hide youth-only verses (mature themes); searching reveals all brackets
+    const matchesBracket = search.trim() ? true : v.bracket !== 'youth';
     return matchesSearch && matchesBracket;
   });
   const visible = search ? filtered : filtered.slice(0, limit);
