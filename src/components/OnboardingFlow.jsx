@@ -2,7 +2,16 @@ import { useState, useEffect, useRef } from 'react';
 import { VERSES } from '../data/verses.js';
 import { PATTERNS, avatarStyle } from '../data/avatarStyle.js';
 import { saveAuth } from '../data/auth.js';
-import { fetchKJV } from '../api/bible.js';
+
+// Public KJV API used only during onboarding verse search (no key required, works on localhost)
+async function fetchPublicKJV(reference) {
+  try {
+    const res = await fetch(`https://bible-api.com/${encodeURIComponent(reference)}?translation=kjv`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.text?.replace(/\n/g, ' ').trim() || null;
+  } catch { return null; }
+}
 import { parseRef, toDisplayRef } from '../api/bibleRef.js';
 import { APP_VERSION } from '../data/version.js';
 
@@ -168,7 +177,7 @@ function VerseScreen({ selectedId, onSelect, onNext }) {
     setApiResult('loading');
     debounceRef.current = setTimeout(async () => {
       try {
-        const text = await fetchKJV(reference);
+        const text = await fetchPublicKJV(reference);
         setApiResult(text ? { reference, kjv: text } : 'not-found');
       } catch {
         setApiResult('not-found');
