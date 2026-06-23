@@ -26,8 +26,10 @@ import UserPanel from './components/UserPanel.jsx';
 import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 import VerseDeckPanel from './components/VerseDeckPanel.jsx';
+import OnboardingFlow from './components/OnboardingFlow.jsx';
+import { isOnboarded, markOnboarded } from './data/onboarding.js';
 
-const APP_VERSION = '0.5.43';
+const APP_VERSION = '0.5.44';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -78,6 +80,7 @@ export default function App() {
   const [showDeckPanel, setShowDeckPanel] = useState(false);
   const [removeConfirm, setRemoveConfirm] = useState(false);
 
+  const [onboarded, setOnboarded]     = useState(isOnboarded);
   const [profileUser, setProfileUser] = useState(null);
   const [auth, setAuth]               = useState(loadAuth);
   const [syncStatus, setSyncStatus]   = useState(null); // null | 'syncing' | 'synced' | 'error'
@@ -296,6 +299,32 @@ export default function App() {
     }
   }, [currentUser.id]);
 
+  const handleOnboardingComplete = useCallback((updatedUser, selectedVerseId, auth) => {
+    // Save updated user profile
+    const updatedUsers = users.map(u => u.id === updatedUser.id ? updatedUser : u);
+    saveUsers(updatedUsers);
+    setUsers(updatedUsers);
+    setCurrentUser(updatedUser);
+    setVersion(updatedUser.translation || 'kjv');
+
+    // Move selected verse to front of queue
+    if (selectedVerseId) {
+      const allIds = [...VERSES.map(v => String(v.id))];
+      const ordered = [String(selectedVerseId), ...allIds.filter(id => id !== String(selectedVerseId))];
+      saveVerseOrder(updatedUser.id, ordered);
+      setVerseOrder(ordered);
+    }
+
+    // Save auth if account was created during onboarding
+    if (auth?.token) {
+      saveAuth(auth);
+      setAuth(auth);
+    }
+
+    markOnboarded();
+    setOnboarded(true);
+  }, [users]);
+
   const handleLearnNow = useCallback((verse) => {
     setProgress(p => ({
       ...p,
@@ -348,6 +377,14 @@ export default function App() {
     if (!verse || verse[preferred]) return preferred;
     return FALLBACK_ORDER.find(t => verse[t]) || preferred;
   })();
+
+  if (!onboarded) return (
+    <OnboardingFlow
+      currentUser={currentUser}
+      onComplete={handleOnboardingComplete}
+      onLogin={() => { markOnboarded(); setOnboarded(true); setProfileUser(currentUser); }}
+    />
+  );
 
   return (
     <>
