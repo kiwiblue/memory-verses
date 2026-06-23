@@ -180,6 +180,7 @@ function VerseScreen({ selectedId, onSelect, onNext, verseCache }) {
         <div className="ob-verse-list">
           {visible.map(v => {
             const selected = selectedId === v.id;
+            const text = verseText(v, merged);
             return (
               <button
                 key={v.id}
