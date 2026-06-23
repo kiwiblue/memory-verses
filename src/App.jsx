@@ -27,6 +27,7 @@ import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 import VerseDeckPanel from './components/VerseDeckPanel.jsx';
 import OnboardingFlow from './components/OnboardingFlow.jsx';
+import FillExercise from './components/exercises/FillExercise.jsx';
 import { isOnboarded, markOnboarded } from './data/onboarding.js';
 import { APP_VERSION } from './data/version.js';
 
@@ -387,6 +388,17 @@ export default function App() {
     if (!verse || verse[preferred]) return preferred;
     return FALLBACK_ORDER.find(t => verse[t]) || preferred;
   })();
+
+  // DEV: test fill exercise via ?fill=easy|moderate|hard in URL
+  if (import.meta.env.DEV && new URLSearchParams(window.location.search).has('fill')) {
+    const diff = new URLSearchParams(window.location.search).get('fill') || 'easy';
+    const testVerse = allVerses[0];
+    return (
+      <div style={{ minHeight: '100vh', background: '#f5f5f3', display: 'flex', alignItems: 'center', padding: '24px 16px' }}>
+        <FillExercise verse={testVerse} difficulty={diff} onComplete={r => alert(`Done! Errors: ${r.errors}`)} />
+      </div>
+    );
+  }
 
   if (!onboarded) return (
     <OnboardingFlow

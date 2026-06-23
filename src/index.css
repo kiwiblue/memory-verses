@@ -733,3 +733,95 @@ input[type=text] {
 .ob-popup-title { font-weight: 600; font-size: 15px; }
 .ob-popup-close { background: none; border: none; font-size: 16px; color: #888; cursor: pointer; }
 .ob-popup-body { padding: 20px; font-size: 14px; color: #555; line-height: 1.6; }
+
+/* ── Fill Exercise ─────────────────────────────────────────────────────────── */
+.fill-ex {
+  display: flex; flex-direction: column; gap: 0;
+  background: #fff; border-radius: 16px; padding: 20px 20px 28px;
+  max-width: 480px; margin: 0 auto; width: 100%;
+}
+.fill-ex-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+}
+.fill-ex-ref { font-size: 15px; font-weight: 700; color: #1a1a18; }
+.fill-ex-badge {
+  font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; letter-spacing: .4px;
+}
+.fill-ex-badge-easy     { background: #e6f4ec; color: #2d7a52; }
+.fill-ex-badge-moderate { background: #fff3e0; color: #b06000; }
+.fill-ex-badge-hard     { background: #fdecea; color: #b71c1c; }
+
+.fill-ex-progress {
+  height: 4px; background: #f0f0ee; border-radius: 2px; overflow: hidden; margin-bottom: 6px;
+}
+.fill-ex-progress-bar {
+  height: 100%; background: #3a8c5c; border-radius: 2px;
+  transition: width .3s ease;
+}
+.fill-ex-progress-label { font-size: 11px; color: #aaa; margin-bottom: 20px; }
+
+.fill-ex-verse {
+  font-size: 17px; line-height: 2; color: #1a1a18; margin-bottom: 28px;
+  min-height: 80px;
+}
+.fill-word { white-space: pre-wrap; }
+
+.fill-blank {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 48px; height: 28px; border-radius: 6px;
+  background: #f0f0ee; border-bottom: 2px solid #ccc;
+  margin: 0 2px; vertical-align: middle; position: relative;
+  font-size: 15px; font-weight: 600; color: transparent;
+}
+.fill-blank-active {
+  background: #e6f4ec; border-bottom-color: #3a8c5c;
+  animation: fill-pulse 1.2s ease-in-out infinite;
+}
+@keyframes fill-pulse {
+  0%, 100% { border-bottom-color: #3a8c5c; }
+  50%       { border-bottom-color: #a8d5bc; }
+}
+.fill-blank-cursor {
+  width: 2px; height: 16px; background: #3a8c5c; border-radius: 1px;
+  animation: blink .9s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+.fill-blank-done {
+  background: #e6f4ec; border-bottom-color: #3a8c5c;
+  color: #2d7a52; font-weight: 600;
+  animation: fill-pop .2s ease;
+}
+@keyframes fill-pop {
+  0%   { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.fill-options {
+  display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+}
+.fill-option {
+  padding: 10px 20px; border-radius: 24px; border: 1.5px solid #ddd;
+  background: #fff; font-size: 15px; font-weight: 500; color: #1a1a18;
+  cursor: pointer; transition: border-color .15s, background .15s, transform .1s;
+}
+.fill-option:hover  { border-color: #3a8c5c; background: #f0f9f4; }
+.fill-option:active { transform: scale(.96); }
+.fill-option-wrong  {
+  border-color: #e53935; background: #fdecea; color: #b71c1c;
+  animation: fill-shake .38s ease;
+}
+@keyframes fill-shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-5px); }
+  60%       { transform: translateX(5px); }
+  80%       { transform: translateX(-3px); }
+}
+
+.fill-done {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 16px; background: #e6f4ec; border-radius: 12px;
+  animation: fill-pop .25s ease;
+}
+.fill-done-icon { font-size: 20px; color: #2d7a52; }
+.fill-done-msg  { font-size: 15px; font-weight: 600; color: #2d7a52; }
