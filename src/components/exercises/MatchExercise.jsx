@@ -183,16 +183,45 @@ function DragMatch({ verses, onComplete }) {
 
 // ── Type-the-reference match (Hard) ────────────────────────────────────────
 
+// Parse a reference into {book, chapter, verse} parts for progressive hints
+function refParts(ref) {
+  const m = ref.match(/^(.+?)\s+(\d+):(.+)$/);
+  if (!m) return { book: ref, chapter: '', verse: '' };
+  return { book: m[1], chapter: m[2], verse: m[3] };
+}
+
+function hintForLevel(ref, level) {
+  const { book, chapter } = refParts(ref);
+  if (level === 1) return book;
+  if (level === 2) return `${book} ${chapter}`;
+  return ref; // level 3 = full reference
+}
+
+const HINT_LABELS = ['Hint', 'Chapter', 'Verse'];
+
 function TypeMatch({ verses, onComplete }) {
-  const [inputs, setInputs]   = useState(() => verses.map(() => ''));
-  const [results, setResults] = useState(null); // null | bool[]
-  const [errors, setErrors]   = useState(0);
+  const [inputs, setInputs]       = useState(() => verses.map(() => ''));
+  const [hintLevels, setHintLevels] = useState(() => verses.map(() => 0)); // 0=none,1=book,2=chapter,3=full
+  const [results, setResults]     = useState(null);
+  const [errors, setErrors]       = useState(0);
 
   function normalise(raw) {
     try {
       const p = parseRef(raw.trim());
       return p ? toDisplayRef(p).toLowerCase() : raw.trim().toLowerCase();
     } catch { return raw.trim().toLowerCase(); }
+  }
+
+  function handleHint(i) {
+    const nextLevel = Math.min(hintLevels[i] + 1, 3);
+    const newHintLevels = [...hintLevels];
+    newHintLevels[i] = nextLevel;
+    setHintLevels(newHintLevels);
+
+    const newInputs = [...inputs];
+    newInputs[i] = hintForLevel(verses[i].reference, nextLevel);
+    setInputs(newInputs);
+    if (results) setResults(null);
   }
 
   function handleCheck() {
@@ -212,20 +241,28 @@ function TypeMatch({ verses, onComplete }) {
       <div className="match-rows">
         {verses.map((v, i) => {
           const state = results ? (results[i] ? 'correct' : 'wrong') : null;
+          const hintLevel = hintLevels[i];
           return (
-            <div key={v.id} className="match-row">
+            <div key={v.id} className="match-type-row">
               <div className="match-verse-text">{truncate(v.kjv || v.text)}</div>
-              <input
-                className={`match-type-input${state === 'correct' ? ' match-slot-correct' : state === 'wrong' ? ' match-slot-wrong' : ''}`}
-                placeholder="Reference…"
-                value={inputs[i]}
-                onChange={e => {
-                  const next = [...inputs];
-                  next[i] = e.target.value;
-                  setInputs(next);
-                  if (results) setResults(null); // reset on edit
-                }}
-              />
+              <div className="match-type-controls">
+                <input
+                  className={`match-type-input${state === 'correct' ? ' match-slot-correct' : state === 'wrong' ? ' match-slot-wrong' : ''}`}
+                  placeholder="Reference…"
+                  value={inputs[i]}
+                  onChange={e => {
+                    const next = [...inputs];
+                    next[i] = e.target.value;
+                    setInputs(next);
+                    if (results) setResults(null);
+                  }}
+                />
+                {hintLevel < 3 && (
+                  <button className="match-hint-btn" onClick={() => handleHint(i)}>
+                    {HINT_LABELS[hintLevel]}
+                  </button>
+                )}
+              </div>
             </div>
           );
         })}
