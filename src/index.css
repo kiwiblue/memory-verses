@@ -986,16 +986,13 @@ input[type=text] {
 }
 .learn-repeat-btn:hover { border-color: #3a8c5c; color: #3a8c5c; }
 
-/* Fill option intro wiggle — draws attention for first 2s */
+/* Fill option intro wiggle — draws attention on load */
 @keyframes fill-option-wiggle {
-  0%, 100% { transform: translateY(0);    border-color: #ddd; }
-  25%       { transform: translateY(-4px); border-color: #3a8c5c; }
-  75%       { transform: translateY(2px);  border-color: #3a8c5c; }
+  0%, 100% { transform: translateY(0); }
+  30%       { transform: translateY(-3px); }
+  70%       { transform: translateY(1px); }
 }
 .fill-option-intro {
-  animation: fill-option-wiggle .5s ease both;
-  animation-iteration-count: 3;
+  animation: fill-option-wiggle .45s ease both;
+  animation-iteration-count: 2;
 }
-/* Stop wiggling after the animation completes (~2s total) */
-.fill-option-intro:hover,
-.fill-option-intro:active { animation: none; }
