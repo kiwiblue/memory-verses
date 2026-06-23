@@ -199,18 +199,38 @@ function hintForLevel(ref, level) {
 
 const HINT_LABELS = ['Hint', 'Chapter', 'Verse'];
 
-function TypeMatch({ verses, onComplete }) {
-  const [inputs, setInputs]       = useState(() => verses.map(() => ''));
-  const [hintLevels, setHintLevels] = useState(() => verses.map(() => 0)); // 0=none,1=book,2=chapter,3=full
-  const [results, setResults]     = useState(null);
-  const [errors, setErrors]       = useState(0);
-
-  function normalise(raw) {
+// 'correct' | 'close' | 'wrong'
+function gradeAnswer(input, correctRef) {
+  const norm = raw => {
     try {
       const p = parseRef(raw.trim());
       return p ? toDisplayRef(p).toLowerCase() : raw.trim().toLowerCase();
     } catch { return raw.trim().toLowerCase(); }
-  }
+  };
+
+  if (norm(input) === norm(correctRef)) return 'correct';
+
+  // Extract {book, chapter, verse} from a reference string
+  const parts = ref => {
+    const m = ref.match(/^(.+?)\s+(\d+):(\S+)$/);
+    return m ? { book: m[1].toLowerCase(), chapter: m[2], verse: m[3] } : null;
+  };
+
+  const inp = parts(norm(input));
+  const cor = parts(norm(correctRef));
+  if (!inp || !cor) return 'wrong';
+
+  // Numbers must match exactly; book just needs to be a prefix of the other
+  const numMatch  = inp.chapter === cor.chapter && inp.verse === cor.verse;
+  const bookMatch = inp.book.startsWith(cor.book) || cor.book.startsWith(inp.book);
+  return (numMatch && bookMatch) ? 'close' : 'wrong';
+}
+
+function TypeMatch({ verses, onComplete }) {
+  const [inputs, setInputs]       = useState(() => verses.map(() => ''));
+  const [hintLevels, setHintLevels] = useState(() => verses.map(() => 0));
+  const [results, setResults]     = useState(null); // null | Array<'correct'|'close'|'wrong'>
+  const [errors, setErrors]       = useState(0);
 
   function handleHint(i) {
     const nextLevel = Math.min(hintLevels[i] + 1, 3);
@@ -225,38 +245,48 @@ function TypeMatch({ verses, onComplete }) {
   }
 
   function handleCheck() {
-    const correct = verses.map((v, i) => normalise(inputs[i]) === normalise(v.reference));
-    const wrongCount = correct.filter(c => !c).length;
+    const grades = verses.map((v, i) => gradeAnswer(inputs[i], v.reference));
+    const wrongCount = grades.filter(g => g === 'wrong').length;
     setErrors(e => e + wrongCount);
-    setResults(correct);
-    if (correct.every(c => c)) {
+    setResults(grades);
+    if (grades.every(g => g !== 'wrong')) {
       setTimeout(() => onComplete?.({ errors: errors + wrongCount, total: verses.length }), 800);
     }
   }
 
   const allFilled = inputs.every(s => s.trim().length > 0);
+  const allPassed = results && results.every(g => g !== 'wrong');
 
   return (
     <div className="match-ex">
       <div className="match-rows">
         {verses.map((v, i) => {
-          const state = results ? (results[i] ? 'correct' : 'wrong') : null;
+          const grade = results?.[i] ?? null;
           const hintLevel = hintLevels[i];
           return (
             <div key={v.id} className="match-type-row">
               <div className="match-verse-text">{truncate(v.kjv || v.text)}</div>
               <div className="match-type-controls">
-                <input
-                  className={`match-type-input${state === 'correct' ? ' match-slot-correct' : state === 'wrong' ? ' match-slot-wrong' : ''}`}
-                  placeholder="Reference…"
-                  value={inputs[i]}
-                  onChange={e => {
-                    const next = [...inputs];
-                    next[i] = e.target.value;
-                    setInputs(next);
-                    if (results) setResults(null);
-                  }}
-                />
+                <div className="match-input-wrap">
+                  <input
+                    className={`match-type-input${
+                      grade === 'correct' ? ' match-slot-correct'
+                      : grade === 'close' ? ' match-slot-close'
+                      : grade === 'wrong' ? ' match-slot-wrong' : ''
+                    }`}
+                    placeholder="Reference…"
+                    value={inputs[i]}
+                    onChange={e => {
+                      const next = [...inputs];
+                      next[i] = e.target.value;
+                      setInputs(next);
+                      if (results) setResults(null);
+                    }}
+                  />
+                  {grade === 'close' && (
+                    <span className="match-close-label">Close! ({v.reference})</span>
+                  )}
+                </div>
                 {hintLevel < 3 && (
                   <button className="match-hint-btn" onClick={() => handleHint(i)}>
                     {HINT_LABELS[hintLevel]}
@@ -268,12 +298,12 @@ function TypeMatch({ verses, onComplete }) {
         })}
       </div>
 
-      {allFilled && (
+      {allFilled && !allPassed && (
         <button className="ob-btn-primary match-check-btn" onClick={handleCheck}>
           Check answers →
         </button>
       )}
-      {results && !results.every(c => c) && (
+      {results && !allPassed && results.some(g => g === 'wrong') && (
         <p className="match-hint-msg">Correct the highlighted references and try again.</p>
       )}
     </div>

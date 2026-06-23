@@ -929,3 +929,6 @@ input[type=text] {
   transition: border-color .15s, color .15s; white-space: nowrap;
 }
 .match-hint-btn:hover { border-color: #3a8c5c; color: #3a8c5c; }
+.match-slot-close  { border-color: #e67e00; background: #fff8f0; }
+.match-input-wrap  { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.match-close-label { font-size: 11px; color: #e67e00; font-weight: 600; padding-left: 2px; }
