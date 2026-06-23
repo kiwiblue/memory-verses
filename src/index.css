@@ -136,11 +136,20 @@ select {
 }
 .deck-manage-btn:hover { color: #555; }
 
+/* Deck panel tabs */
+.deck-tabs { display: flex; border-bottom: 1px solid #eee; }
+.deck-tab {
+  flex: 1; padding: 10px; font-size: 13px; font-weight: 500; color: #aaa;
+  background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent;
+  transition: color .15s, border-color .15s;
+}
+.deck-tab.active { color: #1a1a18; border-bottom-color: #3a8c5c; }
+
 .deck-list { padding: 8px 0; max-height: 60vh; overflow-y: auto; }
 .deck-empty { text-align: center; padding: 2rem; font-size: 13px; color: #aaa; }
 .deck-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 16px; border-bottom: 0.5px solid #f0f0ee;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-bottom: 0.5px solid #f0f0ee;
   cursor: grab; transition: background .1s;
 }
 .deck-row:hover { background: #fafaf8; }
@@ -154,13 +163,18 @@ select {
 .deck-badge-mastered { background: #edf7f1; color: #3a8c5c; }
 .deck-badge-upnext   { background: #e8f0fb; color: #2a6ab5; }
 .deck-badge-today    { background: #edf7f1; color: #2d7a52; font-weight: 600; }
-.deck-row-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+
+/* Stats rings */
+.deck-stats { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+
+.deck-row-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
 .deck-learn-btn {
-  background: none; border: none; font-size: 10px; color: #3a8c5c;
-  cursor: pointer; padding: 4px 6px; border-radius: 4px; opacity: 0.6;
-  transition: opacity .15s, background .15s;
+  background: none; border: 1px solid #c8e6d4; color: #3a8c5c;
+  font-size: 10px; font-weight: 600; cursor: pointer;
+  padding: 3px 7px; border-radius: 5px;
+  transition: background .15s;
 }
-.deck-learn-btn:hover { opacity: 1; background: #edf7f1; }
+.deck-learn-btn:hover { background: #edf7f1; }
 .deck-remove-btn {
   flex-shrink: 0; background: none; border: none; color: #ccc;
   font-size: 14px; cursor: pointer; padding: 2px 4px; border-radius: 4px;
@@ -199,6 +213,67 @@ select {
 .deck-mirror-bracket { font-size: 11px; color: #aaa; text-transform: capitalize; }
 .deck-mirror-btn { margin-top: 4px; }
 .deck-mirror-done { font-size: 13px; color: #3a8c5c; font-weight: 500; padding: 6px 0; }
+
+/* Deck Add tab */
+.deck-add-tab { display: flex; flex-direction: column; }
+.deck-add-tabs { display: flex; gap: 6px; padding: 12px 12px 0; }
+.deck-add-tab-btn {
+  flex: 1; padding: 7px 10px; font-size: 12px; font-weight: 500; border-radius: 8px;
+  border: 1px solid #e0e0da; background: none; color: #888; cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.deck-add-tab-btn.active { background: #f0f9f4; border-color: #a3d4b8; color: #2d7a52; }
+.deck-add-badge { font-size: 10px; background: #fef6e4; color: #9a6c10; border-radius: 8px; padding: 1px 5px; margin-left: 4px; }
+.deck-search-section { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.deck-search-form { display: flex; gap: 6px; }
+.deck-search-input {
+  flex: 1; padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px;
+  font-size: 14px; outline: none;
+}
+.deck-search-input:focus { border-color: #3a8c5c; }
+.deck-search-btn {
+  padding: 8px 14px; background: #3a8c5c; color: #fff; border: none;
+  border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer;
+}
+.deck-search-btn:disabled { opacity: .5; }
+.deck-add-error { font-size: 12px; color: #c0392b; margin: 0; }
+.deck-add-already { font-size: 12px; color: #888; margin: 0; }
+.deck-add-ok { font-size: 12px; color: #3a8c5c; font-weight: 600; margin: 0; }
+.deck-search-result { display: flex; flex-direction: column; gap: 6px; }
+.deck-result-ref { font-size: 14px; font-weight: 600; }
+.deck-result-row {
+  display: flex; align-items: flex-start; gap: 8px; padding: 8px;
+  border: 1px solid #eee; border-radius: 8px; font-size: 12px;
+}
+.deck-result-row.pref { border-color: #a3d4b8; background: #f7fcf9; }
+.deck-result-label { font-weight: 600; color: #555; flex-shrink: 0; min-width: 36px; }
+.deck-result-text { flex: 1; color: #444; line-height: 1.45; }
+.deck-result-add {
+  background: #3a8c5c; color: #fff; border: none; border-radius: 6px;
+  font-size: 11px; font-weight: 600; padding: 4px 8px; cursor: pointer; flex-shrink: 0;
+}
+.deck-result-add:hover { background: #2d7a52; }
+.deck-curated-section { padding: 12px; max-height: 55vh; overflow-y: auto; display: flex; flex-direction: column; gap: 0; }
+.deck-curated-empty { font-size: 13px; color: #aaa; text-align: center; padding: 2rem 0; }
+.deck-curated-hdr { display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px; }
+.deck-curated-note { font-size: 11px; color: #888; }
+.deck-restore-all-btn {
+  font-size: 11px; font-weight: 600; color: #3a8c5c; background: none;
+  border: 1px solid #a3d4b8; border-radius: 6px; padding: 3px 8px; cursor: pointer;
+}
+.deck-restore-all-btn:hover { background: #f0f9f4; }
+.deck-curated-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 0; border-bottom: 0.5px solid #f0f0ee;
+}
+.deck-curated-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.deck-curated-text { font-size: 11px; color: #999; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.deck-restore-btn {
+  font-size: 11px; font-weight: 600; color: #3a8c5c; background: none;
+  border: 1px solid #a3d4b8; border-radius: 6px; padding: 4px 8px;
+  cursor: pointer; flex-shrink: 0;
+}
+.deck-restore-btn:hover { background: #f0f9f4; }
 
 .app-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 0.5px solid #e8e7e2; text-align: center; }
 .footer-attribution { font-size: 9px; color: #bbb; line-height: 1.5; margin-bottom: 0.4rem; }
@@ -957,12 +1032,19 @@ input[type=text] {
   gap: 10px; margin-top: 16px;
 }
 .learn-exercise-btn { margin-top: 0; }
+.learn-knowit-row { display: flex; align-items: stretch; gap: 6px; }
 .learn-knowit-btn {
-  background: none; border: 1.5px solid #3a8c5c; color: #3a8c5c;
+  flex: 1; background: none; border: 1.5px solid #3a8c5c; color: #3a8c5c;
   border-radius: 12px; padding: 12px; font-size: 15px; font-weight: 600;
   cursor: pointer; transition: background .15s;
 }
 .learn-knowit-btn:hover { background: #f0f9f4; }
+.learn-remove-btn {
+  background: none; border: 1.5px solid #e0ddd8; color: #ccc;
+  border-radius: 12px; padding: 12px 14px; font-size: 15px;
+  cursor: pointer; transition: border-color .15s, color .15s;
+}
+.learn-remove-btn:hover { border-color: #e05252; color: #e05252; }
 .learn-intro {
   display: flex; flex-direction: column; gap: 6px;
   margin-top: 20px; padding: 14px 16px;

@@ -11,9 +11,10 @@ export default function LearnPanel({
   defaultVersion,
   verseTranslations,
   onVerseTranslationChange,
-  onKnowIt,   // marks verse as known, advances queue
-  onNext,     // skip / still learning — just advance
-  onDowngrade, // called if exercise hints exceed threshold
+  onKnowIt,
+  onNext,
+  onDowngrade,
+  onRemove,
 }) {
   const [step, setStep]       = useState('card');
   const [isFlipped, setIsFlipped] = useState(false);
@@ -65,9 +66,14 @@ export default function LearnPanel({
           >
             Begin Memory Exercise →
           </button>
-          <button className="btn btn-ok learn-knowit-btn" onClick={onKnowIt}>
-            Know it ✓
-          </button>
+          <div className="learn-knowit-row">
+            <button className="btn btn-ok learn-knowit-btn" onClick={onKnowIt}>
+              Know it ✓
+            </button>
+            {onRemove && (
+              <button className="learn-remove-btn" onClick={onRemove} title="Remove from deck">✕</button>
+            )}
+          </div>
         </div>
 
         <div className="learn-intro">

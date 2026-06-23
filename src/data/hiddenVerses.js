@@ -17,3 +17,15 @@ export function hideVerseId(userId, verseId) {
   saveHiddenVerseIds(userId, ids);
   return ids;
 }
+
+export function restoreVerseId(userId, verseId) {
+  const ids = loadHiddenVerseIds(userId);
+  ids.delete(verseId);
+  saveHiddenVerseIds(userId, ids);
+  return ids;
+}
+
+export function restoreAllVerseIds(userId) {
+  saveHiddenVerseIds(userId, new Set());
+  return new Set();
+}

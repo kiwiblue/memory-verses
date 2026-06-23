@@ -8,7 +8,7 @@ import { pushSync } from './data/syncService.js';
 import { loadProgress, saveProgress, getEntry } from './data/progress.js';
 import { recordAttempt, buildDailyQueue, progressStats } from './data/spacedRepetition.js';
 import { loadCustomVerses, addCustomVerse, removeCustomVerse, saveCustomVerses } from './data/customVerses.js';
-import { loadHiddenVerseIds, hideVerseId, saveHiddenVerseIds } from './data/hiddenVerses.js';
+import { loadHiddenVerseIds, hideVerseId, restoreVerseId, restoreAllVerseIds, saveHiddenVerseIds } from './data/hiddenVerses.js';
 import { loadVerseCache, saveVerseCache, mergeVerseIntoCache } from './data/verseCache.js';
 import { fetchVerse } from './api/bible.js';
 import { appendReviseLog } from './data/reviseLog.js';
@@ -303,6 +303,14 @@ export default function App() {
     }
   }, [currentUser.id]);
 
+  const handleRestoreVerse = useCallback((verseId) => {
+    setHiddenIds(new Set(restoreVerseId(currentUser.id, verseId)));
+  }, [currentUser.id]);
+
+  const handleRestoreAll = useCallback(() => {
+    setHiddenIds(new Set(restoreAllVerseIds(currentUser.id)));
+  }, [currentUser.id]);
+
   const handleOnboardingComplete = useCallback((updatedUser, selectedVerseId, auth, customVerse) => {
     // Save updated user profile
     const updatedUsers = users.map(u => u.id === updatedUser.id ? updatedUser : u);
@@ -430,12 +438,18 @@ export default function App() {
       {showDeckPanel && (
         <VerseDeckPanel
           verses={allVerses}
+          curatedVerses={VERSES}
+          hiddenIds={hiddenIds}
           progress={progress}
           dailyQueue={dailyQueue}
           currentUser={currentUser}
           users={users}
+          preferredVersion={version}
           onReorder={handleReorderDeck}
           onRemoveVerse={handleRemoveVerseById}
+          onRestoreVerse={handleRestoreVerse}
+          onRestoreAll={handleRestoreAll}
+          onAddVerse={handleAddVerse}
           onLearnNow={handleLearnNow}
           onMirror={handleMirrorDeck}
           onClose={() => setShowDeckPanel(false)}
@@ -520,21 +534,8 @@ export default function App() {
             onVerseTranslationChange={handleVerseTranslationChange}
             onKnowIt={() => handleMark(1)}
             onNext={goNext}
+            onRemove={handleRemoveVerse}
           />
-
-          <div className="remove-row">
-            {removeConfirm ? (
-              <>
-                <span className="remove-confirm-label">Remove this verse?</span>
-                <button className="remove-confirm-no" onClick={() => setRemoveConfirm(false)}>Cancel</button>
-                <button className="remove-confirm-yes" onClick={() => { handleRemoveVerse(); setRemoveConfirm(false); }}>Yes, remove</button>
-              </>
-            ) : (
-              <button className="remove-verse-btn" onClick={() => setRemoveConfirm(true)}>
-                Remove from my deck
-              </button>
-            )}
-          </div>
         </>
       )}
 
