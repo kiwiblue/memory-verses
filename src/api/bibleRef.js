@@ -112,7 +112,7 @@ export function parseRef(input) {
   // Match: <book> <chapter>[:.,] <verseStart> [-<verseEnd>]
   // Accepts colon (English), comma (European), or period (academic/theological)
   // Zero or more spaces allowed between book and chapter (e.g. "john3:16")
-  const m = s.match(/^(.+?)\s*(\d+)\s*[:,.\s]\s*(\d+)\s*(?:-\s*(\d+))?\s*$/i);
+  const m = s.match(/^(.+?)\s*(\d+)\s*[:;,.\s]\s*(\d+)\s*(?:-\s*(\d+))?\s*$/i);
   if (!m) return null;
 
   const [, bookRaw, chapter, verseStart, verseEnd] = m;
