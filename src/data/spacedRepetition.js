@@ -72,6 +72,32 @@ export function buildDailyQueue(verses, progress, userBracket = 'adult') {
   return [...due, ...newVerses];
 }
 
+// Skill level for a verse based on attempt history
+// beginner  → FILL easy  + TYPE easy
+// intermediate → FILL moderate + TYPE moderate
+// advanced  → TYPE hard  (skip FILL)
+export function getSkillLevel(entry) {
+  if (!entry || (entry.seen_count || 0) < 3) return 'beginner';
+  const recent = (entry.scores || []).slice(-5);
+  const correct = recent.filter(s => s === 1).length;
+  if (correct >= 4) return 'advanced';
+  if (correct >= 2) return 'intermediate';
+  return 'beginner';
+}
+
+// Up to `limit` most-urgent verses due for revision (learning or mastered, most overdue first)
+export function buildReviseQueue(verses, progress, userBracket = 'adult', limit = 5) {
+  const allowed = BRACKET_ACCESS[userBracket] || BRACKET_ACCESS.adult;
+  return verses
+    .filter(v => {
+      if (!allowed.includes(v.bracket || 'child')) return false;
+      const s = progress[v.id]?.status;
+      return s === 'learning' || s === 'mastered';
+    })
+    .sort((a, b) => (progress[a.id]?.next_review || 0) - (progress[b.id]?.next_review || 0))
+    .slice(0, limit);
+}
+
 // Summary stats for the progress pills
 export function progressStats(verses, progress, userBracket = 'adult') {
   const allowed = BRACKET_ACCESS[userBracket] || BRACKET_ACCESS.adult;

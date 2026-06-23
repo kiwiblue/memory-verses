@@ -28,6 +28,7 @@ import AddVersePanel from './components/AddVersePanel.jsx';
 import VerseDeckPanel from './components/VerseDeckPanel.jsx';
 import OnboardingFlow from './components/OnboardingFlow.jsx';
 import LearnPanel from './components/LearnPanel.jsx';
+import RevisePanel from './components/RevisePanel.jsx';
 import FillExercise from './components/exercises/FillExercise.jsx';
 import TypeExercise from './components/exercises/TypeExercise.jsx';
 import MatchExercise from './components/exercises/MatchExercise.jsx';
@@ -498,46 +499,27 @@ export default function App() {
 
       {queueDone ? (
         <QueueComplete stats={stats} onBrowse={() => handleModeChange('revise')} onRestart={handleRestartQueue} />
-      ) : mode === 'revise' && reviseVerses.length === 0 ? (
-        <div className="revise-empty">
-          <div className="revise-empty-icon">📖</div>
-          <div className="revise-empty-title">Nothing to revise yet</div>
-          <div className="revise-empty-sub">Complete a Learn session first — verses you've started will appear here.</div>
-          <button className="btn" onClick={() => handleModeChange('learn')}>Start Learning →</button>
-        </div>
+      ) : mode === 'revise' ? (
+        <RevisePanel
+          verses={allVerses}
+          progress={progress}
+          currentUser={currentUser}
+          onMark={(v, score) => setProgress(prev => ({
+            ...prev,
+            [v.id]: recordAttempt(getEntry(prev, v.id), score),
+          }))}
+        />
       ) : (
         <>
-          {mode === 'learn' ? (
-            <LearnPanel
-              verse={verse}
-              version={activeVersion}
-              defaultVersion={version}
-              verseTranslations={verseTranslations}
-              onVerseTranslationChange={handleVerseTranslationChange}
-              onKnowIt={() => handleMark(1)}
-              onNext={goNext}
-            />
-          ) : (
-            <FlipCard
-              verse={verse}
-              version={activeVersion}
-              defaultVersion={version}
-              verseTranslations={verseTranslations}
-              isFlipped={isFlipped}
-              mode={mode}
-              onFlip={handleFlip}
-              onVerseTranslationChange={handleVerseTranslationChange}
-            />
-          )}
-
-          {mode === 'revise' && (
-            <TestControls
-              verse={verse} version={version}
-              isFlipped={isFlipped} onFlip={handleFlip} onReveal={handleReveal} onNext={goNext}
-              onPrev={goPrev} hasPrev={browseIndex > 0}
-              onAttemptEnd={entry => appendReviseLog(currentUser.id, entry)}
-            />
-          )}
+          <LearnPanel
+            verse={verse}
+            version={activeVersion}
+            defaultVersion={version}
+            verseTranslations={verseTranslations}
+            onVerseTranslationChange={handleVerseTranslationChange}
+            onKnowIt={() => handleMark(1)}
+            onNext={goNext}
+          />
 
           <div className="remove-row">
             {removeConfirm ? (
