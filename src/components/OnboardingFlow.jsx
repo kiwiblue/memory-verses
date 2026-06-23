@@ -130,10 +130,12 @@ function verseText(v, verseCache) {
 
 function VerseScreen({ selectedId, onSelect, onNext, verseCache }) {
   const [search, setSearch] = useState('');
+  const [showAll, setShowAll] = useState(false);
 
   const filtered = VERSES.filter(v =>
     v.reference.toLowerCase().includes(search.toLowerCase())
   );
+  const visible = search ? filtered : (showAll ? filtered : filtered.slice(0, 10));
 
   return (
     <div className="ob-screen">
@@ -155,7 +157,7 @@ function VerseScreen({ selectedId, onSelect, onNext, verseCache }) {
         </div>
 
         <div className="ob-verse-list">
-          {filtered.map(v => {
+          {visible.map(v => {
             const text = verseText(v, verseCache);
             const selected = selectedId === v.id;
             return (
@@ -175,6 +177,11 @@ function VerseScreen({ selectedId, onSelect, onNext, verseCache }) {
               </button>
             );
           })}
+          {!search && !showAll && filtered.length > 10 && (
+            <button className="ob-verse-more" onClick={() => setShowAll(true)}>
+              Show all {filtered.length} verses ↓
+            </button>
+          )}
         </div>
 
         <div className="ob-verse-footer">

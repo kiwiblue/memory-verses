@@ -661,6 +661,11 @@ input[type=text] {
 .ob-verse-ref { font-size: 14px; font-weight: 700; color: #1a1a18; }
 .ob-verse-text { font-size: 13px; color: #555; line-height: 1.5; }
 .ob-verse-text-empty { color: #bbb; font-style: italic; }
+.ob-verse-more {
+  width: 100%; padding: 12px; border: 1.5px dashed #ddd; border-radius: 12px;
+  background: none; color: #888; font-size: 13px; cursor: pointer; transition: border-color .15s, color .15s;
+}
+.ob-verse-more:hover { border-color: #aaa; color: #555; }
 .ob-verse-footer {
   padding: 16px; border-top: 0.5px solid #eee; background: #fff;
   position: sticky; bottom: 0;
