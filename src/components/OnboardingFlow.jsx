@@ -136,11 +136,15 @@ function TranslationScreen({ translation, onChange, onNext }) {
 
 // ── Screen 2: Pick first verse ──────────────────────────────────────────────
 
-function verseText(v) {
+function verseText(v, translation, verseCache) {
+  if (translation && verseCache) {
+    const cached = verseCache[v.reference];
+    if (cached?.[translation]) return cached[translation];
+  }
   return v.kjv || null;
 }
 
-function VerseScreen({ selectedId, onSelect, onNext }) {
+function VerseScreen({ selectedId, onSelect, onNext, translation, verseCache }) {
   const [search, setSearch] = useState('');
   const [limit, setLimit] = useState(10);
   // apiResult: null | 'loading' | { reference, kjv } | 'not-found'
@@ -220,7 +224,7 @@ function VerseScreen({ selectedId, onSelect, onNext }) {
         <div className="ob-verse-list">
           {visible.map(v => {
             const selected = selectedId === v.id;
-            const text = verseText(v);
+            const text = verseText(v, translation, verseCache);
             return (
               <button
                 key={v.id}
@@ -428,7 +432,7 @@ function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, s
 
 // ── Main flow ───────────────────────────────────────────────────────────────
 
-export default function OnboardingFlow({ currentUser, onComplete, onLogin }) {
+export default function OnboardingFlow({ currentUser, verseCache, onComplete, onLogin }) {
   const [step, setStep] = useState(0); // 0=welcome 1=translation 2=verse 3=personalise
   const [translation, setTranslation] = useState(currentUser.translation || 'kjv');
   const [selectedVerseId, setSelectedVerseId] = useState(null);
@@ -475,6 +479,8 @@ export default function OnboardingFlow({ currentUser, onComplete, onLogin }) {
         setCustomVerse(apiVerse || null);
       }}
       onNext={() => setStep(3)}
+      translation={translation}
+      verseCache={verseCache}
     />
   );
 
