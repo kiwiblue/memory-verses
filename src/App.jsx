@@ -27,6 +27,7 @@ import ProfileModal from './components/ProfileModal.jsx';
 import AddVersePanel from './components/AddVersePanel.jsx';
 import VerseDeckPanel from './components/VerseDeckPanel.jsx';
 import OnboardingFlow from './components/OnboardingFlow.jsx';
+import LearnPanel from './components/LearnPanel.jsx';
 import FillExercise from './components/exercises/FillExercise.jsx';
 import TypeExercise from './components/exercises/TypeExercise.jsx';
 import MatchExercise from './components/exercises/MatchExercise.jsx';
@@ -506,20 +507,29 @@ export default function App() {
         </div>
       ) : (
         <>
-          <FlipCard
-            verse={verse}
-            version={activeVersion}
-            defaultVersion={version}
-            verseTranslations={verseTranslations}
-            isFlipped={isFlipped}
-            mode={mode}
-            onFlip={handleFlip}
-            onVerseTranslationChange={handleVerseTranslationChange}
-          />
-
-          {mode === 'learn' && (
-            <StudyControls onMark={handleMark} onNext={goNext} />
+          {mode === 'learn' ? (
+            <LearnPanel
+              verse={verse}
+              version={activeVersion}
+              defaultVersion={version}
+              verseTranslations={verseTranslations}
+              onVerseTranslationChange={handleVerseTranslationChange}
+              onKnowIt={() => handleMark(1)}
+              onNext={goNext}
+            />
+          ) : (
+            <FlipCard
+              verse={verse}
+              version={activeVersion}
+              defaultVersion={version}
+              verseTranslations={verseTranslations}
+              isFlipped={isFlipped}
+              mode={mode}
+              onFlip={handleFlip}
+              onVerseTranslationChange={handleVerseTranslationChange}
+            />
           )}
+
           {mode === 'revise' && (
             <TestControls
               verse={verse} version={version}

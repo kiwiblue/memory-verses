@@ -932,3 +932,57 @@ input[type=text] {
 .match-slot-close  { border-color: #e67e00; background: #fff8f0; }
 .match-input-wrap  { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .match-close-label { font-size: 11px; color: #e67e00; font-weight: 600; padding-left: 2px; }
+
+/* ── Learn Panel ─────────────────────────────────────────────────────────── */
+.learn-panel { display: flex; flex-direction: column; gap: 0; width: 100%; }
+.learn-step-label {
+  font-size: 12px; color: #aaa; text-align: center;
+  margin-bottom: 12px; letter-spacing: .4px;
+}
+.learn-hint {
+  font-size: 13px; color: #888; text-align: center;
+  margin: 8px 0 0; min-height: 20px;
+}
+.learn-card-actions {
+  display: flex; flex-direction: column; align-items: stretch;
+  gap: 10px; margin-top: 16px;
+}
+.learn-exercise-btn { margin-top: 0; }
+.learn-knowit-btn {
+  background: none; border: 1.5px solid #3a8c5c; color: #3a8c5c;
+  border-radius: 12px; padding: 12px; font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: background .15s;
+}
+.learn-knowit-btn:hover { background: #f0f9f4; }
+.learn-intro {
+  display: flex; flex-direction: column; gap: 6px;
+  margin-top: 20px; padding: 14px 16px;
+  background: #f9f9f8; border-radius: 12px;
+}
+.learn-intro-item { font-size: 13px; color: #666; margin: 0; }
+
+/* Wobble hint for unflipped card */
+@keyframes card-wobble {
+  0%, 100% { transform: rotate(0deg); }
+  20%       { transform: rotate(-1.5deg); }
+  60%       { transform: rotate(1.5deg); }
+  80%       { transform: rotate(-.8deg); }
+}
+.card-wobble-wrap { animation: card-wobble .7s ease; }
+
+/* Check-up screen */
+.learn-checkup {
+  align-items: center; text-align: center; padding: 32px 16px;
+}
+.learn-checkup-icon  { font-size: 48px; margin-bottom: 12px; }
+.learn-checkup-title { font-size: 22px; font-weight: 700; margin: 0 0 10px; }
+.learn-checkup-sub   { font-size: 14px; color: #666; line-height: 1.6; margin: 0 0 28px; }
+.learn-checkup-actions {
+  display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px;
+}
+.learn-repeat-btn {
+  padding: 12px; border-radius: 12px; border: 1.5px solid #ddd;
+  background: #fff; font-size: 15px; color: #555;
+  cursor: pointer; transition: border-color .15s, color .15s;
+}
+.learn-repeat-btn:hover { border-color: #3a8c5c; color: #3a8c5c; }
