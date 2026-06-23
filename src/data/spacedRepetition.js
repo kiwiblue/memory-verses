@@ -67,7 +67,6 @@ export function buildDailyQueue(verses, progress, userBracket = 'adult') {
       const e = progress[v.id];
       return !e || e.status === 'unseen';
     })
-    .sort((a, b) => (a.sort_order || a.id) - (b.sort_order || b.id))
     .slice(0, 5);
 
   return [...due, ...newVerses];
