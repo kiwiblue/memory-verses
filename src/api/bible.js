@@ -60,6 +60,22 @@ async function fetchApiBible(bibleId, osisId) {
 }
 
 /**
+ * Fetch a single verse in one specific translation.
+ * Returns the text string, or null if unavailable.
+ */
+export async function fetchTranslation(rawInput, translation) {
+  const parsed = parseRef(rawInput);
+  if (!parsed) return null;
+  const reference = toDisplayRef(parsed);
+  const osisId = toOSIS(parsed);
+  if (translation === 'kjv' || translation === 'bsb') return fetchFromD1(reference, translation);
+  if (translation === 'esv') return fetchESV(reference);
+  const bibleId = API_BIBLE_IDS[translation];
+  if (bibleId) return fetchApiBible(bibleId, osisId);
+  return null;
+}
+
+/**
  * Fetch a verse or verse range from all translations.
  * Input can be in any common format: "Eph 4:9-10", "1john 3:16", "Ps. 23:1", etc.
  * Returns { reference, esv, kjv, bsb, niv, nkjv, nasb } with canonical reference.

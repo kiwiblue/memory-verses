@@ -13,6 +13,7 @@ async function fetchPublicKJV(reference) {
   } catch { return null; }
 }
 import { parseRef, toDisplayRef } from '../api/bibleRef.js';
+import { fetchTranslation } from '../api/bible.js';
 import { APP_VERSION } from '../data/version.js';
 
 function ObFooter() {
@@ -136,10 +137,11 @@ function TranslationScreen({ translation, onChange, onNext }) {
 
 // ── Screen 2: Pick first verse ──────────────────────────────────────────────
 
-function verseText(v, translation, verseCache) {
-  if (translation && verseCache) {
-    const cached = verseCache[v.reference];
-    if (cached?.[translation]) return cached[translation];
+function verseText(v, translation, verseCache, fetched) {
+  if (translation && translation !== 'kjv') {
+    if (verseCache?.[v.reference]?.[translation]) return verseCache[v.reference][translation];
+    if (fetched?.[v.reference]) return fetched[v.reference];
+    return null; // still loading
   }
   return v.kjv || null;
 }
@@ -149,6 +151,9 @@ function VerseScreen({ selectedId, onSelect, onNext, translation, verseCache }) 
   const [limit, setLimit] = useState(10);
   // apiResult: null | 'loading' | { reference, kjv } | 'not-found'
   const [apiResult, setApiResult] = useState(null);
+  // Per-verse text fetched for the chosen translation during this session
+  const [fetched, setFetched] = useState({});
+  const fetchedRef = useRef({});
   const debounceRef = useRef(null);
 
   // Normalise the search term so "Roman" matches "Romans", "1john" matches "1 John", etc.
@@ -167,6 +172,24 @@ function VerseScreen({ selectedId, onSelect, onNext, translation, verseCache }) 
     return matchesSearch && matchesBracket;
   });
   const visible = search ? filtered : filtered.slice(0, limit);
+
+  // Fetch the chosen translation for any visible verses not yet in verseCache or fetched state
+  useEffect(() => {
+    if (!translation || translation === 'kjv') return; // KJV already embedded
+    const needed = visible.filter(v => {
+      if (verseCache?.[v.reference]?.[translation]) return false;
+      if (fetchedRef.current[v.reference] !== undefined) return false;
+      return true;
+    });
+    if (!needed.length) return;
+    // Mark as in-progress immediately to avoid duplicate fetches
+    needed.forEach(v => { fetchedRef.current[v.reference] = null; });
+    needed.forEach(async v => {
+      const text = await fetchTranslation(v.reference, translation);
+      fetchedRef.current[v.reference] = text || v.kjv;
+      setFetched(prev => ({ ...prev, [v.reference]: text || v.kjv }));
+    });
+  }, [visible.map(v => v.reference).join(','), translation]);
 
   // When search changes, debounce an API lookup if the exact reference isn't in the curated list
   useEffect(() => {
@@ -224,7 +247,7 @@ function VerseScreen({ selectedId, onSelect, onNext, translation, verseCache }) 
         <div className="ob-verse-list">
           {visible.map(v => {
             const selected = selectedId === v.id;
-            const text = verseText(v, translation, verseCache);
+            const text = verseText(v, translation, verseCache, fetched);
             return (
               <button
                 key={v.id}
