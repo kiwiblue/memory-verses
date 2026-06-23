@@ -869,3 +869,53 @@ input[type=text] {
   font-size: 14px; font-weight: 700; color: #3a8c5c;
   animation: fill-pop .15s ease;
 }
+
+/* ── Match Exercise ─────────────────────────────────────────────────────────── */
+.match-ex-wrap { }
+.match-ex { display: flex; flex-direction: column; gap: 12px; }
+.match-rows { display: flex; flex-direction: column; gap: 10px; }
+.match-row {
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.match-verse-text {
+  flex: 1; font-size: 14px; color: #555; line-height: 1.5;
+  padding: 10px 12px; background: #f9f9f8; border-radius: 10px;
+  border: 1px solid #e8e8e4;
+}
+.match-slot {
+  width: 130px; flex-shrink: 0; min-height: 42px;
+  border: 1.5px dashed #ccc; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 6px; transition: border-color .15s, background .15s;
+}
+.match-slot-target { border-color: #3a8c5c; background: #f0f9f4; }
+.match-slot-filled { border-style: solid; border-color: #ccc; }
+.match-slot-correct { border-color: #3a8c5c; background: #e6f4ec; }
+.match-slot-wrong   { border-color: #e53935; background: #fdecea; }
+.match-slot-placeholder { font-size: 11px; color: #bbb; }
+
+.match-ref-chip {
+  display: inline-block; padding: 6px 12px; border-radius: 20px;
+  background: #fff; border: 1.5px solid #ddd;
+  font-size: 13px; font-weight: 600; color: #1a1a18;
+  cursor: grab; user-select: none; touch-action: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.match-ref-chip:hover   { border-color: #3a8c5c; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+.match-chip-dragging    { opacity: .45; }
+.match-ref-in-slot      { font-size: 12px; padding: 4px 10px; text-align: center; }
+
+.match-pool {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 12px; background: #f5f5f3; border-radius: 12px;
+  min-height: 48px; border: 1.5px dashed #ddd;
+}
+.match-check-btn { margin-top: 8px; }
+.match-hint-msg  { font-size: 13px; color: #e53935; text-align: center; margin-top: 4px; }
+
+.match-type-input {
+  width: 130px; flex-shrink: 0; padding: 10px 12px;
+  border: 1.5px solid #ddd; border-radius: 10px;
+  font-size: 13px; outline: none; transition: border-color .15s;
+}
+.match-type-input:focus { border-color: #3a8c5c; }

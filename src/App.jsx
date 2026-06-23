@@ -29,6 +29,7 @@ import VerseDeckPanel from './components/VerseDeckPanel.jsx';
 import OnboardingFlow from './components/OnboardingFlow.jsx';
 import FillExercise from './components/exercises/FillExercise.jsx';
 import TypeExercise from './components/exercises/TypeExercise.jsx';
+import MatchExercise from './components/exercises/MatchExercise.jsx';
 import { isOnboarded, markOnboarded } from './data/onboarding.js';
 import { APP_VERSION } from './data/version.js';
 
@@ -393,10 +394,17 @@ export default function App() {
   // DEV: test exercises via ?fill=easy|moderate|hard or ?type=easy|moderate|hard
   if (import.meta.env.DEV) {
     const params = new URLSearchParams(window.location.search);
-    if (params.has('fill') || params.has('type')) {
-      const exType = params.has('fill') ? 'fill' : 'type';
+    if (params.has('fill') || params.has('type') || params.has('match')) {
+      const exType = params.has('fill') ? 'fill' : params.has('type') ? 'type' : 'match';
       const diff = params.get(exType) || 'easy';
       const testVerse = allVerses[0];
+      if (exType === 'match') {
+        return (
+          <div style={{ minHeight: '100vh', background: '#f5f5f3', display: 'flex', alignItems: 'center', padding: '24px 16px' }}>
+            <MatchExercise verses={allVerses.slice(0, 4)} difficulty={diff} onComplete={r => alert(`Done! Errors: ${r.errors}`)} />
+          </div>
+        );
+      }
       const Ex = exType === 'fill' ? FillExercise : TypeExercise;
       return (
         <div style={{ minHeight: '100vh', background: '#f5f5f3', display: 'flex', alignItems: 'center', padding: '24px 16px' }}>
