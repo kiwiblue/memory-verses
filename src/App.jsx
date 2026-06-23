@@ -29,7 +29,7 @@ import VerseDeckPanel from './components/VerseDeckPanel.jsx';
 import OnboardingFlow from './components/OnboardingFlow.jsx';
 import { isOnboarded, markOnboarded } from './data/onboarding.js';
 
-const APP_VERSION = '0.5.46';
+const APP_VERSION = '0.5.47';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',

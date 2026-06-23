@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { VERSES } from '../data/verses.js';
 import { PATTERNS, avatarStyle } from '../data/avatarStyle.js';
 import { saveAuth } from '../data/auth.js';
+import { fetchKJV, fetchBSB } from '../api/bible.js';
 
 const TRANSLATIONS = [
   { value: 'kjv',  abbr: 'KJV',  name: 'King James Version' },
@@ -130,12 +131,32 @@ function verseText(v, verseCache) {
 
 function VerseScreen({ selectedId, onSelect, onNext, verseCache }) {
   const [search, setSearch] = useState('');
-  const [showAll, setShowAll] = useState(false);
+  const [limit, setLimit] = useState(10);
+  const [localCache, setLocalCache] = useState({});
+  const fetchingRef = useRef(new Set());
+
+  const merged = { ...verseCache, ...localCache };
 
   const filtered = VERSES.filter(v =>
     v.reference.toLowerCase().includes(search.toLowerCase())
   );
-  const visible = search ? filtered : (showAll ? filtered : filtered.slice(0, 10));
+  const visible = search ? filtered : filtered.slice(0, limit);
+
+  useEffect(() => {
+    const toFetch = visible.filter(v => !merged[v.reference]);
+    toFetch.forEach(v => {
+      if (fetchingRef.current.has(v.reference)) return;
+      fetchingRef.current.add(v.reference);
+      fetchKJV(v.reference)
+        .then(kjv => kjv
+          ? setLocalCache(prev => ({ ...prev, [v.reference]: { ...prev[v.reference], kjv } }))
+          : fetchBSB(v.reference).then(bsb => bsb &&
+              setLocalCache(prev => ({ ...prev, [v.reference]: { ...prev[v.reference], bsb } }))
+          )
+        )
+        .catch(() => {});
+    });
+  }, [limit, search]);
 
   return (
     <div className="ob-screen">
@@ -158,7 +179,6 @@ function VerseScreen({ selectedId, onSelect, onNext, verseCache }) {
 
         <div className="ob-verse-list">
           {visible.map(v => {
-            const text = verseText(v, verseCache);
             const selected = selectedId === v.id;
             return (
               <button
@@ -172,14 +192,14 @@ function VerseScreen({ selectedId, onSelect, onNext, verseCache }) {
                 </div>
                 {text
                   ? <p className="ob-verse-text">{text}</p>
-                  : <p className="ob-verse-text ob-verse-text-empty">Tap to select this verse</p>
+                  : <p className="ob-verse-text ob-verse-text-empty">Loading…</p>
                 }
               </button>
             );
           })}
-          {!search && !showAll && filtered.length > 10 && (
-            <button className="ob-verse-more" onClick={() => setShowAll(true)}>
-              Show all {filtered.length} verses ↓
+          {!search && limit < filtered.length && (
+            <button className="ob-verse-more" onClick={() => setLimit(l => l + 10)}>
+              Show more ({filtered.length - limit} remaining) ↓
             </button>
           )}
         </div>
