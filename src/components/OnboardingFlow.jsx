@@ -1,8 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { VERSES } from '../data/verses.js';
 import { PATTERNS, avatarStyle } from '../data/avatarStyle.js';
 import { saveAuth } from '../data/auth.js';
-import { fetchKJV, fetchBSB } from '../api/bible.js';
 import { APP_VERSION } from '../data/version.js';
 
 function ObFooter() {
@@ -126,44 +125,18 @@ function TranslationScreen({ translation, onChange, onNext }) {
 
 // ── Screen 2: Pick first verse ──────────────────────────────────────────────
 
-const PREF_VERSION_ORDER = ['kjv', 'bsb', 'esv', 'niv', 'nkjv', 'nasb'];
-
-function verseText(v, verseCache) {
-  const cached = verseCache?.[v.reference] || {};
-  for (const t of PREF_VERSION_ORDER) {
-    if (cached[t]) return cached[t];
-  }
-  return null;
+function verseText(v) {
+  return v.kjv || null;
 }
 
-function VerseScreen({ selectedId, onSelect, onNext, verseCache }) {
+function VerseScreen({ selectedId, onSelect, onNext }) {
   const [search, setSearch] = useState('');
   const [limit, setLimit] = useState(10);
-  const [localCache, setLocalCache] = useState({});
-  const fetchingRef = useRef(new Set());
-
-  const merged = { ...verseCache, ...localCache };
 
   const filtered = VERSES.filter(v =>
     v.reference.toLowerCase().includes(search.toLowerCase())
   );
   const visible = search ? filtered : filtered.slice(0, limit);
-
-  useEffect(() => {
-    const toFetch = visible.filter(v => !merged[v.reference]);
-    toFetch.forEach(v => {
-      if (fetchingRef.current.has(v.reference)) return;
-      fetchingRef.current.add(v.reference);
-      fetchKJV(v.reference)
-        .then(kjv => kjv
-          ? setLocalCache(prev => ({ ...prev, [v.reference]: { ...prev[v.reference], kjv } }))
-          : fetchBSB(v.reference).then(bsb => bsb &&
-              setLocalCache(prev => ({ ...prev, [v.reference]: { ...prev[v.reference], bsb } }))
-          )
-        )
-        .catch(() => {});
-    });
-  }, [limit, search]);
 
   return (
     <div className="ob-screen">
@@ -187,7 +160,7 @@ function VerseScreen({ selectedId, onSelect, onNext, verseCache }) {
         <div className="ob-verse-list">
           {visible.map(v => {
             const selected = selectedId === v.id;
-            const text = verseText(v, merged);
+            const text = verseText(v);
             return (
               <button
                 key={v.id}
@@ -369,7 +342,7 @@ function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, s
 
 // ── Main flow ───────────────────────────────────────────────────────────────
 
-export default function OnboardingFlow({ currentUser, verseCache, onComplete, onLogin }) {
+export default function OnboardingFlow({ currentUser, onComplete, onLogin }) {
   const [step, setStep] = useState(0); // 0=welcome 1=translation 2=verse 3=personalise
   const [translation, setTranslation] = useState(currentUser.translation || 'kjv');
   const [selectedVerseId, setSelectedVerseId] = useState(null);
@@ -412,7 +385,6 @@ export default function OnboardingFlow({ currentUser, verseCache, onComplete, on
       selectedId={selectedVerseId}
       onSelect={setSelectedVerseId}
       onNext={() => setStep(3)}
-      verseCache={verseCache}
     />
   );
 
