@@ -28,6 +28,7 @@ import AddVersePanel from './components/AddVersePanel.jsx';
 import VerseDeckPanel from './components/VerseDeckPanel.jsx';
 import OnboardingFlow from './components/OnboardingFlow.jsx';
 import FillExercise from './components/exercises/FillExercise.jsx';
+import TypeExercise from './components/exercises/TypeExercise.jsx';
 import { isOnboarded, markOnboarded } from './data/onboarding.js';
 import { APP_VERSION } from './data/version.js';
 
@@ -389,15 +390,20 @@ export default function App() {
     return FALLBACK_ORDER.find(t => verse[t]) || preferred;
   })();
 
-  // DEV: test fill exercise via ?fill=easy|moderate|hard in URL
-  if (import.meta.env.DEV && new URLSearchParams(window.location.search).has('fill')) {
-    const diff = new URLSearchParams(window.location.search).get('fill') || 'easy';
-    const testVerse = allVerses[0];
-    return (
-      <div style={{ minHeight: '100vh', background: '#f5f5f3', display: 'flex', alignItems: 'center', padding: '24px 16px' }}>
-        <FillExercise verse={testVerse} difficulty={diff} onComplete={r => alert(`Done! Errors: ${r.errors}`)} />
-      </div>
-    );
+  // DEV: test exercises via ?fill=easy|moderate|hard or ?type=easy|moderate|hard
+  if (import.meta.env.DEV) {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('fill') || params.has('type')) {
+      const exType = params.has('fill') ? 'fill' : 'type';
+      const diff = params.get(exType) || 'easy';
+      const testVerse = allVerses[0];
+      const Ex = exType === 'fill' ? FillExercise : TypeExercise;
+      return (
+        <div style={{ minHeight: '100vh', background: '#f5f5f3', display: 'flex', alignItems: 'center', padding: '24px 16px' }}>
+          <Ex verse={testVerse} difficulty={diff} onComplete={r => alert(`Done! Errors: ${r.errors}`)} />
+        </div>
+      );
+    }
   }
 
   if (!onboarded) return (

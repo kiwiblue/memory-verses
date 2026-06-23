@@ -825,3 +825,33 @@ input[type=text] {
 }
 .fill-done-icon { font-size: 20px; color: #2d7a52; }
 .fill-done-msg  { font-size: 15px; font-weight: 600; color: #2d7a52; }
+
+/* ── Type Exercise ─────────────────────────────────────────────────────────── */
+.type-ex-verse {
+  font-size: 17px; line-height: 2.1; color: #1a1a18; margin-bottom: 16px;
+  min-height: 80px; cursor: text;
+}
+.type-word-revealed {
+  color: #2d7a52; font-weight: 600;
+  animation: fill-pop .2s ease;
+}
+.type-blank {
+  display: inline-flex; align-items: center;
+  background: #f0f0ee; border-bottom: 2px solid #ccc;
+  border-radius: 4px; margin: 0 2px; padding: 0 4px;
+  vertical-align: middle; color: #aaa; font-size: 14px;
+  min-width: 24px; height: 26px;
+}
+.type-blank-active {
+  background: #e6f4ec; border-bottom-color: #3a8c5c;
+  animation: fill-pulse 1.2s ease-in-out infinite;
+}
+.type-typed    { color: #1a1a18; }
+.type-remaining { color: transparent; background: #f0f0ee; border-radius: 3px; letter-spacing: .5px; }
+.type-shake    { animation: fill-shake .38s ease; }
+.type-ex-hint  { font-size: 13px; color: #888; margin-bottom: 20px; min-height: 20px; }
+.type-hint-letter { color: #3a8c5c; font-size: 15px; }
+.type-hidden-input {
+  position: fixed; left: -9999px; top: 0;
+  width: 1px; height: 1px; opacity: 0;
+}
