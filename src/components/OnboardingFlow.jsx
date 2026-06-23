@@ -3,6 +3,7 @@ import { VERSES } from '../data/verses.js';
 import { PATTERNS, avatarStyle } from '../data/avatarStyle.js';
 import { saveAuth } from '../data/auth.js';
 import { fetchKJV } from '../api/bible.js';
+import { parseRef, toDisplayRef } from '../api/bibleRef.js';
 import { APP_VERSION } from '../data/version.js';
 
 function ObFooter() {
@@ -137,8 +138,17 @@ function VerseScreen({ selectedId, onSelect, onNext }) {
   const [apiResult, setApiResult] = useState(null);
   const debounceRef = useRef(null);
 
+  // Normalise the search term so "Roman" matches "Romans", "1john" matches "1 John", etc.
+  const normSearch = (() => {
+    if (!search.trim()) return '';
+    try {
+      const p = parseRef(search.trim());
+      return p ? toDisplayRef(p).toLowerCase() : search.toLowerCase();
+    } catch { return search.toLowerCase(); }
+  })();
+
   const filtered = VERSES.filter(v =>
-    v.reference.toLowerCase().includes(search.toLowerCase())
+    v.reference.toLowerCase().includes(normSearch || search.toLowerCase())
   );
   const visible = search ? filtered : filtered.slice(0, limit);
 
@@ -151,8 +161,11 @@ function VerseScreen({ selectedId, onSelect, onNext }) {
     setApiResult('loading');
     debounceRef.current = setTimeout(async () => {
       try {
-        const text = await fetchKJV(search.trim());
-        setApiResult(text ? { reference: search.trim(), kjv: text } : 'not-found');
+        const parsed = parseRef(search.trim());
+        if (!parsed) { setApiResult('not-found'); return; }
+        const reference = toDisplayRef(parsed);
+        const text = await fetchKJV(reference);
+        setApiResult(text ? { reference, kjv: text } : 'not-found');
       } catch {
         setApiResult('not-found');
       }
