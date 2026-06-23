@@ -156,9 +156,12 @@ function VerseScreen({ selectedId, onSelect, onNext }) {
     } catch { return search.toLowerCase(); }
   })();
 
-  const filtered = VERSES.filter(v =>
-    v.reference.toLowerCase().includes(normSearch || search.toLowerCase())
-  );
+  const filtered = VERSES.filter(v => {
+    const matchesSearch = v.reference.toLowerCase().includes(normSearch || search.toLowerCase());
+    // Without a search, only show adult-rated verses; searching reveals all brackets
+    const matchesBracket = search.trim() ? true : v.bracket === 'adult';
+    return matchesSearch && matchesBracket;
+  });
   const visible = search ? filtered : filtered.slice(0, limit);
 
   // When search changes, debounce an API lookup if the exact reference isn't in the curated list
