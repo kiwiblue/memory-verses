@@ -370,6 +370,35 @@ export default function App() {
     }));
   }, []);
 
+  // Defer a verse that's in today's queue by pushing its next_review 7 days out
+  const handleLearnLater = useCallback((verse) => {
+    setProgress(p => ({
+      ...p,
+      [verse.id]: {
+        ...(p[verse.id] || {}),
+        next_review: Date.now() + 7 * 24 * 60 * 60 * 1000,
+      },
+    }));
+  }, []);
+
+  // Unlock the next unseen verse so it enters the learn queue
+  const handleLearnNewVerse = useCallback(() => {
+    const nextUnseen = allVerses.find(v => {
+      const e = progress[v.id];
+      return !e || e.status === 'unseen';
+    });
+    if (!nextUnseen) return;
+    setProgress(p => ({
+      ...p,
+      [nextUnseen.id]: {
+        ...(p[nextUnseen.id] || {}),
+        status: 'learning',
+        next_review: Date.now() - 1,
+      },
+    }));
+    setQueueIndex(0);
+  }, [allVerses, progress]);
+
   const handleRestartQueue = useCallback(() => {
     const now = Date.now() - 1;
     setProgress(p => {
@@ -474,6 +503,7 @@ export default function App() {
           onRestoreAll={handleRestoreAll}
           onAddVerse={handleAddVerse}
           onLearnNow={handleLearnNow}
+          onLearnLater={handleLearnLater}
           onMirror={handleMirrorDeck}
           onClose={() => setShowDeckPanel(false)}
         />
@@ -541,11 +571,16 @@ export default function App() {
           verses={allVerses}
           progress={progress}
           currentUser={currentUser}
+          version={version}
+          defaultVersion={version}
+          verseTranslations={verseTranslations}
+          onVerseTranslationChange={handleVerseTranslationChange}
           onMark={(v, score) => setProgress(prev => ({
             ...prev,
             [v.id]: recordAttempt(getEntry(prev, v.id), score),
           }))}
           onLearnNew={() => handleModeChange('learn')}
+          onLearnNewVerse={handleLearnNewVerse}
         />
       ) : (
         <>
@@ -558,6 +593,7 @@ export default function App() {
             onKnowIt={() => handleMark(1)}
             onNext={goNext}
             onRemove={handleRemoveVerse}
+            onLearnNewVerse={handleLearnNewVerse}
           />
         </>
       )}

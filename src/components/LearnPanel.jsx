@@ -15,6 +15,7 @@ export default function LearnPanel({
   onNext,
   onDowngrade,
   onRemove,
+  onLearnNewVerse,
 }) {
   const [step, setStep]       = useState('card');
   const [isFlipped, setIsFlipped] = useState(false);
@@ -136,16 +137,15 @@ export default function LearnPanel({
       </p>
 
       <div className="learn-checkup-actions">
-        <button
-          className="ob-btn-primary"
-          onClick={onKnowIt}
-        >
+        <button className="ob-btn-primary" onClick={onKnowIt}>
           I know this verse ✓
         </button>
-        <button
-          className="learn-repeat-btn"
-          onClick={() => setStep('fill')}
-        >
+        {onLearnNewVerse && (
+          <button className="ob-btn-primary learn-new-verse-btn" onClick={onLearnNewVerse}>
+            Learn a new verse →
+          </button>
+        )}
+        <button className="learn-repeat-btn" onClick={() => setStep('fill')}>
           ↺ Repeat exercises
         </button>
       </div>

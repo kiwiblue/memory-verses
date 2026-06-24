@@ -157,7 +157,7 @@ export default function VerseDeckPanel({
   verses, curatedVerses = [], hiddenIds = new Set(), progress, dailyQueue,
   currentUser, users, preferredVersion,
   onReorder, onRemoveVerse, onRestoreVerse, onRestoreAll, onAddVerse,
-  onLearnNow, onMirror, onClose,
+  onLearnNow, onLearnLater, onMirror, onClose,
 }) {
   const queueIds = new Set((dailyQueue || []).map(v => String(v.id)));
   const [tab, setTab]             = useState('deck');
@@ -241,7 +241,11 @@ export default function VerseDeckPanel({
                     </div>
                   ) : (
                     <div className="deck-row-actions">
-                      {!inQueue && (
+                      {inQueue ? (
+                        <button className="deck-learn-later-btn" onClick={() => onLearnLater?.(verse)}>
+                          Learn Later
+                        </button>
+                      ) : (
                         <button className="deck-learn-btn" onClick={() => onLearnNow(verse)}>
                           Learn Next
                         </button>

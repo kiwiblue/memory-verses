@@ -1264,3 +1264,52 @@ input[type=text] {
 .adm-feedback-email { font-size: 12px; color: #888; flex: 1; }
 .adm-feedback-ts    { font-size: 11px; color: #bbb; }
 .adm-feedback-msg   { font-size: 13px; color: #444; margin: 0; white-space: pre-wrap; line-height: 1.5; }
+
+/* ── Revise browse mode ──────────────────────────────────────────────────────── */
+.revise-browse-nav {
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+  margin: 8px 0 4px;
+}
+.revise-nav-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid #ddd;
+  background: #fff; font-size: 16px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center; transition: border-color .15s;
+}
+.revise-nav-btn:disabled { opacity: .3; cursor: default; }
+.revise-nav-btn:not(:disabled):hover { border-color: #3a8c5c; }
+.revise-nav-pos { font-size: 13px; color: #888; min-width: 48px; text-align: center; }
+
+.revise-actions { margin: 12px 0 4px; }
+.revise-today-btn { width: 100%; }
+.revise-today-btn:disabled { opacity: .45; cursor: default; }
+
+.revise-back-btn {
+  background: none; border: none; color: #3a8c5c; font-size: 14px;
+  cursor: pointer; padding: 4px 0 10px; display: block;
+}
+
+.revise-verse-list { margin-top: 16px; }
+.revise-verse-list-hdr {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .06em; color: #aaa; margin-bottom: 8px;
+}
+.revise-verse-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 0; border-bottom: 0.5px solid #f0f0ee;
+}
+.revise-verse-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+
+/* ── Learn Later button (orange) ─────────────────────────────────────────────── */
+.deck-learn-later-btn {
+  font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 8px;
+  border: 1.5px solid #e69c2f; color: #b97d10; background: none;
+  cursor: pointer; white-space: nowrap; transition: background .15s;
+}
+.deck-learn-later-btn:hover { background: #fef6e4; }
+
+/* ── Learn a new verse button (secondary style) ──────────────────────────────── */
+.learn-new-verse-btn {
+  background: none !important; border: 1.5px solid #3a8c5c !important;
+  color: #3a8c5c !important;
+}
+.learn-new-verse-btn:hover { background: #f0f9f4 !important; }
