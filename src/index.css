@@ -94,56 +94,72 @@
 [data-theme="dark"] {
 
   /* Brand */
-  --color-brand:          #4eb87a;
-  --color-brand-dark:     #6ecf93;
-  --color-brand-muted:    #0e2318;
-  --color-brand-subtle:   #132e1e;
-  --color-brand-accent:   #1e4d33;
+  --color-brand:          #52c27e;
+  --color-brand-dark:     #72d898;
+  --color-brand-muted:    #0d2219;
+  --color-brand-subtle:   #132b1e;
+  --color-brand-accent:   #1e4832;
 
   /* Status — Success */
-  --color-success:        #4eb87a;
-  --color-success-bg:     #132e1e;
+  --color-success:        #52c27e;
+  --color-success-bg:     #132b1e;
 
   /* Status — Warning */
   --color-warning:        #f0a030;
   --color-warning-dark:   #e08820;
-  --color-warning-text:   #c87820;
-  --color-warning-bg:     #2a1e08;
+  --color-warning-text:   #d4902a;
+  --color-warning-bg:     #281c06;
 
   /* Status — Danger */
-  --color-danger:         #f06b6b;
-  --color-danger-dark:    #d94f4f;
-  --color-danger-bg:      #2a1010;
-  --color-danger-muted:   #5a2020;
+  --color-danger:         #f07070;
+  --color-danger-dark:    #d95555;
+  --color-danger-bg:      #28100e;
+  --color-danger-muted:   #4a2020;
   --color-danger-accent:  #e05252;
 
   /* Status — Info */
-  --color-info:           #6aa8e0;
-  --color-info-bg:        #0e1e30;
+  --color-info:           #6aaae0;
+  --color-info-bg:        #0c1c2e;
 
-  /* Surfaces */
-  --color-bg:             #141412;
-  --color-surface:        #1e1e1b;
-  --color-surface-sunken: #111110;
-  --color-surface-hover:  #2a2a26;
+  /* Surfaces — stepped so each layer is clearly distinct */
+  --color-bg:             #1a1a17;   /* page background — warm dark */
+  --color-surface:        #28281f;   /* cards, panels — noticeably raised */
+  --color-surface-sunken: #131311;   /* inputs, tab bar trough — sunken below bg */
+  --color-surface-hover:  #32322a;   /* hover state — above surface */
   --color-overlay:        rgba(0,0,0,0.65);
 
   /* Text */
-  --color-text-primary:   #f0f0ec;
-  --color-text-secondary: #b0b0a8;
-  --color-text-muted:     #808078;
-  --color-text-faint:     #505050;
-  --color-text-inverse:   #141412;
+  --color-text-primary:   #eeeee8;
+  --color-text-secondary: #a8a89e;
+  --color-text-muted:     #787870;
+  --color-text-faint:     #484840;
+  --color-text-inverse:   #1a1a17;
 
-  /* Borders */
-  --color-border:         #2e2e2a;
-  --color-border-strong:  #3e3e38;
-  --color-border-subtle:  #242420;
+  /* Borders — visible but not distracting */
+  --color-border:         #363630;
+  --color-border-strong:  #484840;
+  --color-border-subtle:  #262620;
 
   /* Shadows */
-  --shadow-sm:            0 1px 3px rgba(0,0,0,.3);
-  --shadow-md:            0 4px 16px rgba(0,0,0,.4);
-  --shadow-lg:            0 8px 32px rgba(0,0,0,.5);
+  --shadow-sm:            0 1px 3px rgba(0,0,0,.35);
+  --shadow-md:            0 4px 16px rgba(0,0,0,.45);
+  --shadow-lg:            0 8px 32px rgba(0,0,0,.55);
+}
+
+/* Dark mode: give pill stats and tab trough a visible border so they read against the bg */
+[data-theme="dark"] .pill {
+  border: 0.5px solid var(--color-border);
+}
+[data-theme="dark"] .tabs {
+  border: 0.5px solid var(--color-border-subtle);
+}
+[data-theme="dark"] .face {
+  border-color: var(--color-border);
+}
+[data-theme="dark"] .user-panel,
+[data-theme="dark"] .profile-modal-inner {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-lg);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -522,7 +538,7 @@ input[type=text] {
   width: 32px; height: 32px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-size: 13px; font-weight: 600; color: var(--color-text-inverse);
-  text-shadow: 0 0 4px rgba(0,0,0,.9), 0 1px 3px rgba(0,0,0,.8), 0 0 8px rgba(0,0,0,.6);
+  text-shadow: 0 0 6px rgba(255,255,255,.5), 0 1px 3px rgba(255,255,255,.3);
   cursor: pointer; flex-shrink: 0; user-select: none;
   transition: opacity .15s;
   box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 3.5px var(--user-colour, transparent);
@@ -596,7 +612,7 @@ input[type=text] {
 .profile-avatar {
   border-radius: 50%; display: flex; align-items: center; justify-content: center;
   font-size: 28px; font-weight: 700; color: var(--color-text-inverse); flex-shrink: 0;
-  text-shadow: 0 0 4px rgba(0,0,0,.9), 0 1px 3px rgba(0,0,0,.8), 0 0 8px rgba(0,0,0,.6);
+  text-shadow: 0 0 6px rgba(255,255,255,.5), 0 1px 3px rgba(255,255,255,.3);
 }
 .profile-personalise {
   display: flex; align-items: center; gap: 16px;
