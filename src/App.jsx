@@ -394,20 +394,14 @@ export default function App() {
 
   // Unlock the next unseen verse so it enters the learn queue
   const handleLearnNewVerse = useCallback(() => {
-    const nextUnseen = allVerses.find(v => {
+    const hasUnseen = allVerses.some(v => {
       const e = progress[v.id];
       return !e || e.status === 'unseen';
     });
-    if (!nextUnseen) return;
-    setProgress(p => ({
-      ...p,
-      [nextUnseen.id]: {
-        ...(p[nextUnseen.id] || {}),
-        status: 'learning',
-        next_review: Date.now() - 1,
-      },
-    }));
+    if (!hasUnseen) return;
+    setMode('learn');
     setQueueIndex(0);
+    setIsFlipped(false);
   }, [allVerses, progress]);
 
   const handleRestartQueue = useCallback(() => {
@@ -576,7 +570,12 @@ export default function App() {
       <ModeTabs mode={mode} onChange={handleModeChange} />
 
       {queueDone ? (
-        <QueueComplete stats={stats} onBrowse={() => handleModeChange('revise')} onRestart={handleRestartQueue} />
+        <QueueComplete
+            stats={stats}
+            onBrowse={() => handleModeChange('revise')}
+            onRestart={handleRestartQueue}
+            onLearnNewVerse={stats.unseen > 0 ? handleLearnNewVerse : null}
+          />
       ) : mode === 'revise' ? (
         <RevisePanel
           verses={allVerses}
