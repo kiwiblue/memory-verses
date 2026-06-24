@@ -201,7 +201,7 @@ export default function VerseDeckPanel({
         {/* Tab switcher */}
         <div className="deck-tabs">
           <button className={`deck-tab${tab === 'deck' ? ' active' : ''}`} onClick={() => setTab('deck')}>Deck</button>
-          <button className={`deck-tab${tab === 'add' ? ' active' : ''}`} onClick={() => setTab('add')}>+ Add</button>
+          <button className={`deck-tab${tab === 'add' ? ' active' : ''}`} onClick={() => setTab('add')}>+ Add Verse</button>
         </div>
 
         {tab === 'deck' && (
