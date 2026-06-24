@@ -148,29 +148,18 @@ const BRACKET_ACCESS = {
   adult: ['child', 'youth', 'adult'],
 };
 
+// Learn mode is familiarisation-only: return up to 1 unseen verse per session.
+// Verses already in Revise (status learning/mastered) never appear here.
 export function buildDailyQueue(verses, progress, userBracket = 'adult') {
   const allowed = BRACKET_ACCESS[userBracket] || BRACKET_ACCESS.adult;
-  const now = Date.now();
   const eligible = verses.filter(v => allowed.includes(v.bracket || 'child'));
 
-  const due = eligible
+  return eligible
     .filter(v => {
-      const e = progress[v.id];
-      return e && e.status !== 'unseen' && e.next_review && e.next_review <= now;
-    })
-    .sort((a, b) => (progress[a.id].next_review || 0) - (progress[b.id].next_review || 0))
-    .slice(0, 15);
-
-  const seen = new Set(due.map(v => v.id));
-  const newVerses = eligible
-    .filter(v => {
-      if (seen.has(v.id)) return false;
       const e = progress[v.id];
       return !e || e.status === 'unseen';
     })
     .slice(0, 1);
-
-  return [...due, ...newVerses];
 }
 
 // Up to limit most-urgent revise verses. Recently-practiced verses are deprioritized
