@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import FlipCard from './FlipCard.jsx';
 import FillExercise from './exercises/FillExercise.jsx';
 import TypeExercise from './exercises/TypeExercise.jsx';
+import MatchExercise from './exercises/MatchExercise.jsx';
 import {
   buildReviseQueue,
   getSkillLevel,
@@ -57,12 +58,17 @@ function ExerciseFlow({ queue, progress, sessionKey, onAdvance, onDone }) {
   const [stepIdx, setStepIdx]   = useState(0);
   const [accHints, setAccHints] = useState(0);
   const [accErrors, setAccErrors] = useState(0);
+  const [matchPhase, setMatchPhase] = useState(false);
 
-  // Reset accumulated hints/errors when moving to a new verse
   const verse = queue[queueIdx] ?? null;
   const skill = verse ? getSkillLevel(progress[verse.id]) : 'easy';
   const steps = stepsFor(skill);
   const difficulty = diffFor(skill);
+
+  // Match exercise appears as a final bonus step when the queue has 2+ verses.
+  // Difficulty: moderate (4-verse drag) if enough verses, otherwise easy (2-verse drag).
+  const matchDifficulty = queue.length >= 4 ? 'moderate' : 'easy';
+  const showMatch = queue.length >= 2;
 
   function advanceStep(result = {}) {
     const newHints  = accHints  + (result.hints  || 0);
@@ -94,13 +100,37 @@ function ExerciseFlow({ queue, progress, sessionKey, onAdvance, onDone }) {
     onAdvance(verse, newLevel, hintScore);
 
     if (isLastVerse) {
-      onDone(queue.length);
+      if (showMatch) {
+        setMatchPhase(true);
+      } else {
+        onDone(queue.length);
+      }
     } else {
       setQueueIdx(i => i + 1);
       setStepIdx(0);
       setAccHints(0);
       setAccErrors(0);
     }
+  }
+
+  if (matchPhase) {
+    return (
+      <div className="revise-panel">
+        <div className="revise-progress-row">
+          <span className="revise-queue-pos">Bonus: Reference Match</span>
+          <span className={`revise-skill-badge revise-skill-${matchDifficulty}`}>
+            {matchDifficulty === 'moderate' ? 'Moderate' : 'Easy'}
+          </span>
+        </div>
+        <MatchExercise
+          key={`match-${sessionKey}`}
+          verses={queue}
+          difficulty={matchDifficulty}
+          onDowngrade={() => {}}
+          onComplete={() => onDone(queue.length)}
+        />
+      </div>
+    );
   }
 
   if (!verse) return null;
