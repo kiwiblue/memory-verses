@@ -26,16 +26,42 @@ function Ring({ pct, color, size = 22, stroke = 3 }) {
   );
 }
 
-function VerseStats({ entry }) {
+function verseRings(entry) {
   if (!entry || (entry.seen_count || 0) === 0) return null;
-  const recent = (entry.scores || []).slice(-5);
-  const accuracyPct = recent.length ? recent.filter(s => s === 1).length / 5 : 0;
-  const practicePct = Math.min((entry.seen_count || 0) / 20, 1);
-  const accuracyColor = accuracyPct >= 0.8 ? '#3a8c5c' : accuracyPct >= 0.5 ? '#e69c2f' : '#e05252';
+  const now = Date.now();
+  const DAY = 24 * 60 * 60 * 1000;
+
+  // Ring 1 — Freshness: proportion of review window remaining (drains linearly to 0 when due)
+  const last   = entry.last_seen  || 0;
+  const next   = entry.next_review || 0;
+  const window = next - last;
+  const freshnessPct = window > 0 ? Math.max(0, 1 - (now - last) / window) : 0;
+  const freshnessColor = freshnessPct >= 0.6 ? '#3a8c5c' : freshnessPct >= 0.3 ? '#e69c2f' : '#e05252';
+
+  const daysLeft = Math.max(0, (next - now) / DAY);
+  const daysOver = Math.max(0, (now - next) / DAY);
+  const freshnessLabel = freshnessPct === 0
+    ? (daysOver >= 1 ? Math.round(daysOver) + "d overdue" : "Due now")
+    : (daysLeft >= 1 ? "Due in " + Math.round(daysLeft) + "d" : "Due today");
+
+  // Ring 2 — Mastery: skill level as a proportion (easy=1/3, moderate=2/3, hard=full)
+  const skillMap = { easy: 0.33, moderate: 0.66, hard: 1.0 };
+  const skill = entry.skill_level || "easy";
+  const masteryPct   = skillMap[skill] ?? 0.33;
+  const masteryColor = skill === "hard" ? "#3a8c5c" : skill === "moderate" ? "#e69c2f" : "#e05252";
+  const masteryLabel = skill === "hard" ? "Hard" : skill === "moderate" ? "Moderate" : "Easy";
+
+  return { freshnessPct, freshnessColor, freshnessLabel, masteryPct, masteryColor, masteryLabel };
+}
+
+function VerseStats({ entry }) {
+  const rings = verseRings(entry);
+  if (!rings) return null;
+  const { freshnessPct, freshnessColor, freshnessLabel, masteryPct, masteryColor, masteryLabel } = rings;
   return (
-    <div className="deck-stats">
-      <Ring pct={accuracyPct} color={accuracyColor} />
-      <Ring pct={practicePct} color="#4a90d9" />
+    <div className="deck-stats" title={"Freshness: " + freshnessLabel + " · Mastery: " + masteryLabel}>
+      <Ring pct={freshnessPct} color={freshnessColor} />
+      <Ring pct={masteryPct}   color={masteryColor} />
     </div>
   );
 }
