@@ -43,6 +43,9 @@ export async function onRequestGet({ request, env }) {
   const [
     batchResults,
     progressRows,
+    feedbackRows,
+    feedbackCount,
+    feedbackByType,
     activeToday,
     activeWeek,
     activeMonth,
@@ -63,6 +66,9 @@ export async function onRequestGet({ request, env }) {
       env.DB.prepare("SELECT json_extract(payload,'$.step') as step, COUNT(*) as c FROM events WHERE event_type='onboarding_step_complete' GROUP BY step"),
     ]),
     env.DB.prepare('SELECT progress_json FROM cloud_profiles').all(),
+    env.DB.prepare('SELECT f.id, f.type, f.message, f.ts, a.email FROM feedback f LEFT JOIN accounts a ON a.id = f.account_id ORDER BY f.ts DESC LIMIT 50').all(),
+    env.DB.prepare('SELECT COUNT(*) as c FROM feedback').first(),
+    env.DB.prepare('SELECT type as v, COUNT(*) as c FROM feedback GROUP BY type').all(),
     env.DB.prepare("SELECT COUNT(DISTINCT session_id) as c FROM events WHERE event_type='session_start' AND ts > ?").bind(cutoffs.today).first(),
     env.DB.prepare("SELECT COUNT(DISTINCT session_id) as c FROM events WHERE event_type='session_start' AND ts > ?").bind(cutoffs.week).first(),
     env.DB.prepare("SELECT COUNT(DISTINCT session_id) as c FROM events WHERE event_type='session_start' AND ts > ?").bind(cutoffs.month).first(),
@@ -154,6 +160,11 @@ export async function onRequestGet({ request, env }) {
       exercises_by_type:     exercisesByType,
       avg_errors_per_exercise: avgErrors(errorDistResult.results),
       onboarding_funnel:     onboardingFunnel,
+    },
+    feedback: {
+      total:    feedbackCount?.c ?? 0,
+      by_type:  groupBy(feedbackByType?.results),
+      recent:   feedbackRows?.results ?? [],
     },
   });
 }

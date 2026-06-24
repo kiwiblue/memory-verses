@@ -1191,3 +1191,73 @@ input[type=text] {
 .adm-event-type { font-size: 13px; color: #444; }
 .adm-event-count { font-size: 14px; font-weight: 600; color: #222; }
 .adm-empty { font-size: 13px; color: #aaa; margin: 0; }
+
+/* ── Feedback modal ──────────────────────────────────────────────────────────── */
+.footer-feedback-btn {
+  background: none; border: none; padding: 0;
+  color: inherit; font-size: inherit; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 2px;
+  opacity: .7; transition: opacity .15s;
+}
+.footer-feedback-btn:hover { opacity: 1; }
+
+.feedback-modal { max-width: 480px; padding: 28px 28px 24px; }
+.feedback-title { font-size: 18px; font-weight: 700; color: #222; margin: 0 0 18px; }
+
+.feedback-form { display: flex; flex-direction: column; gap: 14px; }
+
+.feedback-type-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.feedback-type-btn {
+  padding: 6px 14px; border-radius: 20px; border: 1.5px solid #ddd;
+  background: #fff; font-size: 13px; color: #666; cursor: pointer;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.feedback-type-btn:hover { border-color: #3a8c5c; color: #3a8c5c; }
+.feedback-type-active { border-color: #3a8c5c !important; background: #3a8c5c !important; color: #fff !important; }
+
+.feedback-textarea {
+  width: 100%; box-sizing: border-box;
+  padding: 10px 12px; border: 1.5px solid #ddd; border-radius: 10px;
+  font-size: 14px; font-family: inherit; resize: vertical; outline: none;
+  transition: border-color .15s; line-height: 1.5;
+}
+.feedback-textarea:focus { border-color: #3a8c5c; }
+
+.feedback-footer-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.feedback-char-count { font-size: 12px; color: #bbb; flex: 1; }
+.feedback-error { font-size: 13px; color: #c0392b; }
+.feedback-submit-btn { flex-shrink: 0; padding: 9px 20px; font-size: 14px; }
+
+.feedback-done {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 10px; padding: 12px 0 8px; text-align: center;
+}
+.feedback-done-icon {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: #3a8c5c; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: 700;
+}
+.feedback-done-title { font-size: 17px; font-weight: 700; color: #222; }
+.feedback-done-sub { font-size: 14px; color: #888; margin: 0; }
+
+/* ── Admin feedback list ─────────────────────────────────────────────────────── */
+.adm-feedback-list { display: flex; flex-direction: column; gap: 12px; }
+.adm-feedback-item {
+  background: #f9f9f7; border-radius: 10px; padding: 12px 14px;
+}
+.adm-feedback-meta {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.adm-feedback-type {
+  font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px;
+}
+.adm-feedback-type-bug     { background: #fdecea; color: #c0392b; }
+.adm-feedback-type-feature { background: #e8f4fd; color: #2471a3; }
+.adm-feedback-type-general { background: #eafaf1; color: #1e8449; }
+.adm-feedback-email { font-size: 12px; color: #888; flex: 1; }
+.adm-feedback-ts    { font-size: 11px; color: #bbb; }
+.adm-feedback-msg   { font-size: 13px; color: #444; margin: 0; white-space: pre-wrap; line-height: 1.5; }

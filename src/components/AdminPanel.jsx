@@ -96,6 +96,40 @@ function LoginGate({ onAuth }) {
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
+const TYPE_LABELS = { bug: 'Bug report', feature: 'Feature request', general: 'General feedback' };
+
+function FeedbackSection({ feedback }) {
+  const f = feedback || {};
+  const recent = f.recent || [];
+  return (
+    <Section title={`Feedback (${fmt(f.total)})`}>
+      {f.total > 0 && (
+        <div className="adm-dists" style={{ marginBottom: 16 }}>
+          <Distribution title="By type" data={f.by_type} />
+        </div>
+      )}
+      {recent.length === 0 ? (
+        <p className="adm-empty">No feedback yet.</p>
+      ) : (
+        <div className="adm-feedback-list">
+          {recent.map(item => (
+            <div key={item.id} className="adm-feedback-item">
+              <div className="adm-feedback-meta">
+                <span className={`adm-feedback-type adm-feedback-type-${item.type}`}>
+                  {TYPE_LABELS[item.type] || item.type}
+                </span>
+                <span className="adm-feedback-email">{item.email || 'unknown'}</span>
+                <span className="adm-feedback-ts">{new Date(item.ts * 1000).toLocaleDateString()}</span>
+              </div>
+              <p className="adm-feedback-msg">{item.message}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </Section>
+  );
+}
+
 function Dashboard({ stats, onRefresh, refreshing }) {
   const u = stats.users    || {};
   const p = stats.progress || {};
@@ -184,6 +218,8 @@ function Dashboard({ stats, onRefresh, refreshing }) {
           <Distribution title="Pattern" data={u.by_pattern} />
         </div>
       </Section>
+
+      <FeedbackSection feedback={stats.feedback} />
 
       <Section title="Raw event counts">
         {Object.keys(e.by_type || {}).length === 0 ? (

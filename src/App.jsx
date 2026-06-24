@@ -36,6 +36,7 @@ import { isOnboarded, markOnboarded } from './data/onboarding.js';
 import { APP_VERSION } from './data/version.js';
 import { logEvent } from './data/telemetry.js';
 import AdminPanel from './components/AdminPanel.jsx';
+import FeedbackModal from './components/FeedbackModal.jsx';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -89,6 +90,7 @@ export default function App() {
   const [onboarded, setOnboarded]     = useState(isOnboarded);
   const [profileUser, setProfileUser] = useState(null);
   const [auth, setAuth]               = useState(loadAuth);
+  const [showFeedback, setShowFeedback] = useState(false);
   const [syncStatus, setSyncStatus]   = useState(null); // null | 'syncing' | 'synced' | 'error'
   const [lastSynced, setLastSynced]   = useState(null);
   const syncTimer = useRef(null);
@@ -582,8 +584,12 @@ export default function App() {
         )}
         <div className="footer-credit">
           © {new Date().getFullYear()} Chris Sandford · v{APP_VERSION}
+          {auth?.accountId && (
+            <> · <button className="footer-feedback-btn" onClick={() => setShowFeedback(true)}>Feedback</button></>
+          )}
         </div>
       </footer>
+      {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
       </div>
     </>
   );
