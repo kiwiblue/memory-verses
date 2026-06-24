@@ -741,6 +741,18 @@ input[type=text] {
   padding: 2px 4px; line-height: 1;
 }
 .ob-verse-search-clear:hover { color: #555; }
+/* Verse picker screen — scrollable list, sticky Next button */
+.ob-screen-verse { flex-direction: column; overflow: hidden; }
+.ob-verse-screen-top {
+  flex: 1; overflow-y: auto; padding: 48px 24px 12px;
+  display: flex; flex-direction: column; align-items: stretch;
+  max-width: 400px; width: 100%; margin: 0 auto;
+}
+.ob-verse-screen-footer {
+  padding: 12px 24px 28px; background: #fff;
+  border-top: 1px solid #f0f0ee;
+  max-width: 400px; width: 100%; margin: 0 auto;
+}
 .ob-verse-list { display: flex; flex-direction: column; gap: 10px; }
 .ob-verse-card {
   width: 100%; padding: 14px 16px; border: 1.5px solid #e8e8e4; border-radius: 12px;

@@ -226,8 +226,8 @@ function VerseScreen({ selectedId, onSelect, onNext, translation, verseCache }) 
   const API_VERSE_ID = -1;
 
   return (
-    <div className="ob-screen">
-      <div className="ob-content">
+    <div className="ob-screen ob-screen-verse">
+      <div className="ob-verse-screen-top">
         <Logo />
         <StepDots step={2} />
         <h2 className="ob-title">Pick your first verse</h2>
@@ -300,8 +300,10 @@ function VerseScreen({ selectedId, onSelect, onNext, translation, verseCache }) 
             </button>
           )}
         </div>
+      </div>
 
-        <button className="ob-btn-primary" onClick={onNext} style={{ marginTop: 16 }}>
+      <div className="ob-verse-screen-footer">
+        <button className="ob-btn-primary" onClick={onNext}>
           {selectedId ? 'Next →' : 'Skip for now →'}
         </button>
         <ObFooter />
