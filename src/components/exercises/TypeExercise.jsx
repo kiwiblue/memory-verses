@@ -127,7 +127,17 @@ function FirstLetterMode({ tokens, blankIndices, difficulty, onDowngrade, onComp
         </div>
       )}
 
-      <input ref={inputRef} className="type-hidden-input" onKeyDown={handleKey} readOnly aria-hidden="true" />
+      <input
+        ref={inputRef} className="type-hidden-input"
+        onKeyDown={handleKey}
+        onChange={e => {
+          const ch = e.target.value.slice(-1);
+          e.target.value = '';
+          if (ch) handleKey({ key: ch, preventDefault: () => {} });
+        }}
+        inputMode="text" autoComplete="off" autoCorrect="off"
+        autoCapitalize="off" spellCheck="false" aria-hidden="true"
+      />
     </>
   );
 }
@@ -282,7 +292,17 @@ function FullTypeMode({ tokens, onDowngrade, onComplete }) {
         </div>
       )}
 
-      <input ref={inputRef} className="type-hidden-input" onKeyDown={handleKey} readOnly aria-hidden="true" />
+      <input
+        ref={inputRef} className="type-hidden-input"
+        onKeyDown={handleKey}
+        onChange={e => {
+          const ch = e.target.value.slice(-1);
+          e.target.value = '';
+          if (ch) handleKey({ key: ch, preventDefault: () => {} });
+        }}
+        inputMode="text" autoComplete="off" autoCorrect="off"
+        autoCapitalize="off" spellCheck="false" aria-hidden="true"
+      />
     </>
   );
 }

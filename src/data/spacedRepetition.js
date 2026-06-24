@@ -96,10 +96,10 @@ export function getSkillLevel(entry) {
   else if (correct >= 2) level = 'intermediate';
   else level = 'beginner';
 
-  // Just practiced — bump up so repeating immediately gives a harder exercise
+  // Just practiced — bump up one level so repeating immediately gives a harder exercise,
+  // but cap at intermediate (advanced must be earned over multiple sessions, not same-day)
   if (msSinceLast < 5 * 60 * 1000) {
     if (level === 'beginner') level = 'intermediate';
-    else if (level === 'intermediate') level = 'advanced';
   }
   // Long gap — ease back in
   else if (daysSinceLast > 30) {

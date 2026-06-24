@@ -8,7 +8,7 @@ export async function fetchESV(reference) {
   const token = import.meta.env.VITE_ESV_TOKEN;
   if (!token) return null;
   try {
-    const url = `https://api.esv.org/v3/passage/text/?q=${encodeURIComponent(reference)}&include-headings=false&include-footnotes=false&include-verse-numbers=false&include-short-copyright=false&include-passage-references=false`;
+    const url = `https://api.esv.org/v3/passage/text/?q=${encodeURIComponent(reference)}&include-headings=false&include-section-headings=false&include-footnotes=false&include-verse-numbers=false&include-short-copyright=false&include-passage-references=false`;
     const res = await fetch(url, { headers: { Authorization: `Token ${token}` } });
     if (!res.ok) return null;
     const data = await res.json();
