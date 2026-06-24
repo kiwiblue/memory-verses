@@ -11,7 +11,7 @@ export default function LearnPanel({
   defaultVersion,
   verseTranslations,
   onVerseTranslationChange,
-  onKnowIt,
+  onGotItForNow,
   onNext,
   onDowngrade,
   onRemove,
@@ -70,8 +70,8 @@ export default function LearnPanel({
             Begin Memory Exercise →
           </button>
           <div className="learn-knowit-row">
-            <button className="btn btn-ok learn-knowit-btn" onClick={onKnowIt}>
-              Know it ✓
+            <button className="btn btn-ok learn-knowit-btn" onClick={onGotItForNow}>
+              I've got it for now →
             </button>
             {onRemove && (
               <button
@@ -133,12 +133,12 @@ export default function LearnPanel({
       <h2 className="learn-checkup-title">How did you go?</h2>
       <p className="learn-checkup-sub">
         If it felt shaky, run through the exercises again.<br />
-        If it's sticking, mark it as known and move on.
+        If it's sticking, move it to Revise and it will come up regularly.
       </p>
 
       <div className="learn-checkup-actions">
-        <button className="ob-btn-primary" onClick={onKnowIt}>
-          I know this verse ✓
+        <button className="ob-btn-primary" onClick={onGotItForNow}>
+          I've got it for now →
         </button>
         {onLearnNewVerse && (
           <button className="ob-btn-primary learn-new-verse-btn" onClick={onLearnNewVerse}>

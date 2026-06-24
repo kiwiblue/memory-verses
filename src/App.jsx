@@ -6,7 +6,7 @@ import { loadUsers, saveUsers, loadCurrentUserId, saveCurrentUserId, loadVerseTr
 import { loadAuth, saveAuth, clearAuth } from './data/auth.js';
 import { pushSync } from './data/syncService.js';
 import { loadProgress, saveProgress, getEntry } from './data/progress.js';
-import { recordAttempt, buildDailyQueue, progressStats } from './data/spacedRepetition.js';
+import { recordAttempt, startRevising, recordReviseAttempt, buildDailyQueue, progressStats } from './data/spacedRepetition.js';
 import { loadCustomVerses, addCustomVerse, removeCustomVerse, saveCustomVerses } from './data/customVerses.js';
 import { loadHiddenVerseIds, hideVerseId, restoreVerseId, restoreAllVerseIds, saveHiddenVerseIds } from './data/hiddenVerses.js';
 import { loadVerseCache, saveVerseCache, mergeVerseIntoCache } from './data/verseCache.js';
@@ -229,6 +229,17 @@ export default function App() {
     setIsFlipped(false);
   }, [verse]);
 
+  // "I've got it for now" — move verse to Revise at easy, advance Learn queue
+  const handleGotItForNow = useCallback(() => {
+    if (!verse) return;
+    setProgress(prev => ({
+      ...prev,
+      [verse.id]: startRevising(getEntry(prev, verse.id)),
+    }));
+    setQueueIndex(i => i + 1);
+    setIsFlipped(false);
+  }, [verse]);
+
   // Revise mode / skip: advance without scoring
   const goNext = useCallback(() => {
     if (mode === 'learn') {
@@ -425,7 +436,7 @@ export default function App() {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       if (e.code === 'Space' && mode === 'learn') { e.preventDefault(); handleFlip(); }
       if (e.code === 'ArrowRight') goNext();
-      if (e.code === 'KeyK') handleMark(1);
+      if (e.code === 'KeyK') handleGotItForNow();
       if (e.code === 'KeyL') handleMark(0);
     }
     window.addEventListener('keydown', onKey);
@@ -590,7 +601,7 @@ export default function App() {
             defaultVersion={version}
             verseTranslations={verseTranslations}
             onVerseTranslationChange={handleVerseTranslationChange}
-            onKnowIt={() => handleMark(1)}
+            onGotItForNow={handleGotItForNow}
             onNext={goNext}
             onRemove={handleRemoveVerse}
             onLearnNewVerse={handleLearnNewVerse}

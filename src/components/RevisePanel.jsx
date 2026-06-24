@@ -1,8 +1,15 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import FlipCard from './FlipCard.jsx';
 import FillExercise from './exercises/FillExercise.jsx';
 import TypeExercise from './exercises/TypeExercise.jsx';
-import { buildReviseQueue, getSkillLevel } from '../data/spacedRepetition.js';
+import {
+  buildReviseQueue,
+  getSkillLevel,
+  computeHintScore,
+  computeNextSkillLevel,
+} from '../data/spacedRepetition.js';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 // ── Stats rings ───────────────────────────────────────────────────────────────
 function Ring({ pct, color, size = 22, stroke = 3 }) {
@@ -33,41 +40,66 @@ function VerseStats({ entry }) {
 }
 
 // ── Exercise sub-flow ─────────────────────────────────────────────────────────
+const SKILL_LABEL = { easy: 'Easy', moderate: 'Moderate', hard: 'Hard' };
+
 function stepsFor(skill) {
-  if (skill === 'advanced') return ['type'];
+  if (skill === 'hard') return ['type'];
   return ['fill', 'type'];
 }
 function diffFor(skill) {
-  if (skill === 'advanced')     return 'hard';
-  if (skill === 'intermediate') return 'moderate';
+  if (skill === 'hard')     return 'hard';
+  if (skill === 'moderate') return 'moderate';
   return 'easy';
 }
-const SKILL_LABEL = { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' };
 
 function ExerciseFlow({ queue, progress, sessionKey, onAdvance, onDone }) {
   const [queueIdx, setQueueIdx] = useState(0);
   const [stepIdx, setStepIdx]   = useState(0);
+  const [accHints, setAccHints] = useState(0);
+  const [accErrors, setAccErrors] = useState(0);
 
-  useEffect(() => { setQueueIdx(0); setStepIdx(0); }, [sessionKey]);
-  useEffect(() => { setStepIdx(0); }, [queueIdx]);
-
+  // Reset accumulated hints/errors when moving to a new verse
   const verse = queue[queueIdx] ?? null;
-  const skill = verse ? getSkillLevel(progress[verse.id]) : 'beginner';
+  const skill = verse ? getSkillLevel(progress[verse.id]) : 'easy';
   const steps = stepsFor(skill);
   const difficulty = diffFor(skill);
 
-  function advanceStep() {
-    const isLastStep = stepIdx + 1 >= steps.length;
+  function advanceStep(result = {}) {
+    const newHints  = accHints  + (result.hints  || 0);
+    const newErrors = accErrors + (result.errors || 0);
+    setAccHints(newHints);
+    setAccErrors(newErrors);
+
+    const isLastStep  = stepIdx + 1 >= steps.length;
     const isLastVerse = queueIdx + 1 >= queue.length;
+
     if (!isLastStep) {
       setStepIdx(i => i + 1);
+      return;
+    }
+
+    // All steps done for this verse — compute new skill level
+    const entry = progress[verse.id];
+    const daysSinceLast = entry?.last_seen
+      ? (Date.now() - entry.last_seen) / DAY_MS
+      : Infinity;
+    const hintScore  = computeHintScore(newHints, newErrors);
+    const newLevel   = computeNextSkillLevel(
+      getSkillLevel(entry),
+      hintScore,
+      daysSinceLast,
+      entry?.attempts || [],
+    );
+
+    onAdvance(verse, newLevel, hintScore);
+
+    if (isLastVerse) {
+      onDone(queue.length);
     } else {
-      onAdvance(verse, 1);
-      if (isLastVerse) {
-        onDone(queue.length);
-      } else {
-        setQueueIdx(i => i + 1);
-      }
+      setQueueIdx(i => i + 1);
+      setStepIdx(0);
+      setAccHints(0);
+      setAccErrors(0);
     }
   }
 
@@ -85,7 +117,7 @@ function ExerciseFlow({ queue, progress, sessionKey, onAdvance, onDone }) {
 
       {currentStep === 'fill' && (
         <FillExercise
-          key={`${verse.id}-fill-${sessionKey}`}
+          key={`${verse.id}-fill-${sessionKey}-${queueIdx}`}
           verse={verse}
           difficulty={difficulty}
           onComplete={advanceStep}
@@ -93,7 +125,7 @@ function ExerciseFlow({ queue, progress, sessionKey, onAdvance, onDone }) {
       )}
       {currentStep === 'type' && (
         <TypeExercise
-          key={`${verse.id}-type-${sessionKey}`}
+          key={`${verse.id}-type-${sessionKey}-${queueIdx}`}
           verse={verse}
           difficulty={difficulty}
           onDowngrade={() => {}}
@@ -200,7 +232,6 @@ export default function RevisePanel({
 
   return (
     <div className="revise-panel">
-      {/* Flip card */}
       <FlipCard
         verse={browseVerse}
         version={version}
@@ -212,7 +243,6 @@ export default function RevisePanel({
         onVerseTranslationChange={onVerseTranslationChange}
       />
 
-      {/* Card navigation */}
       <div className="revise-browse-nav">
         <button
           className="revise-nav-btn"
@@ -227,7 +257,6 @@ export default function RevisePanel({
         >→</button>
       </div>
 
-      {/* Today's exercises */}
       <div className="revise-actions">
         <button
           className="ob-btn-primary revise-today-btn"
@@ -240,7 +269,6 @@ export default function RevisePanel({
         </button>
       </div>
 
-      {/* Verse list */}
       <div className="revise-verse-list">
         <div className="revise-verse-list-hdr">Your verses</div>
         {reviseVerses.map(v => {

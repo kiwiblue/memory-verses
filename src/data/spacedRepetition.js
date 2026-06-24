@@ -1,7 +1,42 @@
 const DAY = 24 * 60 * 60 * 1000;
 
-// Interval in days per consecutive-correct streak
-const INTERVALS = [1, 3, 7, 14, 30];
+// ── Tunable algorithm config ──────────────────────────────────────────────────
+// Adjust these numbers to tune skill progression and revise ordering.
+
+export const SKILL_CONFIG = {
+  errorsPerHint:   3,   // N wrong answers counts as 1 hint equivalent
+  perfectHintMax:  0,   // hintScore ≤ this = perfect attempt
+  goodHintMax:     2,   // hintScore ≤ this (and > perfectHintMax) = good attempt
+  gapDays:         7,   // good recall after this many days away → promote
+  historyLookback: 3,   // consecutive perfect attempts → auto-promote regardless of gap
+};
+
+export const REVISE_CONFIG = {
+  coolOffMinutes: 30,   // verse practiced within this window → deprioritized
+  coolOffDays:     7,   // days added to effective next_review during coolOff
+  maxQueueSize:   10,   // max verses in Today's Exercises queue
+};
+
+// Next-review schedule (days out) by skill level × quality of attempt
+const REVIEW_DAYS = {
+  easy:     { perfect: 3,  good: 1,  poor: 1 },
+  moderate: { perfect: 7,  good: 3,  poor: 1 },
+  hard:     { perfect: 14, good: 7,  poor: 2 },
+};
+
+// ── Internal helpers ──────────────────────────────────────────────────────────
+
+function promoteLevel(level) {
+  if (level === 'easy')     return 'moderate';
+  if (level === 'moderate') return 'hard';
+  return 'hard';
+}
+
+function demoteLevel(level) {
+  if (level === 'hard')     return 'moderate';
+  if (level === 'moderate') return 'easy';
+  return 'easy';
+}
 
 function correctStreak(scores) {
   let streak = 0;
@@ -12,32 +47,101 @@ function correctStreak(scores) {
   return streak;
 }
 
-// score: 1 = Know it, 0 = Still learning
+// ── Public skill helpers ──────────────────────────────────────────────────────
+
+// Convert raw hint button presses + wrong answers into a single struggle score
+export function computeHintScore(hints, errors) {
+  return (hints || 0) + Math.floor((errors || 0) / SKILL_CONFIG.errorsPerHint);
+}
+
+// Determine the new skill level after a revise attempt.
+// recentAttempts: array of { hintScore } objects from prior attempts (oldest first)
+export function computeNextSkillLevel(currentLevel, hintScore, daysSinceLast, recentAttempts) {
+  const { perfectHintMax, goodHintMax, gapDays, historyLookback } = SKILL_CONFIG;
+
+  // History override: last N attempts all perfect → auto-promote
+  if (recentAttempts.length >= historyLookback) {
+    const recent = recentAttempts.slice(-historyLookback);
+    if (recent.every(a => (a.hintScore ?? 0) <= perfectHintMax)) {
+      return promoteLevel(currentLevel);
+    }
+  }
+
+  if (hintScore <= perfectHintMax) {
+    return promoteLevel(currentLevel);         // perfect → always promote
+  }
+
+  if (hintScore <= goodHintMax) {
+    return daysSinceLast >= gapDays
+      ? promoteLevel(currentLevel)             // remembered after a week → promote
+      : currentLevel;                          // good but too recent → stay
+  }
+
+  // Struggling (hintScore > goodHintMax)
+  if (daysSinceLast < 1 && currentLevel !== 'easy') {
+    return demoteLevel(currentLevel);          // same-day struggle → drop one level
+  }
+  return currentLevel;                         // struggling but not same-day → stay
+}
+
+// Read the stored skill level; falls back to 'easy' for legacy entries
+export function getSkillLevel(entry) {
+  return entry?.skill_level || 'easy';
+}
+
+// ── Progress record helpers ───────────────────────────────────────────────────
+
+// "I've got it for now" — move verse to Revise at easy level, due immediately
+export function startRevising(entry) {
+  const now = Date.now();
+  return {
+    ...entry,
+    status: 'learning',
+    skill_level: 'easy',
+    next_review: now,
+    last_seen: now,
+  };
+}
+
+// Record a completed revise attempt: update skill level and schedule next review
+export function recordReviseAttempt(entry, newSkillLevel, hintScore) {
+  const now = Date.now();
+  const { perfectHintMax, goodHintMax } = SKILL_CONFIG;
+  const quality = hintScore <= perfectHintMax ? 'perfect'
+                : hintScore <= goodHintMax    ? 'good'
+                :                              'poor';
+  const days = REVIEW_DAYS[newSkillLevel]?.[quality] ?? 1;
+  const attempts = [...(entry.attempts || []), { hintScore, ts: now }].slice(-10);
+
+  return {
+    ...entry,
+    status: 'learning',
+    skill_level: newSkillLevel,
+    seen_count: (entry.seen_count || 0) + 1,
+    last_seen: now,
+    next_review: now + days * DAY,
+    attempts,
+    // Keep scores for backwards-compat with stats rings
+    scores: [...(entry.scores || []), hintScore <= goodHintMax ? 1 : 0].slice(-10),
+  };
+}
+
+// Legacy: kept for backwards compat, no longer used by the main flows
 export function recordAttempt(entry, score) {
   const scores = [...(entry.scores || []), score].slice(-10);
   const seen_count = (entry.seen_count || 0) + 1;
   const last_seen = Date.now();
-
-  let intervalDays;
-  if (score === 0) {
-    intervalDays = 1; // failed: try again tomorrow
-  } else {
-    const streak = correctStreak(scores);
-    intervalDays = INTERVALS[Math.min(streak - 1, INTERVALS.length - 1)];
-  }
-
+  const intervalDays = score === 0 ? 1 : [1, 3, 7, 14, 30][Math.min(correctStreak(scores) - 1, 4)];
   const next_review = last_seen + intervalDays * DAY;
-
-  // Status: mastered = 3+ correct in a row and seen at least 3 times
   const streak = correctStreak(scores);
   const status = streak >= 3 && seen_count >= 3 ? 'mastered'
                : seen_count > 0                 ? 'learning'
                :                                  'unseen';
-
   return { status, seen_count, last_seen, scores, next_review };
 }
 
-// Which verse brackets a user can see
+// ── Queue builders ────────────────────────────────────────────────────────────
+
 const BRACKET_ACCESS = {
   child: ['child'],
   youth: ['child', 'youth'],
@@ -47,10 +151,8 @@ const BRACKET_ACCESS = {
 export function buildDailyQueue(verses, progress, userBracket = 'adult') {
   const allowed = BRACKET_ACCESS[userBracket] || BRACKET_ACCESS.adult;
   const now = Date.now();
-
   const eligible = verses.filter(v => allowed.includes(v.bracket || 'child'));
 
-  // Due for review (seen before, next_review is in the past)
   const due = eligible
     .filter(v => {
       const e = progress[v.id];
@@ -59,7 +161,6 @@ export function buildDailyQueue(verses, progress, userBracket = 'adult') {
     .sort((a, b) => (progress[a.id].next_review || 0) - (progress[b.id].next_review || 0))
     .slice(0, 15);
 
-  // New verses (never seen), ordered by sort_order
   const seen = new Set(due.map(v => v.id));
   const newVerses = eligible
     .filter(v => {
@@ -72,63 +173,37 @@ export function buildDailyQueue(verses, progress, userBracket = 'adult') {
   return [...due, ...newVerses];
 }
 
-// Skill level for a verse based on attempt history and recency.
-//
-// Base level (from recent scores):
-//   0–1 correct of last 5  → beginner
-//   2–3 correct of last 5  → intermediate
-//   4–5 correct of last 5  → advanced
-//
-// Recency adjustments:
-//   Practiced within 5 min → bump up one level (harder exercise on immediate repeat)
-//   Gap > 30 days          → drop to beginner (ease them back in)
-//   Gap 8–30 days          → drop advanced → intermediate
-export function getSkillLevel(entry) {
-  if (!entry || (entry.seen_count || 0) < 3) return 'beginner';
-
-  const recent = (entry.scores || []).slice(-5);
-  const correct = recent.filter(s => s === 1).length;
-  const msSinceLast = entry.last_seen ? Date.now() - entry.last_seen : Infinity;
-  const daysSinceLast = msSinceLast / DAY;
-
-  let level;
-  if (correct >= 4) level = 'advanced';
-  else if (correct >= 2) level = 'intermediate';
-  else level = 'beginner';
-
-  // Just practiced — bump up one level so repeating immediately gives a harder exercise,
-  // but cap at intermediate (advanced must be earned over multiple sessions, not same-day)
-  if (msSinceLast < 5 * 60 * 1000) {
-    if (level === 'beginner') level = 'intermediate';
-  }
-  // Long gap — ease back in
-  else if (daysSinceLast > 30) {
-    level = 'beginner';
-  } else if (daysSinceLast > 7 && level === 'advanced') {
-    level = 'intermediate';
-  }
-
-  return level;
-}
-
-// Up to `limit` most-urgent verses due for revision (learning or mastered, most overdue first)
+// Up to limit most-urgent revise verses. Recently-practiced verses are deprioritized
+// via a coolOff penalty so the same verse doesn't dominate back-to-back sessions.
 export function buildReviseQueue(verses, progress, userBracket = 'adult', limit = 5) {
   const allowed = BRACKET_ACCESS[userBracket] || BRACKET_ACCESS.adult;
+  const now = Date.now();
+  const coolOffMs = REVISE_CONFIG.coolOffMinutes * 60 * 1000;
+  const penaltyMs = REVISE_CONFIG.coolOffDays * DAY;
+
   return verses
     .filter(v => {
       if (!allowed.includes(v.bracket || 'child')) return false;
       const s = progress[v.id]?.status;
       return s === 'learning' || s === 'mastered';
     })
-    .sort((a, b) => (progress[a.id]?.next_review || 0) - (progress[b.id]?.next_review || 0))
-    .slice(0, limit);
+    .map(v => {
+      const entry = progress[v.id];
+      const recentlyPracticed = entry?.last_seen && (now - entry.last_seen) < coolOffMs;
+      const effectiveNextReview = recentlyPracticed
+        ? now + penaltyMs
+        : (entry?.next_review || 0);
+      return { verse: v, effectiveNextReview };
+    })
+    .sort((a, b) => a.effectiveNextReview - b.effectiveNextReview)
+    .slice(0, limit)
+    .map(x => x.verse);
 }
 
 // Summary stats for the progress pills
 export function progressStats(verses, progress, userBracket = 'adult') {
   const allowed = BRACKET_ACCESS[userBracket] || BRACKET_ACCESS.adult;
   const eligible = verses.filter(v => allowed.includes(v.bracket || 'child'));
-
   let unseen = 0, learning = 0, mastered = 0;
   for (const v of eligible) {
     const status = progress[v.id]?.status || 'unseen';

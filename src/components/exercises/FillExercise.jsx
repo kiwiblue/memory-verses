@@ -82,7 +82,7 @@ export default function FillExercise({ verse, difficulty = 'easy', onComplete })
       if (next >= blankIndices.length) {
         setDone(true);
         logEvent('exercise_complete', { type: 'fill', difficulty, errors, total: blankIndices.length });
-        setTimeout(() => onComplete?.({ errors, total: blankIndices.length }), 700);
+        setTimeout(() => onComplete?.({ errors, total: blankIndices.length, hints: 0 }), 700);
       } else {
         setActiveBi(next);
       }

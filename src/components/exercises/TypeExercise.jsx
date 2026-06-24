@@ -30,11 +30,11 @@ function FirstLetterMode({ tokens, blankIndices, difficulty, onDowngrade, onComp
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
-  function advance(nr, bi, errCount) {
+  function advance(nr, bi, errCount, hintsCount) {
     const next = bi + 1;
     if (next >= blankIndices.length) {
       setDone(true);
-      setTimeout(() => onComplete?.({ errors: errCount, total: blankIndices.length }), 700);
+      setTimeout(() => onComplete?.({ errors: errCount, total: blankIndices.length, hints: hintsCount ?? totalHints }), 700);
     } else {
       setActiveBi(next);
       setConsecutiveErrors(0);
@@ -52,7 +52,7 @@ function FirstLetterMode({ tokens, blankIndices, difficulty, onDowngrade, onComp
       const nr = { ...revealed, [blankIndices[activeBi]]: 'correct' };
       setRevealed(nr);
       setConsecutiveErrors(0);
-      advance(nr, activeBi, errors);
+      advance(nr, activeBi, errors, totalHints);
     } else {
       const newErrors = errors + 1;
       const newConsec = consecutiveErrors + 1;
@@ -64,7 +64,7 @@ function FirstLetterMode({ tokens, blankIndices, difficulty, onDowngrade, onComp
         const nr = { ...revealed, [blankIndices[activeBi]]: 'auto' };
         setRevealed(nr);
         setConsecutiveErrors(0);
-        setTimeout(() => advance(nr, activeBi, newErrors), 600);
+        setTimeout(() => advance(nr, activeBi, newErrors, totalHints), 600);
       }
     }
   }, [done, activeBi, blankIndices, tokens, revealed, consecutiveErrors, errors, onComplete]);
@@ -79,7 +79,7 @@ function FirstLetterMode({ tokens, blankIndices, difficulty, onDowngrade, onComp
     setRevealed(nr);
     setConsecutiveErrors(0);
     if (newHints > 4) onDowngrade?.();
-    advance(nr, activeBi, newErrors);
+    advance(nr, activeBi, newErrors, newHints);
     setTimeout(() => inputRef.current?.focus(), 0);
   }
 
@@ -177,10 +177,10 @@ function FullTypeMode({ tokens, onDowngrade, onComplete }) {
   useEffect(() => { setPos(firstPos); }, [firstPos]);
   useEffect(() => { inputRef.current?.focus(); }, []);
 
-  function finishAt(newPos, errCount) {
+  function finishAt(newPos, errCount, hintsCount) {
     if (newPos >= target.length) {
       setDone(true);
-      setTimeout(() => onComplete?.({ errors: errCount, total: tokens.length }), 700);
+      setTimeout(() => onComplete?.({ errors: errCount, total: tokens.length, hints: hintsCount ?? totalHints }), 700);
     }
   }
 
@@ -215,7 +215,7 @@ function FullTypeMode({ tokens, onDowngrade, onComplete }) {
       const nextPos = skipToLetter(pos + 1);
       setPos(nextPos);
       setConsecutiveHints(0);
-      finishAt(nextPos, errors);
+      finishAt(nextPos, errors, totalHints);
     } else {
       setErrors(e => e + 1);
       setShake(true);
@@ -241,13 +241,13 @@ function FullTypeMode({ tokens, onDowngrade, onComplete }) {
       setHintedRanges(prev => [...prev, { start: pos, end: newPos }]);
       setPos(newPos);
       setConsecutiveHints(0);
-      finishAt(newPos, newErrors);
+      finishAt(newPos, newErrors, newHints);
     } else {
       // Reveal just the current letter (+ trailing non-letters)
       const nextPos = skipToLetter(pos + 1);
       setHintedRanges(prev => [...prev, { start: pos, end: nextPos }]);
       setPos(nextPos);
-      finishAt(nextPos, newErrors);
+      finishAt(nextPos, newErrors, newHints);
     }
 
     setTimeout(() => inputRef.current?.focus(), 0);
