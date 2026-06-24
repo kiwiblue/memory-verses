@@ -90,8 +90,61 @@
   --transition-slow:      .4s ease;
 }
 
-/* Dark theme — add token overrides here when ready */
-[data-theme="dark"] { }
+/* Dark theme ─────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+
+  /* Brand */
+  --color-brand:          #4eb87a;
+  --color-brand-dark:     #6ecf93;
+  --color-brand-muted:    #0e2318;
+  --color-brand-subtle:   #132e1e;
+  --color-brand-accent:   #1e4d33;
+
+  /* Status — Success */
+  --color-success:        #4eb87a;
+  --color-success-bg:     #132e1e;
+
+  /* Status — Warning */
+  --color-warning:        #f0a030;
+  --color-warning-dark:   #e08820;
+  --color-warning-text:   #c87820;
+  --color-warning-bg:     #2a1e08;
+
+  /* Status — Danger */
+  --color-danger:         #f06b6b;
+  --color-danger-dark:    #d94f4f;
+  --color-danger-bg:      #2a1010;
+  --color-danger-muted:   #5a2020;
+  --color-danger-accent:  #e05252;
+
+  /* Status — Info */
+  --color-info:           #6aa8e0;
+  --color-info-bg:        #0e1e30;
+
+  /* Surfaces */
+  --color-bg:             #141412;
+  --color-surface:        #1e1e1b;
+  --color-surface-sunken: #111110;
+  --color-surface-hover:  #2a2a26;
+  --color-overlay:        rgba(0,0,0,0.65);
+
+  /* Text */
+  --color-text-primary:   #f0f0ec;
+  --color-text-secondary: #b0b0a8;
+  --color-text-muted:     #808078;
+  --color-text-faint:     #505050;
+  --color-text-inverse:   #141412;
+
+  /* Borders */
+  --color-border:         #2e2e2a;
+  --color-border-strong:  #3e3e38;
+  --color-border-subtle:  #242420;
+
+  /* Shadows */
+  --shadow-sm:            0 1px 3px rgba(0,0,0,.3);
+  --shadow-md:            0 4px 16px rgba(0,0,0,.4);
+  --shadow-lg:            0 8px 32px rgba(0,0,0,.5);
+}
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -119,6 +172,12 @@ body {
 
 /* Header */
 .hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; }
+.theme-toggle {
+  background: none; border: none; cursor: pointer;
+  font-size: 18px; padding: 4px; line-height: 1;
+  opacity: 0.7; transition: opacity var(--transition-fast);
+}
+.theme-toggle:hover { opacity: 1; }
 .ttl { display: flex; align-items: baseline; gap: 0; line-height: 1; }
 .ttl-memory {
   font-size: 20px; font-weight: 700; letter-spacing: -0.03em;

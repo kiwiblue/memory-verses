@@ -95,6 +95,13 @@ export default function App() {
   const [lastSynced, setLastSynced]   = useState(null);
   const syncTimer = useRef(null);
 
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
   const [showBracketReminder, setShowBracketReminder] = useState(() => {
     const u = initUser();
     if (!u.bracket || u.bracket === 'adult') return false;
@@ -550,6 +557,14 @@ export default function App() {
         <div className="ttl">
           <span className="ttl-memory">Memory</span><span className="ttl-dot-bible" style={{ color: currentUser?.colour || '#3a8c5c' }}>.bible</span>
         </div>
+        <button
+          className="theme-toggle"
+          onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}
+          aria-label="Toggle theme"
+          title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+        >
+          {theme === 'light' ? '🌙' : '☀️'}
+        </button>
       </div>
 
       {showBracketReminder && (
