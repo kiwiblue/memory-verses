@@ -429,7 +429,16 @@ export default function App() {
       currentUser={currentUser}
       verseCache={verseCache}
       onComplete={handleOnboardingComplete}
-      onLogin={() => { markOnboarded(); setOnboarded(true); setProfileUser(currentUser); }}
+      onLogin={(auth, mergedUsers, switchTo) => {
+        if (auth?.token && mergedUsers) {
+          saveAuth(auth);
+          setAuth(auth);
+          setUsers(mergedUsers);
+          if (switchTo) handleUserChange(switchTo);
+        }
+        markOnboarded();
+        setOnboarded(true);
+      }}
     />
   );
 

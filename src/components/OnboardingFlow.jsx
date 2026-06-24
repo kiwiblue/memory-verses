@@ -15,6 +15,7 @@ async function fetchPublicKJV(reference) {
 import { parseRef, toDisplayRef } from '../api/bibleRef.js';
 import { fetchTranslation } from '../api/bible.js';
 import { APP_VERSION } from '../data/version.js';
+import AuthPanel from './AuthPanel.jsx';
 
 function ObFooter() {
   return <div className="ob-footer">v{APP_VERSION}</div>;
@@ -453,10 +454,53 @@ function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, s
   );
 }
 
+// ── Login screen (onboarding path) ─────────────────────────────────────────
+function OnboardingLoginScreen({ currentUser, onBack, onLoginComplete }) {
+  // AuthPanel calls onUsersChange then onAuthChange when login succeeds.
+  // Track both and fire onLoginComplete once we have auth + users.
+  const pendingRef = useRef({});
+
+  function handleAuthChange(auth) {
+    pendingRef.current.auth = auth;
+    if (auth?.token && pendingRef.current.users) {
+      onLoginComplete(auth, pendingRef.current.users, pendingRef.current.switchTo);
+    }
+  }
+
+  function handleUsersChange(users, switchTo) {
+    pendingRef.current.users = users;
+    pendingRef.current.switchTo = switchTo;
+    if (pendingRef.current.auth?.token) {
+      onLoginComplete(pendingRef.current.auth, users, switchTo);
+    }
+  }
+
+  return (
+    <div className="ob-screen">
+      <div className="ob-content">
+        <Logo />
+        <h2 className="ob-title" style={{ marginBottom: 4 }}>Welcome back</h2>
+        <p className="ob-note" style={{ marginBottom: 20 }}>Sign in to restore your progress.</p>
+        <AuthPanel
+          auth={{ token: null, accountId: null, email: null }}
+          users={[currentUser]}
+          syncStatus={null}
+          lastSynced={null}
+          onAuthChange={handleAuthChange}
+          onUsersChange={handleUsersChange}
+        />
+        <button className="ob-link" style={{ marginTop: 20 }} onClick={onBack}>← Back</button>
+        <ObFooter />
+      </div>
+    </div>
+  );
+}
+
 // ── Main flow ───────────────────────────────────────────────────────────────
 
 export default function OnboardingFlow({ currentUser, verseCache, onComplete, onLogin }) {
   const [step, setStep] = useState(0); // 0=welcome 1=translation 2=verse 3=personalise
+  const [showLogin, setShowLogin] = useState(false);
   const [translation, setTranslation] = useState(currentUser.translation || 'kjv');
   const [selectedVerseId, setSelectedVerseId] = useState(null);
   const [customVerse, setCustomVerse] = useState(null); // { reference, kjv } for API-fetched verses
@@ -478,11 +522,19 @@ export default function OnboardingFlow({ currentUser, verseCache, onComplete, on
     onComplete(updatedUser, selectedVerseId, auth || null, customVerse);
   }
 
+  if (showLogin) return (
+    <OnboardingLoginScreen
+      currentUser={currentUser}
+      onBack={() => setShowLogin(false)}
+      onLoginComplete={(auth, users, switchTo) => onLogin(auth, users, switchTo)}
+    />
+  );
+
   if (step === 0) return (
     <WelcomeScreen
       onStart={() => setStep(1)}
       onSkip={() => finish({})}
-      onLogin={onLogin}
+      onLogin={() => setShowLogin(true)}
     />
   );
 
