@@ -241,15 +241,15 @@ export default function VerseDeckPanel({
                     </div>
                   ) : (
                     <div className="deck-row-actions">
-                      {inQueue ? (
+                      {inQueue && status !== 'mastered' ? (
                         <button className="deck-learn-later-btn" onClick={() => onLearnLater?.(verse)}>
                           Learn Later
                         </button>
-                      ) : (
+                      ) : !inQueue && status !== 'mastered' ? (
                         <button className="deck-learn-btn" onClick={() => onLearnNow(verse)}>
                           Learn Next
                         </button>
-                      )}
+                      ) : null}
                       <button className="deck-remove-btn" onClick={() => setConfirmId(verse.id)}>✕</button>
                     </div>
                   )}
