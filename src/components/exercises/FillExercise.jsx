@@ -28,8 +28,16 @@ function blankIndicesFor(tokens, difficulty) {
   const eligible = tokens.map((_, i) => i).filter(i => !sentenceStarters.has(i));
   const ratio = difficulty === 'moderate' ? 0.5 : 0.34;
   const count = Math.max(1, Math.round(eligible.length * ratio));
-  // Randomly pick `count` eligible indices, returned in order
-  return shuffle(eligible).slice(0, count).sort((a, b) => a - b);
+  const picked = new Set(shuffle(eligible).slice(0, count));
+
+  // Remove any index that would make a third consecutive blank
+  const sorted = [...picked].sort((a, b) => a - b);
+  for (let i = 2; i < sorted.length; i++) {
+    if (sorted[i] === sorted[i - 1] + 1 && sorted[i - 1] === sorted[i - 2] + 1) {
+      picked.delete(sorted[i]);
+    }
+  }
+  return [...picked].sort((a, b) => a - b);
 }
 
 function buildOptions(tokens, blankIndices, activeBi, difficulty) {
