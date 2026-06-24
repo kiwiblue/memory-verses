@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { logEvent } from '../../data/telemetry.js';
 
 function parseTokens(text) {
   return text.split(/\s+/).filter(Boolean).map(raw => {
@@ -80,6 +81,7 @@ export default function FillExercise({ verse, difficulty = 'easy', onComplete })
       const next = activeBi + 1;
       if (next >= blankIndices.length) {
         setDone(true);
+        logEvent('exercise_complete', { type: 'fill', difficulty, errors, total: blankIndices.length });
         setTimeout(() => onComplete?.({ errors, total: blankIndices.length }), 700);
       } else {
         setActiveBi(next);

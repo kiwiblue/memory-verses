@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { logEvent } from '../../data/telemetry.js';
 
 function parseTokens(text) {
   return text.split(/\s+/).filter(Boolean).map(raw => {
@@ -294,7 +295,11 @@ export default function TypeExercise({ verse, difficulty = 'easy', onDowngrade, 
   const [done, setDone]     = useState(false);
   const [result, setResult] = useState(null);
 
-  function handleComplete(r) { setResult(r); setDone(true); setTimeout(() => onComplete?.(r), 700); }
+  function handleComplete(r) {
+    setResult(r); setDone(true);
+    logEvent('exercise_complete', { type: 'type', difficulty, errors: r.errors, total: r.total });
+    setTimeout(() => onComplete?.(r), 700);
+  }
 
   return (
     <div className="fill-ex type-ex">

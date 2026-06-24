@@ -34,6 +34,8 @@ import TypeExercise from './components/exercises/TypeExercise.jsx';
 import MatchExercise from './components/exercises/MatchExercise.jsx';
 import { isOnboarded, markOnboarded } from './data/onboarding.js';
 import { APP_VERSION } from './data/version.js';
+import { logEvent } from './data/telemetry.js';
+import AdminPanel from './components/AdminPanel.jsx';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -159,6 +161,12 @@ export default function App() {
     [allVerses, progress, currentUser.bracket]
   );
 
+  // Log session start once per session when the app is ready
+  useEffect(() => {
+    if (!onboarded) return;
+    logEvent('session_start', { bracket: currentUser.bracket || 'adult', registered: !!auth?.token });
+  }, [onboarded]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Persist progress whenever it changes, then schedule a cloud sync
   useEffect(() => {
     if (currentUser) {
@@ -263,6 +271,7 @@ export default function App() {
 
   const handleAddVerse = useCallback((v) => {
     setCustomVerses(addCustomVerse(currentUser.id, v));
+    logEvent('verse_added', { source: 'search' });
   }, [currentUser.id]);
 
   const handleRemoveVerse = useCallback(() => {
@@ -400,6 +409,9 @@ export default function App() {
     if (!verse || verse[preferred]) return preferred;
     return FALLBACK_ORDER.find(t => verse[t]) || preferred;
   })();
+
+  // Admin route
+  if (new URLSearchParams(window.location.search).has('admin')) return <AdminPanel />;
 
   // DEV: test exercises via ?fill=easy|moderate|hard or ?type=easy|moderate|hard
   if (import.meta.env.DEV) {

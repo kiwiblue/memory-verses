@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
+import { logEvent } from '../../data/telemetry.js';
 import { parseRef, toDisplayRef } from '../../api/bibleRef.js';
 
 const DIFFICULTY_LABEL = { easy: 'Easy', moderate: 'Moderate', hard: 'Hard' };
@@ -324,6 +325,7 @@ export default function MatchExercise({ verses: allVerses, difficulty = 'easy', 
   function handleComplete(r) {
     setResult(r);
     setDone(true);
+    logEvent('exercise_complete', { type: 'match', difficulty, errors: r.errors, total: r.total });
     if (r.errors > 4) onDowngrade?.();
     setTimeout(() => onComplete?.(r), 700);
   }

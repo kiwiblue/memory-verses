@@ -16,6 +16,7 @@ import { parseRef, toDisplayRef } from '../api/bibleRef.js';
 import { fetchTranslation } from '../api/bible.js';
 import { APP_VERSION } from '../data/version.js';
 import AuthPanel from './AuthPanel.jsx';
+import { logEvent } from '../data/telemetry.js';
 
 function ObFooter() {
   return <div className="ob-footer">v{APP_VERSION}</div>;
@@ -534,7 +535,7 @@ export default function OnboardingFlow({ currentUser, verseCache, onComplete, on
 
   if (step === 0) return (
     <WelcomeScreen
-      onStart={() => setStep(1)}
+      onStart={() => { logEvent('onboarding_step_complete', { step: 0 }); setStep(1); }}
       onSkip={() => finish({})}
       onLogin={() => setShowLogin(true)}
     />
@@ -544,7 +545,7 @@ export default function OnboardingFlow({ currentUser, verseCache, onComplete, on
     <TranslationScreen
       translation={translation}
       onChange={setTranslation}
-      onNext={() => setStep(2)}
+      onNext={() => { logEvent('onboarding_step_complete', { step: 1, translation }); setStep(2); }}
     />
   );
 
@@ -555,7 +556,7 @@ export default function OnboardingFlow({ currentUser, verseCache, onComplete, on
         setSelectedVerseId(id);
         setCustomVerse(apiVerse || null);
       }}
-      onNext={() => setStep(3)}
+      onNext={() => { logEvent('onboarding_step_complete', { step: 2, verse_id: selectedVerseId }); setStep(3); }}
       translation={translation}
       verseCache={verseCache}
     />
