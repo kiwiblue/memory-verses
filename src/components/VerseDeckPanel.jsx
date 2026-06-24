@@ -25,7 +25,7 @@ function verseRings(entry) {
   const next   = entry.next_review || 0;
   const window = next - last;
   const freshnessPct = window > 0 ? Math.max(0, 1 - (now - last) / window) : 0;
-  const freshnessColor = freshnessPct >= 0.6 ? '#3a8c5c' : freshnessPct >= 0.3 ? '#e69c2f' : '#e05252';
+  const freshnessColor = freshnessPct >= 0.6 ? 'var(--color-brand)' : freshnessPct >= 0.3 ? 'var(--color-warning)' : 'var(--color-danger)';
 
   const daysLeft = Math.max(0, (next - now) / DAY);
   const daysOver = Math.max(0, (now - next) / DAY);
@@ -37,7 +37,7 @@ function verseRings(entry) {
   const skillMap = { easy: 0.33, moderate: 0.66, hard: 1.0 };
   const skill = entry.skill_level || "easy";
   const masteryPct   = skillMap[skill] ?? 0.33;
-  const masteryColor = skill === "hard" ? "#3a8c5c" : skill === "moderate" ? "#e69c2f" : "#e05252";
+  const masteryColor = skill === "hard" ? "var(--color-skill-hard)" : skill === "moderate" ? "var(--color-skill-moderate)" : "var(--color-skill-easy)";
   const masteryLabel = skill === "hard" ? "Hard" : skill === "moderate" ? "Moderate" : "Easy";
 
   return { freshnessPct, freshnessColor, freshnessLabel, masteryPct, masteryColor, masteryLabel };
