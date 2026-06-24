@@ -1,7 +1,9 @@
 {
-  "name": "app",
+  "name": "memory-bible",
+  "description": "Bible verse memorisation app with spaced repetition",
+  "author": "Chris Sandford <chris@kiwiblue.com.au>",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.5.84",
   "type": "module",
   "scripts": {
     "dev": "vite",

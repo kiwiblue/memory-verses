@@ -1,16 +1,68 @@
-# React + Vite
+# Memory.bible
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A progressive web app for memorising Bible verses using spaced repetition, flip cards, and fill-in-the-blank exercises.
 
-Currently, two official plugins are available:
+**Live:** [memory.bible](https://memory.bible)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Overview
 
-## React Compiler
+Memory.bible is a digital companion to a physical Bible verse memory card deck. Users learn verses through a structured exercise flow (flip card → fill blanks → type from memory), then revisit them on a spaced repetition schedule that adapts to their skill level.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Features
 
-## Expanding the ESLint configuration
+- **Learn** — flip cards, fill-in-the-blank, and typing exercises with progressive difficulty
+- **Revise** — spaced repetition queue with skill-aware exercise selection (beginner / intermediate / advanced)
+- **Manage deck** — drag to reorder, add via search or curated list, stats rings per verse
+- **Multiple translations** — KJV, BSB, ESV, NIV, NKJV, NASB
+- **Age brackets** — child / youth / adult verse sets
+- **Cloud sync** — progress syncs across devices when signed in
+- **Admin** — password-protected dashboard with usage stats and feedback inbox
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Tech Stack
+
+- **Frontend:** React + Vite, deployed on Cloudflare Pages
+- **Backend:** Cloudflare Workers (Pages Functions)
+- **Database:** Cloudflare D1 (SQLite at the edge)
+- **Email:** Resend (password reset, feedback notifications)
+- **Push notifications:** Web Push (VAPID)
+
+## Development
+
+```bash
+npm install
+npm run dev
+```
+
+Requires a `.env` file with:
+```
+VITE_ESV_TOKEN=
+VITE_API_BIBLE_KEY=
+```
+
+## Deployment
+
+Deployed automatically via Cloudflare Pages on push to `main`.
+
+```bash
+# Apply database migrations
+wrangler d1 migrations apply memory-verses-db --remote
+```
+
+## Project Structure
+
+```
+app/
+├── src/
+│   ├── components/       # React components
+│   ├── data/             # Local storage, spaced repetition, auth
+│   ├── api/              # Bible translation API clients
+│   └── index.css         # All styles
+├── functions/api/        # Cloudflare Workers endpoints
+└── migrations/           # D1 SQL migrations
+```
+
+## Copyright
+
+© 2024–2025 Chris Sandford. All rights reserved.
+
+Built with assistance from Claude (Anthropic).
