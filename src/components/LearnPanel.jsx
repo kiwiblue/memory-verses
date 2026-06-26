@@ -104,6 +104,7 @@ export default function LearnPanel({
         <div className="learn-step-label">Exercise 1 of 2</div>
         <FillExercise
           verse={verse}
+          version={version}
           difficulty="easy"
           onComplete={() => setStep('type')}
         />
@@ -118,6 +119,7 @@ export default function LearnPanel({
         <div className="learn-step-label">Exercise 2 of 2</div>
         <TypeExercise
           verse={verse}
+          version={version}
           difficulty="easy"
           onDowngrade={onDowngrade}
           onComplete={() => setStep('checkup')}

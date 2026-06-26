@@ -309,8 +309,8 @@ function FullTypeMode({ tokens, onDowngrade, onComplete }) {
 
 // ── Main component ──────────────────────────────────────────────────────────
 
-export default function TypeExercise({ verse, difficulty = 'easy', onDowngrade, onComplete }) {
-  const tokens      = useMemo(() => parseTokens(verse.kjv || verse.text || ''), [verse]);
+export default function TypeExercise({ verse, version = 'kjv', difficulty = 'easy', onDowngrade, onComplete }) {
+  const tokens      = useMemo(() => parseTokens(verse[version] || verse.kjv || ''), [verse, version]);
   const blankIndices = useMemo(() => blankIndicesFor(tokens, difficulty), [tokens, difficulty]);
   const [done, setDone]     = useState(false);
   const [result, setResult] = useState(null);

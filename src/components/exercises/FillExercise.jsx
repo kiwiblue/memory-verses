@@ -57,8 +57,8 @@ function buildOptions(tokens, blankIndices, activeBi, difficulty) {
 
 const DIFFICULTY_LABEL = { easy: 'Easy', moderate: 'Moderate', hard: 'Hard' };
 
-export default function FillExercise({ verse, difficulty = 'easy', onComplete }) {
-  const tokens = useMemo(() => parseTokens(verse.kjv || verse.text || ''), [verse]);
+export default function FillExercise({ verse, version = 'kjv', difficulty = 'easy', onComplete }) {
+  const tokens = useMemo(() => parseTokens(verse[version] || verse.kjv || ''), [verse, version]);
   // useState initializer so blanks are randomised once per mount, not on every render
   const [blankIndices] = useState(() => blankIndicesFor(tokens, difficulty));
 
