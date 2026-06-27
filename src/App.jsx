@@ -41,6 +41,7 @@ import { loadStreak, touchStreak } from './data/streak.js';
 import { APP_VERSION } from './data/version.js';
 import { logEvent } from './data/telemetry.js';
 import StatsScreen from './components/StatsScreen.jsx';
+import AddVerseFlow from './components/AddVerseFlow.jsx';
 import AdminPanel from './components/AdminPanel.jsx';
 import FeedbackModal from './components/FeedbackModal.jsx';
 
@@ -108,6 +109,7 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [streak, setStreak] = useState(() => loadStreak(initUser().id).days);
   const [showStats, setShowStats] = useState(false);
+  const [showAddVerse, setShowAddVerse] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -253,7 +255,7 @@ export default function App() {
     else if (id === 'deck')    { setShowDeckPanel(true); }
     else if (id === 'profile') { setProfileUser(currentUser); }
     else if (id === 'theme')   { setTheme(t => t === 'light' ? 'dark' : 'light'); }
-    else if (id === 'add-verse') { handleModeChange('add-verse'); }
+    else if (id === 'add-verse') { setShowAddVerse(true); }
     else if (id === 'stats')    { setShowStats(true); }
     // 'auth', 'add-member', 'about', 'support', 'feedback' — later phases
   }, [currentUser, handleModeChange]);
@@ -383,6 +385,34 @@ export default function App() {
   const handleRestoreVerse = useCallback((verseId) => {
     setHiddenIds(new Set(restoreVerseId(currentUser.id, verseId)));
   }, [currentUser.id]);
+
+  // Add Verse Flow callbacks — distinguishes curated (numeric id) from external search results
+  const handleAddDeckFromFlow = useCallback((verse) => {
+    if (!verse.id) {
+      // External search result → add as custom verse
+      setCustomVerses(addCustomVerse(currentUser.id, verse));
+      logEvent('verse_added', { source: 'search' });
+    } else if (hiddenIds.has(verse.id) || hiddenIds.has(String(verse.id))) {
+      // Hidden curated verse → restore it
+      setHiddenIds(new Set(restoreVerseId(currentUser.id, verse.id)));
+    }
+    // Already-visible curated verse → no-op (UI shows "In deck")
+  }, [currentUser.id, hiddenIds]);
+
+  const handleLearnFromFlow = useCallback((verse) => {
+    let targetVerse = verse;
+    if (!verse.id) {
+      // External search result → add as custom first
+      const newVerses = addCustomVerse(currentUser.id, verse);
+      setCustomVerses(newVerses);
+      logEvent('verse_added', { source: 'search' });
+      targetVerse = newVerses[newVerses.length - 1];
+    } else if (hiddenIds.has(verse.id) || hiddenIds.has(String(verse.id))) {
+      setHiddenIds(new Set(restoreVerseId(currentUser.id, verse.id)));
+    }
+    setShowAddVerse(false);
+    setVerseScreenVerse(targetVerse);
+  }, [currentUser.id, hiddenIds]);
 
   const handleRestoreAll = useCallback(() => {
     setHiddenIds(new Set(restoreAllVerseIds(currentUser.id)));
@@ -695,6 +725,16 @@ export default function App() {
         />
       )}
 
+      {showAddVerse && (
+        <AddVerseFlow
+          allVerses={allVerses}
+          preferredVersion={version}
+          onAddDeck={handleAddDeckFromFlow}
+          onLearnNow={handleLearnFromFlow}
+          onClose={() => setShowAddVerse(false)}
+        />
+      )}
+
       {showStats && (
         <StatsScreen
           verses={allVerses}
@@ -758,7 +798,7 @@ export default function App() {
           onTodayExercises={() => handleModeChange('revise')}
           onLearnNext={() => nextUnseen && setVerseScreenVerse(nextUnseen)}
           onVerseDetails={v => setVerseScreenVerse(v)}
-          onAddVerse={() => handleModeChange('add-verse')}
+          onAddVerse={() => setShowAddVerse(true)}
         />
       ) : queueDone ? (
         <QueueComplete

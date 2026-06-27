@@ -2037,3 +2037,145 @@ input[type=text] {
   font-size: 14px; color: var(--color-text-muted);
   padding: 24px 0; text-align: center;
 }
+
+/* ── AddVerseFlow ─────────────────────────────────────────────────────────────── */
+.av-overlay {
+  position: fixed; inset: 0; z-index: 460;
+  background: var(--color-bg);
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.av-panel {
+  width: 100%; max-width: 480px; margin: 0 auto;
+  padding: 12px 20px 48px;
+  display: flex; flex-direction: column;
+}
+.av-hdr {
+  display: flex; align-items: center; padding-bottom: 8px;
+}
+
+/* Views */
+.av-view { display: flex; flex-direction: column; }
+.av-view-title {
+  font-size: 22px; font-weight: 700; color: var(--color-text-primary);
+  margin: 0 0 20px;
+}
+
+/* Hub — Search + Collections buttons */
+.av-hub-btns { display: flex; gap: 10px; margin-bottom: 28px; }
+.av-hub-btn {
+  flex: 1; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600;
+  background: var(--color-surface); border: 1.5px solid var(--color-border);
+  color: var(--color-text-primary); cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.av-hub-btn:hover { background: var(--color-brand-muted); border-color: var(--color-brand); }
+
+.av-section-hdr {
+  font-size: 13px; font-weight: 600; color: var(--color-text-muted);
+  text-transform: uppercase; letter-spacing: .6px; margin-bottom: 8px;
+}
+
+/* Verse rows */
+.av-verse-list { display: flex; flex-direction: column; }
+.av-verse-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 0; border-bottom: 1px solid var(--color-border);
+}
+.av-verse-info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.av-verse-ref { font-size: 14px; font-weight: 600; color: var(--color-text-primary); }
+.av-verse-preview {
+  font-size: 12px; color: var(--color-text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.av-verse-btns { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.av-plus-btn {
+  width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--color-brand);
+  background: none; color: var(--color-brand); font-size: 18px; line-height: 1;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; transition: background .15s, color .15s;
+}
+.av-plus-btn:hover { background: var(--color-brand); color: #fff; }
+.av-learn-row-btn {
+  padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  background: var(--color-brand-muted); border: 1.5px solid var(--color-brand-accent);
+  color: var(--color-brand-dark); cursor: pointer; white-space: nowrap;
+  transition: background .15s;
+}
+.av-learn-row-btn:hover { background: var(--color-brand-subtle); }
+
+.av-badge-indeck {
+  font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 10px;
+  background: var(--color-surface-sunken); color: var(--color-text-muted);
+  white-space: nowrap; flex-shrink: 0;
+}
+.av-badge-added {
+  font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 10px;
+  background: var(--color-brand-subtle); color: var(--color-brand-dark);
+  white-space: nowrap; flex-shrink: 0;
+}
+
+/* Search form */
+.av-search-form {
+  display: flex; gap: 8px; margin-bottom: 16px;
+}
+.av-search-input {
+  flex: 1; padding: 10px 14px; border-radius: 10px; font-size: 15px;
+  border: 1.5px solid var(--color-border); background: var(--color-surface);
+  color: var(--color-text-primary); outline: none;
+  transition: border-color .15s;
+}
+.av-search-input:focus { border-color: var(--color-brand); }
+.av-search-btn {
+  padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600;
+  background: var(--color-brand); color: #fff; border: none; cursor: pointer;
+  transition: background .15s;
+}
+.av-search-btn:hover:not(:disabled) { background: var(--color-brand-dark); }
+.av-search-btn:disabled { opacity: .5; cursor: default; }
+.av-error { font-size: 13px; color: var(--color-danger); margin: 4px 0 0; }
+
+/* Search result */
+.av-search-result {
+  background: var(--color-surface); border-radius: 14px;
+  padding: 18px 16px; display: flex; flex-direction: column; gap: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.av-result-ref { font-size: 16px; font-weight: 700; color: var(--color-text-primary); }
+.av-result-text { font-size: 14px; line-height: 1.6; color: var(--color-text-secondary); }
+.av-result-actions { display: flex; gap: 8px; align-items: center; }
+.av-pill-btn {
+  padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;
+  border: none; cursor: pointer; transition: opacity .15s;
+}
+.av-pill-btn:hover { opacity: .85; }
+.av-pill-deck  { background: var(--color-brand-subtle); color: var(--color-brand-dark); }
+.av-pill-learn { background: var(--color-brand); color: #fff; }
+
+/* Collections list */
+.av-collection-list { display: flex; flex-direction: column; gap: 8px; }
+.av-collection-btn {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-radius: 12px; font-size: 15px; font-weight: 500;
+  background: var(--color-surface); border: 1.5px solid var(--color-border);
+  color: var(--color-text-primary); cursor: pointer; text-align: left;
+  transition: background .15s, border-color .15s;
+}
+.av-collection-btn:hover { background: var(--color-brand-muted); border-color: var(--color-brand-accent); }
+.av-collection-name { font-weight: 600; }
+.av-collection-count {
+  font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 10px;
+  background: var(--color-surface-sunken); color: var(--color-text-muted);
+}
+
+/* Add whole collection button */
+.av-add-all-btn {
+  width: 100%; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 700;
+  background: var(--color-brand); color: #fff; border: none; cursor: pointer;
+  margin-bottom: 16px; transition: background .15s;
+}
+.av-add-all-btn:hover:not(:disabled) { background: var(--color-brand-dark); }
+.av-add-all-btn:disabled,
+.av-add-all-btn.av-add-all-done {
+  background: var(--color-brand-subtle); color: var(--color-brand-dark); cursor: default;
+}
