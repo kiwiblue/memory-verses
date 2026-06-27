@@ -562,6 +562,7 @@ export default function App() {
           onLearnNow={handleLearnNow}
           onLearnLater={handleLearnLater}
           onMirror={handleMirrorDeck}
+          onVerseDetails={v => { setVerseScreenVerse(v); setShowDeckPanel(false); }}
           onClose={() => setShowDeckPanel(false)}
         />
       )}

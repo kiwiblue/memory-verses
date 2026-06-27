@@ -1,63 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { fetchVerse } from '../api/bible.js';
 
-// ── Stats rings ───────────────────────────────────────────────────────────────
-function Ring({ pct, color, size = 26, stroke = 3.5 }) {
-  const r = (size - stroke) / 2;
-  const circ = 2 * Math.PI * r;
-  return (
-    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#e8e8e4" strokeWidth={stroke} />
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color}
-        strokeWidth={stroke} strokeLinecap="round"
-        strokeDasharray={circ} strokeDashoffset={circ * (1 - Math.max(0, Math.min(1, pct)))} />
-    </svg>
-  );
+const SKILL_LABEL = { easy: 'easy', moderate: 'moderate', hard: 'hard' };
+
+function getBadge(verse, progress, queueIds, upNextIdx, idx) {
+  const status = progress[verse.id]?.status || 'unseen';
+  const inQueue = queueIds.has(String(verse.id));
+  if (inQueue) return { label: 'today', cls: 'deck-badge-today' };
+  if (idx === upNextIdx) return { label: 'up next', cls: 'deck-badge-upnext' };
+  if (status === 'unseen') return { label: 'new', cls: 'deck-badge-unseen' };
+  const skill = progress[verse.id]?.skill_level || 'easy';
+  const cls = skill === 'hard' ? 'deck-badge-hard' : skill === 'moderate' ? 'deck-badge-mod' : 'deck-badge-easy';
+  return { label: SKILL_LABEL[skill], cls };
 }
-
-function verseRings(entry) {
-  if (!entry || (entry.seen_count || 0) === 0) return null;
-  const now = Date.now();
-  const DAY = 24 * 60 * 60 * 1000;
-
-  // Ring 1 — Freshness: proportion of review window remaining (drains linearly to 0 when due)
-  const last   = entry.last_seen  || 0;
-  const next   = entry.next_review || 0;
-  const window = next - last;
-  const freshnessPct = window > 0 ? Math.max(0, 1 - (now - last) / window) : 0;
-  const freshnessColor = freshnessPct >= 0.6 ? 'var(--color-brand)' : freshnessPct >= 0.3 ? 'var(--color-warning)' : 'var(--color-danger)';
-
-  const daysLeft = Math.max(0, (next - now) / DAY);
-  const daysOver = Math.max(0, (now - next) / DAY);
-  const freshnessLabel = freshnessPct === 0
-    ? (daysOver >= 1 ? Math.round(daysOver) + "d overdue" : "Due now")
-    : (daysLeft >= 1 ? "Due in " + Math.round(daysLeft) + "d" : "Due today");
-
-  // Ring 2 — Mastery: skill level as a proportion (easy=1/3, moderate=2/3, hard=full)
-  const skillMap = { easy: 0.33, moderate: 0.66, hard: 1.0 };
-  const skill = entry.skill_level || "easy";
-  const masteryPct   = skillMap[skill] ?? 0.33;
-  const masteryColor = skill === "hard" ? "var(--color-skill-hard)" : skill === "moderate" ? "var(--color-skill-moderate)" : "var(--color-skill-easy)";
-  const masteryLabel = skill === "hard" ? "Hard" : skill === "moderate" ? "Moderate" : "Easy";
-
-  return { freshnessPct, freshnessColor, freshnessLabel, masteryPct, masteryColor, masteryLabel };
-}
-
-function VerseStats({ entry }) {
-  const rings = verseRings(entry);
-  if (!rings) return null;
-  const { freshnessPct, freshnessColor, freshnessLabel, masteryPct, masteryColor, masteryLabel } = rings;
-  return (
-    <div className="deck-stats" title={"Freshness: " + freshnessLabel + " · Mastery: " + masteryLabel}>
-      <Ring pct={freshnessPct} color={freshnessColor} />
-      <Ring pct={masteryPct}   color={masteryColor} />
-    </div>
-  );
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-const STATUS_LABEL = { mastered: 'Mastered', learning: 'Learning', unseen: 'New' };
-const STATUS_CLASS = { mastered: 'deck-badge-mastered', learning: 'deck-badge-learning', unseen: 'deck-badge-unseen' };
 
 function firstUnseenIndex(verses, progress) {
   return verses.findIndex(v => (progress[v.id]?.status || 'unseen') === 'unseen');
@@ -67,7 +22,7 @@ function firstUnseenIndex(verses, progress) {
 const ALL_VERSIONS = [['kjv','KJV'],['bsb','BSB'],['esv','ESV'],['niv','NIV'],['nkjv','NKJV'],['nasb','NASB']];
 
 function AddTab({ curatedVerses, hiddenIds, allVerses, preferredVersion, onAddVerse, onRestoreVerse, onRestoreAll }) {
-  const [section, setSection] = useState('search'); // 'search' | 'curated'
+  const [section, setSection] = useState('search');
   const [query, setQuery]   = useState('');
   const [status, setStatus] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
@@ -113,7 +68,7 @@ function AddTab({ curatedVerses, hiddenIds, allVerses, preferredVersion, onAddVe
       <div className="deck-add-tabs">
         <button className={`deck-add-tab-btn${section === 'search' ? ' active' : ''}`} onClick={() => setSection('search')}>Search</button>
         <button className={`deck-add-tab-btn${section === 'curated' ? ' active' : ''}`} onClick={() => setSection('curated')}>
-          Curated list {hiddenCurated.length > 0 && <span className="deck-add-badge">{hiddenCurated.length} removed</span>}
+          Curated {hiddenCurated.length > 0 && <span className="deck-add-badge">{hiddenCurated.length} removed</span>}
         </button>
       </div>
 
@@ -158,7 +113,7 @@ function AddTab({ curatedVerses, hiddenIds, allVerses, preferredVersion, onAddVe
           ) : (
             <>
               <div className="deck-curated-hdr">
-                <span className="deck-curated-note">{hiddenCurated.length} verse{hiddenCurated.length !== 1 ? 's' : ''} removed from your deck</span>
+                <span className="deck-curated-note">{hiddenCurated.length} verse{hiddenCurated.length !== 1 ? 's' : ''} removed</span>
                 <button className="deck-restore-all-btn" onClick={onRestoreAll}>Restore all</button>
               </div>
               {hiddenCurated.map(v => (
@@ -178,19 +133,92 @@ function AddTab({ curatedVerses, hiddenIds, allVerses, preferredVersion, onAddVe
   );
 }
 
+// ── Deck row ──────────────────────────────────────────────────────────────────
+function DeckRow({ verse, i, progress, queueIds, upNextIdx, dragging,
+  onDragStart, onDragOver, onDrop,
+  onVerseDetails, onLearnToday, onBackOfDeck, onRemoveVerse }) {
+
+  const [expanded, setExpanded] = useState(null); // null | 'delete'
+  const status = progress[verse.id]?.status || 'unseen';
+  const isActive = status === 'learning' || status === 'mastered';
+  const inQueue  = queueIds.has(String(verse.id));
+  const badge    = getBadge(verse, progress, queueIds, upNextIdx, i);
+
+  function handleDeleteBtn() {
+    setExpanded(e => e === 'delete' ? null : 'delete');
+  }
+
+  return (
+    <div
+      className={`deck-row2${dragging ? ' deck-row-dragging' : ''}`}
+      draggable
+      onDragStart={e => onDragStart(e, i)}
+      onDragOver={e => onDragOver(e, i)}
+      onDrop={onDrop}
+      onDragEnd={onDrop}
+    >
+      {/* Main row */}
+      <div className="deck-row2-main">
+        <span className="deck-drag">⠿</span>
+        <span className="deck-ref2">{verse.reference}</span>
+        <span className={`deck-badge2 ${badge.cls}`}>{badge.label}</span>
+
+        {/* ⓘ → verse screen (active verses only) */}
+        {isActive && (
+          <button className="deck-icon-btn deck-info-btn" onClick={() => onVerseDetails?.(verse)} title="Verse details">
+            ⓘ
+          </button>
+        )}
+
+        {/* ⊕ → learn today (not in queue, not mastered) */}
+        {!inQueue && status !== 'mastered' && (
+          <button className="deck-icon-btn deck-learn-btn2" onClick={() => onLearnToday(verse)} title="Learn today">
+            ⊕
+          </button>
+        )}
+
+        {/* ⊗ → delete options */}
+        <button
+          className={`deck-icon-btn deck-delete-btn${expanded === 'delete' ? ' active' : ''}`}
+          onClick={handleDeleteBtn}
+          title="Remove options"
+        >
+          ⊗
+        </button>
+      </div>
+
+      {/* Expanded: delete options */}
+      {expanded === 'delete' && (
+        <div className="deck-row2-expanded">
+          <button className="deck-expand-btn deck-back-btn"
+            onClick={() => { onBackOfDeck(verse); setExpanded(null); }}>
+            Back of deck
+          </button>
+          <button className="deck-expand-btn deck-delete-confirm-btn"
+            onClick={() => { onRemoveVerse(verse); setExpanded(null); }}>
+            Delete
+          </button>
+          <button className="deck-expand-btn deck-cancel-btn" onClick={() => setExpanded(null)}>
+            Cancel
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main panel ────────────────────────────────────────────────────────────────
 export default function VerseDeckPanel({
   verses, curatedVerses = [], hiddenIds = new Set(), progress, dailyQueue,
   currentUser, users, preferredVersion,
   onReorder, onRemoveVerse, onRestoreVerse, onRestoreAll, onAddVerse,
-  onLearnNow, onLearnLater, onMirror, onClose,
+  onLearnNow, onLearnLater, onMirror, onVerseDetails, onClose,
 }) {
   const queueIds = new Set((dailyQueue || []).map(v => String(v.id)));
-  const [tab, setTab]             = useState('deck');
-  const [list, setList]           = useState(verses);
-  const [confirmId, setConfirmId] = useState(null);
+  const [tab, setTab]     = useState('deck');
+  const [list, setList]   = useState(verses);
   const [mirrorOpen, setMirrorOpen] = useState(false);
-  const [mirrorIds, setMirrorIds] = useState([]);
+  const [mirrorIds, setMirrorIds]   = useState([]);
   const [mirrorDone, setMirrorDone] = useState(false);
   const dragIdx = useRef(null);
 
@@ -209,79 +237,74 @@ export default function VerseDeckPanel({
   }
   function onDrop() { onReorder(list.map(v => String(v.id))); dragIdx.current = null; }
 
-  const otherUsers = users.filter(u => u.id !== currentUser.id);
-  function toggleMirrorId(id) { setMirrorIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]); }
-  function handleMirror() { onMirror(mirrorIds); setMirrorDone(true); setMirrorIds([]); setTimeout(() => setMirrorDone(false), 2500); }
+  function handleLearnToday(verse) {
+    onLearnNow(verse);
+    // Move the verse just above the first unseen (up-next) position
+    const idx = list.findIndex(v => String(v.id) === String(verse.id));
+    const upNext = firstUnseenIndex(list, progress);
+    if (idx === -1 || upNext === -1 || idx <= upNext) return;
+    const next = [...list];
+    const [item] = next.splice(idx, 1);
+    next.splice(upNext, 0, item);
+    setList(next);
+    onReorder(next.map(v => String(v.id)));
+  }
+
+  function handleBackOfDeck(verse) {
+    const next = list.filter(v => String(v.id) !== String(verse.id));
+    next.push(verse);
+    setList(next);
+    onReorder(next.map(v => String(v.id)));
+    onLearnLater?.(verse);
+  }
 
   const upNextIdx = firstUnseenIndex(list, progress);
+  const otherUsers = users.filter(u => u.id !== currentUser.id);
+
+  function toggleMirrorId(id) { setMirrorIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]); }
+  function handleMirror() { onMirror(mirrorIds); setMirrorDone(true); setMirrorIds([]); setTimeout(() => setMirrorDone(false), 2500); }
 
   return (
     <div className="profile-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="profile-modal">
+
         <div className="profile-modal-hdr">
           <button className="profile-back" onClick={onClose}>✕</button>
-          <div className="profile-modal-title">My Deck ({list.length} verses)</div>
-          <div style={{ width: 32 }} />
+          <div className="profile-modal-title">My Deck</div>
+          <button className="deck-add-hdr-btn" onClick={() => setTab('add')}>+ add</button>
         </div>
 
         {/* Tab switcher */}
         <div className="deck-tabs">
-          <button className={`deck-tab${tab === 'deck' ? ' active' : ''}`} onClick={() => setTab('deck')}>Deck</button>
-          <button className={`deck-tab${tab === 'add' ? ' active' : ''}`} onClick={() => setTab('add')}>+ Add Verse</button>
+          <button className={`deck-tab${tab === 'deck' ? ' active' : ''}`} onClick={() => setTab('deck')}>
+            Deck ({list.length})
+          </button>
+          <button className={`deck-tab${tab === 'add' ? ' active' : ''}`} onClick={() => setTab('add')}>
+            + Add Verse
+          </button>
         </div>
 
         {tab === 'deck' && (
           <div className="deck-list">
             {list.length === 0 && <div className="deck-empty">No verses in your deck yet.</div>}
-            {list.map((verse, i) => {
-              const status = progress[verse.id]?.status || 'unseen';
-              const isConfirming = confirmId === verse.id;
-              const inQueue = queueIds.has(String(verse.id));
-              const isUpNext = !inQueue && i === upNextIdx;
-              return (
-                <div
-                  key={verse.id}
-                  className={`deck-row${dragIdx.current === i ? ' deck-row-dragging' : ''}`}
-                  draggable
-                  onDragStart={e => onDragStart(e, i)}
-                  onDragOver={e => onDragOver(e, i)}
-                  onDrop={onDrop}
-                  onDragEnd={onDrop}
-                >
-                  <span className="deck-drag">⠿</span>
-                  <div className="deck-info">
-                    <div className="deck-ref">{verse.reference}</div>
-                    {inQueue
-                      ? <span className="deck-badge deck-badge-today">Today</span>
-                      : isUpNext
-                        ? <span className="deck-badge deck-badge-upnext">Up Next</span>
-                        : <span className={`deck-badge ${STATUS_CLASS[status]}`}>{STATUS_LABEL[status]}</span>
-                    }
-                  </div>
-                  <VerseStats entry={progress[verse.id]} />
-                  {isConfirming ? (
-                    <div className="deck-confirm">
-                      <span className="deck-confirm-label">Remove?</span>
-                      <button className="deck-confirm-yes" onClick={() => { onRemoveVerse(verse); setConfirmId(null); }}>Yes</button>
-                      <button className="deck-confirm-no" onClick={() => setConfirmId(null)}>No</button>
-                    </div>
-                  ) : (
-                    <div className="deck-row-actions">
-                      {inQueue && status !== 'mastered' ? (
-                        <button className="deck-learn-later-btn" onClick={() => onLearnLater?.(verse)}>
-                          Learn Later
-                        </button>
-                      ) : !inQueue && status !== 'mastered' ? (
-                        <button className="deck-learn-btn" onClick={() => onLearnNow(verse)}>
-                          Learn Next
-                        </button>
-                      ) : null}
-                      <button className="deck-remove-btn" onClick={() => setConfirmId(verse.id)}>✕</button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {list.map((verse, i) => (
+              <DeckRow
+                key={verse.id}
+                verse={verse}
+                i={i}
+                progress={progress}
+                queueIds={queueIds}
+                upNextIdx={upNextIdx}
+                dragging={dragIdx.current === i}
+                onDragStart={onDragStart}
+                onDragOver={onDragOver}
+                onDrop={onDrop}
+                onVerseDetails={onVerseDetails}
+                onLearnToday={handleLearnToday}
+                onBackOfDeck={handleBackOfDeck}
+                onRemoveVerse={onRemoveVerse}
+              />
+            ))}
           </div>
         )}
 
@@ -306,13 +329,12 @@ export default function VerseDeckPanel({
             </div>
             {mirrorOpen && (
               <div className="deck-mirror-body">
-                <div className="deck-mirror-note">Copies your current verse list and order to selected profiles. Their existing progress is kept.</div>
+                <div className="deck-mirror-note">Copies your current verse list and order to selected profiles.</div>
                 {otherUsers.map(u => (
                   <label key={u.id} className="deck-mirror-row">
                     <input type="checkbox" checked={mirrorIds.includes(u.id)} onChange={() => toggleMirrorId(u.id)} />
                     <span className="deck-mirror-avatar" style={{ background: u.colour || '#888' }}>{u.name[0].toUpperCase()}</span>
                     <span className="deck-mirror-name">{u.name}</span>
-                    <span className="deck-mirror-bracket">{u.bracket || 'adult'}</span>
                   </label>
                 ))}
                 {mirrorDone

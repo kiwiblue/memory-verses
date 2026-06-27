@@ -1733,6 +1733,61 @@ input[type=text] {
 .vs-action-delete:hover:not(:disabled) { background: var(--color-danger-bg); }
 .vs-confirm { background: var(--color-danger-bg) !important; border-color: var(--color-danger) !important; font-weight: 600; }
 
+/* ── Deck row v2 ─────────────────────────────────────────────────────────────── */
+.deck-add-hdr-btn {
+  font-size: 13px; font-weight: 600; color: var(--color-brand);
+  background: var(--color-brand-subtle); border: none; border-radius: 8px;
+  padding: 5px 10px; cursor: pointer; transition: background .15s;
+}
+.deck-add-hdr-btn:hover { background: var(--color-brand-accent); }
+
+.deck-row2 {
+  border-bottom: 0.5px solid var(--color-surface-sunken);
+  transition: background .1s;
+}
+.deck-row2:hover { background: var(--color-bg); }
+.deck-row2.deck-row-dragging { background: var(--color-brand-muted); opacity: .8; }
+
+.deck-row2-main {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 4px;
+}
+.deck-ref2 {
+  font-size: 13px; font-weight: 500; color: var(--color-text-primary); flex: 1; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.deck-badge2 {
+  font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 500; flex-shrink: 0;
+}
+.deck-badge-easy  { background: #e0f2fe; color: #0369a1; }
+.deck-badge-mod   { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.deck-badge-hard  { background: var(--color-brand-subtle); color: var(--color-brand-dark); font-weight: 600; }
+
+.deck-icon-btn {
+  width: 28px; height: 28px; border-radius: 50%; border: none; background: none;
+  font-size: 16px; cursor: pointer; flex-shrink: 0; display: flex;
+  align-items: center; justify-content: center; transition: background .15s;
+  color: var(--color-text-muted);
+}
+.deck-info-btn:hover  { background: var(--color-brand-muted); color: var(--color-brand); }
+.deck-learn-btn2:hover { background: #d1fae5; color: var(--color-brand-dark); }
+.deck-delete-btn { color: var(--color-text-faint); }
+.deck-delete-btn:hover, .deck-delete-btn.active { background: var(--color-danger-bg); color: var(--color-danger); }
+
+.deck-row2-expanded {
+  display: flex; gap: 8px; padding: 0 4px 10px 28px; flex-wrap: wrap;
+}
+.deck-expand-btn {
+  font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 20px;
+  border: 1.5px solid var(--color-border); background: var(--color-surface);
+  cursor: pointer; transition: background .15s, border-color .15s;
+  color: var(--color-text-secondary);
+}
+.deck-back-btn:hover { border-color: var(--color-warning); color: var(--color-warning-dark); background: var(--color-warning-bg); }
+.deck-delete-confirm-btn { color: var(--color-danger); border-color: var(--color-danger-muted); }
+.deck-delete-confirm-btn:hover { background: var(--color-danger-bg); border-color: var(--color-danger); }
+.deck-cancel-btn:hover { border-color: var(--color-text-muted); }
+
 /* ── SelectExercise ──────────────────────────────────────────────────────────── */
 .se-wrap { display: flex; flex-direction: column; gap: 16px; }
 .se-instruction { font-size: 13px; color: var(--color-text-muted); margin: 0; }
