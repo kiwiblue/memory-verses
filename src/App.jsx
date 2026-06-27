@@ -19,6 +19,7 @@ import Drawer from './components/Drawer.jsx';
 import MainScreen from './components/MainScreen.jsx';
 import VerseScreen from './components/VerseScreen.jsx';
 import LearnRevealScreen from './components/LearnRevealScreen.jsx';
+import SelectExercise from './components/exercises/SelectExercise.jsx';
 import ProgressBar from './components/ProgressBar.jsx';
 import StudyControls from './components/StudyControls.jsx';
 import TestControls from './components/TestControls.jsx';
@@ -91,6 +92,7 @@ export default function App() {
   const [showDeckPanel, setShowDeckPanel] = useState(false);
   const [verseScreenVerse, setVerseScreenVerse] = useState(null);
   const [learnRevealVerse, setLearnRevealVerse] = useState(null);
+  const [selectExVerse, setSelectExVerse] = useState(null);
   const [removeConfirm, setRemoveConfirm] = useState(false);
 
   const [onboarded, setOnboarded]     = useState(isOnboarded);
@@ -367,6 +369,14 @@ export default function App() {
     }
   }, [currentUser.id]);
 
+  const handleResetVerse = useCallback((v) => {
+    setProgress(prev => {
+      const updated = { ...prev };
+      delete updated[v.id];
+      return updated;
+    });
+  }, []);
+
   const handleRestoreVerse = useCallback((verseId) => {
     setHiddenIds(new Set(restoreVerseId(currentUser.id, verseId)));
   }, [currentUser.id]);
@@ -600,6 +610,36 @@ export default function App() {
         />
       )}
 
+      {selectExVerse && (
+        <div className="vs-overlay" style={{ zIndex: 500 }}>
+          <div className="vs-panel">
+            <div className="vs-header">
+              <button className="vs-back" onClick={() => setSelectExVerse(null)}>‹</button>
+              <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                {selectExVerse.reference}
+              </span>
+            </div>
+            <SelectExercise
+              verse={selectExVerse}
+              version={verseTranslations[selectExVerse.id] || version}
+              difficulty={progress[selectExVerse.id]?.skill_level || 'easy'}
+              onComplete={({ errors }) => {
+                setProgress(prev => ({
+                  ...prev,
+                  [selectExVerse.id]: recordReviseAttempt(
+                    getEntry(prev, selectExVerse.id),
+                    errors === 0 ? 1 : errors <= 2 ? 0.5 : 0
+                  ),
+                }));
+                handleTouchStreak();
+                setSelectExVerse(null);
+              }}
+              onSkip={() => setSelectExVerse(null)}
+            />
+          </div>
+        </div>
+      )}
+
       {verseScreenVerse && (
         <VerseScreen
           verse={verseScreenVerse}
@@ -607,7 +647,7 @@ export default function App() {
           version={version}
           verseTranslations={verseTranslations}
           onVerseTranslationChange={handleVerseTranslationChange}
-          onPractice={() => {
+          onFlipCard={() => {
             const status = progress[verseScreenVerse.id]?.status || 'unseen';
             if (status === 'unseen') {
               setLearnRevealVerse(verseScreenVerse);
@@ -617,8 +657,30 @@ export default function App() {
               handleModeChange('revise');
             }
           }}
-          onLearnLater={(v) => {
-            handleLearnLater(v);
+          onSelectWord={() => {
+            setSelectExVerse(verseScreenVerse);
+            setVerseScreenVerse(null);
+          }}
+          onTypeVerse={() => {
+            setVerseScreenVerse(null);
+            handleModeChange('revise');
+          }}
+          onMatchRef={() => {
+            setVerseScreenVerse(null);
+            handleModeChange('revise');
+          }}
+          onLessFrequency={() => handleLearnLater(verseScreenVerse)}
+          onMoreFrequency={() => {
+            setProgress(prev => ({
+              ...prev,
+              [verseScreenVerse.id]: {
+                ...(prev[verseScreenVerse.id] || {}),
+                next_review: Date.now() - 1,
+              },
+            }));
+          }}
+          onReset={(v) => {
+            handleResetVerse(v);
             setVerseScreenVerse(null);
           }}
           onDelete={(v) => {

@@ -7,14 +7,11 @@ function Ring({ fill, label, color }) {
   const r = 18;
   const circ = 2 * Math.PI * r;
   const dash = circ * Math.max(0, Math.min(1, fill));
-
   return (
     <div className="vs-ring-wrap">
       <svg width="44" height="44" viewBox="0 0 44 44">
-        {/* track */}
         <circle cx="22" cy="22" r={r} fill="none"
           stroke="var(--color-surface-sunken)" strokeWidth="4" />
-        {/* fill — rotated so it starts at top */}
         <circle cx="22" cy="22" r={r} fill="none"
           stroke={color} strokeWidth="4"
           strokeDasharray={`${dash} ${circ}`}
@@ -43,33 +40,41 @@ export default function VerseScreen({
   version,
   verseTranslations,
   onVerseTranslationChange,
-  onPractice,
-  onLearnLater,
+  // exercise launchers
+  onFlipCard,
+  onTypeVerse,
+  onSelectWord,
+  onMatchRef,
+  // frequency
+  onLessFrequency,
+  onMoreFrequency,
+  // actions
+  onReset,
   onDelete,
   onClose,
 }) {
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null); // 'reset' | 'delete'
 
   if (!verse) return null;
 
   const entry = progress[verse.id];
   const status = entry?.status || 'unseen';
   const activeVersion = verseTranslations?.[verse.id] || version;
-  const verseText = verse[activeVersion] || verse.kjv || '';
   const skill = getSkillLevel(entry);
   const freshness = computeFreshness(entry);
   const masteryFill = SKILL_FILL[skill] ?? 1 / 3;
 
-  const statusLabel = {
-    unseen: 'New verse',
-    learning: 'Learning',
-    mastered: 'Mastered',
-  }[status] ?? 'New verse';
+  const statusLabel = { unseen: 'New verse', learning: 'Learning', mastered: 'Mastered' }[status] ?? 'New verse';
+  const isActive = status === 'learning' || status === 'mastered';
 
-  function handleDelete() {
-    if (!confirmDelete) { setConfirmDelete(true); return; }
-    onDelete?.(verse);
+  function handleAction(action) {
+    if (confirmAction === action) {
+      if (action === 'reset') onReset?.(verse);
+      if (action === 'delete') onDelete?.(verse);
+      setConfirmAction(null);
+    } else {
+      setConfirmAction(action);
+    }
   }
 
   return (
@@ -78,69 +83,75 @@ export default function VerseScreen({
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <div className="vs-header">
-          <button className="vs-back" onClick={onClose} aria-label="Back">
-            ‹
-          </button>
-
+          <button className="vs-back" onClick={onClose} aria-label="Back">‹</button>
           <div className="vs-rings">
             <Ring fill={freshness} label="Fresh" color="var(--color-brand)" />
             <Ring fill={masteryFill} label="Mastery" color="#f59e0b" />
           </div>
-
-          <div className="vs-version-wrap">
-            <select
-              className="vs-version-select"
-              value={activeVersion}
-              onChange={e => onVerseTranslationChange?.(verse.id, e.target.value)}
-            >
-              {['kjv', 'bsb', 'esv', 'niv', 'nkjv', 'nasb'].map(t => (
-                <option key={t} value={t}>{t.toUpperCase()}</option>
-              ))}
-            </select>
-          </div>
+          <select
+            className="vs-version-select"
+            value={activeVersion}
+            onChange={e => onVerseTranslationChange?.(verse.id, e.target.value)}
+          >
+            {['kjv', 'bsb', 'esv', 'niv', 'nkjv', 'nasb'].map(t => (
+              <option key={t} value={t}>{t.toUpperCase()}</option>
+            ))}
+          </select>
         </div>
 
-        {/* ── Status badge ────────────────────────────────────────────────── */}
-        <div className={`vs-status-badge vs-status-${status}`}>{statusLabel}</div>
+        {/* ── Reference + status ──────────────────────────────────────────── */}
+        <div className="vs-ref-row">
+          <div className="vs-ref-text">{verse.reference}</div>
+          <span className={`vs-status-badge vs-status-${status}`}>{statusLabel}</span>
+        </div>
 
-        {/* ── Verse card (tappable to flip) ────────────────────────────────── */}
-        <button
-          className={`vs-card${isFlipped ? ' vs-card-flipped' : ''}`}
-          onClick={() => setIsFlipped(f => !f)}
-        >
-          <div className="vs-card-inner">
-            <div className="vs-card-front">
-              <div className="vs-card-ref-label">REFERENCE</div>
-              <div className="vs-card-ref">{verse.reference}</div>
-              <div className="vs-card-tap-hint">tap to reveal</div>
-            </div>
-            <div className="vs-card-back">
-              <div className="vs-card-ref-small">{verse.reference}</div>
-              <div className="vs-card-text">{verseText}</div>
+        {/* ── Exercise buttons ─────────────────────────────────────────────── */}
+        <div className="vs-exercises">
+          <button className="vs-ex-btn" onClick={onFlipCard}>
+            <span className="vs-ex-icon">🃏</span>
+            <span className="vs-ex-label">Flip Card</span>
+          </button>
+          <button className="vs-ex-btn" onClick={onTypeVerse} disabled={!isActive}>
+            <span className="vs-ex-icon">⌨️</span>
+            <span className="vs-ex-label">Type the verse</span>
+          </button>
+          <button className="vs-ex-btn" onClick={onSelectWord} disabled={!isActive}>
+            <span className="vs-ex-icon">✏️</span>
+            <span className="vs-ex-label">Select the word</span>
+          </button>
+          <button className="vs-ex-btn" onClick={onMatchRef} disabled={!isActive}>
+            <span className="vs-ex-icon">🔗</span>
+            <span className="vs-ex-label">Match the reference</span>
+          </button>
+        </div>
+
+        {/* ── Practice frequency ───────────────────────────────────────────── */}
+        {isActive && (
+          <div className="vs-frequency">
+            <span className="vs-frequency-label">Practice Frequency?</span>
+            <div className="vs-frequency-btns">
+              <button className="vs-freq-btn vs-freq-less" onClick={onLessFrequency}>less</button>
+              <button className="vs-freq-btn vs-freq-more" onClick={onMoreFrequency}>more</button>
             </div>
           </div>
-        </button>
+        )}
 
-        {/* ── Practice button ──────────────────────────────────────────────── */}
-        <button className="ob-btn-primary vs-practice-btn" onClick={onPractice}>
-          Practice now →
-        </button>
-
-        {/* ── Secondary actions ────────────────────────────────────────────── */}
-        <div className="vs-actions">
+        {/* ── Bottom actions ───────────────────────────────────────────────── */}
+        <div className="vs-bottom-actions">
           <button
-            className="vs-action-btn"
-            onClick={() => onLearnLater?.(verse)}
+            className={`vs-action-btn${confirmAction === 'reset' ? ' vs-confirm' : ''}`}
+            onClick={() => handleAction('reset')}
+            onBlur={() => setConfirmAction(null)}
+            disabled={!isActive}
           >
-            ⏩ Learn later
+            {confirmAction === 'reset' ? 'Confirm reset' : '↺ Reset'}
           </button>
-
           <button
-            className={`vs-action-btn vs-action-delete${confirmDelete ? ' vs-confirm' : ''}`}
-            onClick={handleDelete}
-            onBlur={() => setConfirmDelete(false)}
+            className={`vs-action-btn vs-action-delete${confirmAction === 'delete' ? ' vs-confirm' : ''}`}
+            onClick={() => handleAction('delete')}
+            onBlur={() => setConfirmAction(null)}
           >
-            {confirmDelete ? 'Confirm remove' : '🗑 Remove'}
+            {confirmAction === 'delete' ? 'Confirm remove' : '🗑 Remove'}
           </button>
         </div>
 
