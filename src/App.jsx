@@ -18,6 +18,7 @@ import FlipCard from './components/FlipCard.jsx';
 import Drawer from './components/Drawer.jsx';
 import MainScreen from './components/MainScreen.jsx';
 import VerseScreen from './components/VerseScreen.jsx';
+import LearnRevealScreen from './components/LearnRevealScreen.jsx';
 import ProgressBar from './components/ProgressBar.jsx';
 import StudyControls from './components/StudyControls.jsx';
 import TestControls from './components/TestControls.jsx';
@@ -89,6 +90,7 @@ export default function App() {
   const [verseOrder, setVerseOrder]   = useState(() => loadVerseOrder(initUser().id));
   const [showDeckPanel, setShowDeckPanel] = useState(false);
   const [verseScreenVerse, setVerseScreenVerse] = useState(null);
+  const [learnRevealVerse, setLearnRevealVerse] = useState(null);
   const [removeConfirm, setRemoveConfirm] = useState(false);
 
   const [onboarded, setOnboarded]     = useState(isOnboarded);
@@ -582,6 +584,22 @@ export default function App() {
         />
       )}
 
+      {learnRevealVerse && (
+        <LearnRevealScreen
+          verse={learnRevealVerse}
+          version={verseTranslations[learnRevealVerse.id] || version}
+          onComplete={() => {
+            setProgress(prev => ({
+              ...prev,
+              [learnRevealVerse.id]: startRevising(getEntry(prev, learnRevealVerse.id)),
+            }));
+            handleTouchStreak();
+            setLearnRevealVerse(null);
+          }}
+          onClose={() => setLearnRevealVerse(null)}
+        />
+      )}
+
       {verseScreenVerse && (
         <VerseScreen
           verse={verseScreenVerse}
@@ -590,8 +608,14 @@ export default function App() {
           verseTranslations={verseTranslations}
           onVerseTranslationChange={handleVerseTranslationChange}
           onPractice={() => {
-            setVerseScreenVerse(null);
-            handleModeChange('revise');
+            const status = progress[verseScreenVerse.id]?.status || 'unseen';
+            if (status === 'unseen') {
+              setLearnRevealVerse(verseScreenVerse);
+              setVerseScreenVerse(null);
+            } else {
+              setVerseScreenVerse(null);
+              handleModeChange('revise');
+            }
           }}
           onLearnLater={(v) => {
             handleLearnLater(v);
@@ -655,7 +679,7 @@ export default function App() {
           nextUnseen={nextUnseen}
           streak={streak}
           onTodayExercises={() => handleModeChange('revise')}
-          onLearnNext={() => handleModeChange('learn')}
+          onLearnNext={() => nextUnseen && setVerseScreenVerse(nextUnseen)}
           onVerseDetails={v => setVerseScreenVerse(v)}
           onAddVerse={() => handleModeChange('add-verse')}
         />
