@@ -15,7 +15,7 @@ import { appendReviseLog } from './data/reviseLog.js';
 import { loadVerseOrder, saveVerseOrder } from './data/verseOrder.js';
 
 import FlipCard from './components/FlipCard.jsx';
-import ModeTabs from './components/ModeTabs.jsx';
+import Drawer from './components/Drawer.jsx';
 import ProgressBar from './components/ProgressBar.jsx';
 import StudyControls from './components/StudyControls.jsx';
 import TestControls from './components/TestControls.jsx';
@@ -96,6 +96,7 @@ export default function App() {
   const syncTimer = useRef(null);
 
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -224,6 +225,18 @@ export default function App() {
     setMode(newMode);
     setIsFlipped(false);
   }, []);
+
+  const handleDrawerAction = useCallback((id) => {
+    if (id === 'exercises')   { handleModeChange('revise'); }
+    else if (id === 'learn')  { handleModeChange('learn'); }
+    else if (id === 'deck')   { setShowDeckPanel(true); }
+    else if (id === 'profile'){ setProfileUser(currentUser); }
+    else if (id === 'theme')  { setTheme(t => t === 'light' ? 'dark' : 'light'); }
+    else if (id === 'auth')   { /* auth flow — wired in later phases */ }
+    else if (id === 'add-verse') { /* add verse flow — Phase 8 */ }
+    else if (id === 'add-member') { /* add member — Phase 9 */ }
+    // 'about', 'support', 'feedback' — static pages, Phase later
+  }, [currentUser, handleModeChange]);
 
   // Learn mode: record score (1=know it, 0=still learning) then advance queue
   const handleMark = useCallback((score) => {
@@ -549,22 +562,26 @@ export default function App() {
         />
       )}
 
+      <Drawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        theme={theme}
+        onToggleTheme={() => setTheme(t => t === 'light' ? 'dark' : 'light')}
+        auth={auth}
+        onAction={handleDrawerAction}
+      />
+
       <div className="scene">
       <div className="hdr">
+        <button className="hamburger-btn" onClick={() => setDrawerOpen(true)} aria-label="Open menu">
+          <span /><span /><span />
+        </button>
+        <div className="ttl" onClick={() => handleModeChange('learn')} style={{ cursor: 'pointer' }}>
+          <span className="ttl-memory">Memory</span><span className="ttl-dot-bible" style={{ color: currentUser?.colour || '#3a8c5c' }}>.bible</span>
+        </div>
         <UserPanel users={users} currentUser={currentUser}
           onUserChange={handleUserChange} onUsersChange={handleUsersChange}
           onOpenProfile={(u) => setProfileUser(u)} />
-        <div className="ttl">
-          <span className="ttl-memory">Memory</span><span className="ttl-dot-bible" style={{ color: currentUser?.colour || '#3a8c5c' }}>.bible</span>
-        </div>
-        <button
-          className="theme-toggle"
-          onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}
-          aria-label="Toggle theme"
-          title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-        >
-          {theme === 'light' ? '🌙' : '☀️'}
-        </button>
       </div>
 
       {showBracketReminder && (
@@ -581,8 +598,6 @@ export default function App() {
         ? <ProgressBar current={Math.min(queueIndex + 1, dailyQueue.length)} total={dailyQueue.length} label="today" />
         : <ProgressBar current={reviseVerses.length ? browseIndex + 1 : 0} total={reviseVerses.length} />
       }
-
-      <ModeTabs mode={mode} onChange={handleModeChange} />
 
       {queueDone ? (
         <QueueComplete
