@@ -1623,3 +1623,110 @@ input[type=text] {
   color: var(--color-brand) !important;
 }
 .learn-new-verse-btn:hover { background: var(--color-brand-muted) !important; }
+
+/* ── VerseScreen ─────────────────────────────────────────────────────────────── */
+.vs-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: var(--color-bg);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+}
+.vs-panel {
+  width: 100%; max-width: 480px; margin: 0 auto;
+  padding: 12px 20px 32px;
+  display: flex; flex-direction: column; gap: 16px;
+  min-height: 100%;
+}
+
+/* header row */
+.vs-header {
+  display: flex; align-items: center; gap: 12px;
+}
+.vs-back {
+  background: none; border: none; font-size: 28px; line-height: 1;
+  color: var(--color-text-secondary); cursor: pointer; padding: 0 6px 0 0;
+  flex-shrink: 0;
+}
+.vs-rings {
+  display: flex; gap: 12px; flex: 1;
+}
+.vs-ring-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.vs-ring-label {
+  font-size: 10px; color: var(--color-text-faint); font-weight: 500;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.vs-version-select {
+  font-size: 13px; font-weight: 600; color: var(--color-text-primary);
+  background: var(--color-surface); border: 1.5px solid var(--color-border);
+  border-radius: 8px; padding: 5px 8px; cursor: pointer;
+  appearance: none; -webkit-appearance: none;
+}
+
+/* status badge */
+.vs-status-badge {
+  display: inline-block; font-size: 11px; font-weight: 600;
+  padding: 3px 10px; border-radius: 20px; width: fit-content;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.vs-status-unseen   { background: var(--color-surface-sunken); color: var(--color-text-muted); }
+.vs-status-learning { background: var(--color-brand-subtle);   color: var(--color-brand-dark); }
+.vs-status-mastered { background: #fef3c7; color: #92400e; }
+
+/* flip card */
+.vs-card {
+  width: 100%; border: none; cursor: pointer; text-align: left;
+  background: var(--color-surface); border-radius: 16px;
+  padding: 0; perspective: 1000px;
+  min-height: 180px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.vs-card-inner {
+  position: relative; width: 100%; min-height: 180px;
+  transform-style: preserve-3d;
+  transition: transform .45s cubic-bezier(.45,0,.55,1);
+}
+.vs-card-flipped .vs-card-inner { transform: rotateY(180deg); }
+.vs-card-front, .vs-card-back {
+  position: absolute; inset: 0; backface-visibility: hidden;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 24px 20px; gap: 8px;
+  border-radius: 16px;
+}
+.vs-card-back  { transform: rotateY(180deg); }
+.vs-card-ref-label {
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--color-text-faint);
+}
+.vs-card-ref {
+  font-size: 24px; font-weight: 700; color: var(--color-text-primary);
+}
+.vs-card-tap-hint {
+  font-size: 12px; color: var(--color-text-faint); margin-top: 8px;
+}
+.vs-card-ref-small {
+  font-size: 12px; font-weight: 600; color: var(--color-text-muted);
+}
+.vs-card-text {
+  font-size: 15px; line-height: 1.6; color: var(--color-text-primary);
+  text-align: center;
+}
+
+/* practice button */
+.vs-practice-btn { width: 100%; }
+
+/* secondary actions */
+.vs-actions {
+  display: flex; gap: 10px;
+}
+.vs-action-btn {
+  flex: 1; padding: 10px 8px; border-radius: 10px; font-size: 13px; font-weight: 500;
+  cursor: pointer; border: 1.5px solid var(--color-border);
+  background: var(--color-surface); color: var(--color-text-secondary);
+  transition: background .15s, border-color .15s;
+}
+.vs-action-btn:hover { border-color: var(--color-text-muted); }
+.vs-action-delete { color: var(--color-danger); border-color: var(--color-danger-muted); }
+.vs-action-delete:hover { background: var(--color-danger-bg); }
+.vs-confirm { background: var(--color-danger-bg) !important; border-color: var(--color-danger) !important; font-weight: 600; }

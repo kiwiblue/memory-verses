@@ -17,6 +17,7 @@ import { loadVerseOrder, saveVerseOrder } from './data/verseOrder.js';
 import FlipCard from './components/FlipCard.jsx';
 import Drawer from './components/Drawer.jsx';
 import MainScreen from './components/MainScreen.jsx';
+import VerseScreen from './components/VerseScreen.jsx';
 import ProgressBar from './components/ProgressBar.jsx';
 import StudyControls from './components/StudyControls.jsx';
 import TestControls from './components/TestControls.jsx';
@@ -87,6 +88,7 @@ export default function App() {
 
   const [verseOrder, setVerseOrder]   = useState(() => loadVerseOrder(initUser().id));
   const [showDeckPanel, setShowDeckPanel] = useState(false);
+  const [verseScreenVerse, setVerseScreenVerse] = useState(null);
   const [removeConfirm, setRemoveConfirm] = useState(false);
 
   const [onboarded, setOnboarded]     = useState(isOnboarded);
@@ -580,6 +582,29 @@ export default function App() {
         />
       )}
 
+      {verseScreenVerse && (
+        <VerseScreen
+          verse={verseScreenVerse}
+          progress={progress}
+          version={version}
+          verseTranslations={verseTranslations}
+          onVerseTranslationChange={handleVerseTranslationChange}
+          onPractice={() => {
+            setVerseScreenVerse(null);
+            handleModeChange('revise');
+          }}
+          onLearnLater={(v) => {
+            handleLearnLater(v);
+            setVerseScreenVerse(null);
+          }}
+          onDelete={(v) => {
+            handleRemoveVerseById(v);
+            setVerseScreenVerse(null);
+          }}
+          onClose={() => setVerseScreenVerse(null)}
+        />
+      )}
+
       <Drawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
@@ -631,7 +656,7 @@ export default function App() {
           streak={streak}
           onTodayExercises={() => handleModeChange('revise')}
           onLearnNext={() => handleModeChange('learn')}
-          onVerseDetails={null}
+          onVerseDetails={v => setVerseScreenVerse(v)}
           onAddVerse={() => handleModeChange('add-verse')}
         />
       ) : queueDone ? (
