@@ -40,6 +40,7 @@ import { isOnboarded, markOnboarded } from './data/onboarding.js';
 import { loadStreak, touchStreak } from './data/streak.js';
 import { APP_VERSION } from './data/version.js';
 import { logEvent } from './data/telemetry.js';
+import StatsScreen from './components/StatsScreen.jsx';
 import AdminPanel from './components/AdminPanel.jsx';
 import FeedbackModal from './components/FeedbackModal.jsx';
 
@@ -106,6 +107,7 @@ export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [streak, setStreak] = useState(() => loadStreak(initUser().id).days);
+  const [showStats, setShowStats] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -252,6 +254,7 @@ export default function App() {
     else if (id === 'profile') { setProfileUser(currentUser); }
     else if (id === 'theme')   { setTheme(t => t === 'light' ? 'dark' : 'light'); }
     else if (id === 'add-verse') { handleModeChange('add-verse'); }
+    else if (id === 'stats')    { setShowStats(true); }
     // 'auth', 'add-member', 'about', 'support', 'feedback' — later phases
   }, [currentUser, handleModeChange]);
 
@@ -689,6 +692,17 @@ export default function App() {
             setVerseScreenVerse(null);
           }}
           onClose={() => setVerseScreenVerse(null)}
+        />
+      )}
+
+      {showStats && (
+        <StatsScreen
+          verses={allVerses}
+          progress={progress}
+          currentUser={currentUser}
+          users={users}
+          streak={streak}
+          onClose={() => setShowStats(false)}
         />
       )}
 

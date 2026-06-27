@@ -11,9 +11,10 @@ function key(userId) {
 export function loadStreak(userId) {
   try {
     const raw = localStorage.getItem(key(userId));
-    if (!raw) return { days: 0, lastDate: null };
-    return JSON.parse(raw);
-  } catch { return { days: 0, lastDate: null }; }
+    if (!raw) return { days: 0, lastDate: null, history: [] };
+    const parsed = JSON.parse(raw);
+    return { history: [], ...parsed };
+  } catch { return { days: 0, lastDate: null, history: [] }; }
 }
 
 export function saveStreak(userId, streak) {
@@ -31,9 +32,14 @@ export function touchStreak(userId) {
   const yesterday = new Date(Date.now() - DAY_MS).toISOString().slice(0, 10);
   const isConsecutive = current.lastDate === yesterday;
 
+  const cutoff = new Date(Date.now() - 30 * DAY_MS).toISOString().slice(0, 10);
+  const history = [...(current.history || []).filter(d => d >= cutoff)];
+  if (!history.includes(today)) history.push(today);
+
   const updated = {
     days: isConsecutive ? current.days + 1 : 1,
     lastDate: today,
+    history,
   };
   saveStreak(userId, updated);
   return updated;

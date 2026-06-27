@@ -9,6 +9,7 @@ const SECTIONS = [
       { id: 'learn',       label: 'Learn next verse' },
       { id: 'deck',        label: 'My Deck' },
       { id: 'add-verse',   label: 'Add new verse' },
+      { id: 'stats',       label: 'My Statistics' },
     ],
   },
   {
