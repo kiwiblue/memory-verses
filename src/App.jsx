@@ -16,6 +16,7 @@ import { loadVerseOrder, saveVerseOrder } from './data/verseOrder.js';
 
 import FlipCard from './components/FlipCard.jsx';
 import Drawer from './components/Drawer.jsx';
+import MainScreen from './components/MainScreen.jsx';
 import ProgressBar from './components/ProgressBar.jsx';
 import StudyControls from './components/StudyControls.jsx';
 import TestControls from './components/TestControls.jsx';
@@ -33,6 +34,7 @@ import FillExercise from './components/exercises/FillExercise.jsx';
 import TypeExercise from './components/exercises/TypeExercise.jsx';
 import MatchExercise from './components/exercises/MatchExercise.jsx';
 import { isOnboarded, markOnboarded } from './data/onboarding.js';
+import { loadStreak, touchStreak } from './data/streak.js';
 import { APP_VERSION } from './data/version.js';
 import { logEvent } from './data/telemetry.js';
 import AdminPanel from './components/AdminPanel.jsx';
@@ -68,7 +70,7 @@ function initUser() {
 }
 
 export default function App() {
-  const [mode, setMode]           = useState('learn');
+  const [mode, setMode]           = useState('home');
   const [isFlipped, setIsFlipped] = useState(false);
   const [browseIndex, setBrowseIndex] = useState(0);  // used in revise mode
   const [queueIndex, setQueueIndex]   = useState(0);  // used in learn mode
@@ -97,6 +99,7 @@ export default function App() {
 
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [streak, setStreak] = useState(() => loadStreak(initUser().id).days);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -171,6 +174,16 @@ export default function App() {
     [allVerses, progress, currentUser.bracket]
   );
 
+  const todayCount = useMemo(
+    () => reviseVerses.filter(v => (progress[v.id]?.next_review ?? 0) <= Date.now()).length,
+    [reviseVerses, progress]
+  );
+
+  const nextUnseen = useMemo(
+    () => allVerses.find(v => !progress[v.id] || progress[v.id].status === 'unseen') ?? null,
+    [allVerses, progress]
+  );
+
   // Log session start once per session when the app is ready
   useEffect(() => {
     if (!onboarded) return;
@@ -227,16 +240,19 @@ export default function App() {
   }, []);
 
   const handleDrawerAction = useCallback((id) => {
-    if (id === 'exercises')   { handleModeChange('revise'); }
-    else if (id === 'learn')  { handleModeChange('learn'); }
-    else if (id === 'deck')   { setShowDeckPanel(true); }
-    else if (id === 'profile'){ setProfileUser(currentUser); }
-    else if (id === 'theme')  { setTheme(t => t === 'light' ? 'dark' : 'light'); }
-    else if (id === 'auth')   { /* auth flow — wired in later phases */ }
-    else if (id === 'add-verse') { /* add verse flow — Phase 8 */ }
-    else if (id === 'add-member') { /* add member — Phase 9 */ }
-    // 'about', 'support', 'feedback' — static pages, Phase later
+    if (id === 'exercises')    { handleModeChange('revise'); }
+    else if (id === 'learn')   { handleModeChange('learn'); }
+    else if (id === 'deck')    { setShowDeckPanel(true); }
+    else if (id === 'profile') { setProfileUser(currentUser); }
+    else if (id === 'theme')   { setTheme(t => t === 'light' ? 'dark' : 'light'); }
+    else if (id === 'add-verse') { handleModeChange('add-verse'); }
+    // 'auth', 'add-member', 'about', 'support', 'feedback' — later phases
   }, [currentUser, handleModeChange]);
+
+  const handleTouchStreak = useCallback(() => {
+    const updated = touchStreak(currentUser.id);
+    setStreak(updated.days);
+  }, [currentUser.id]);
 
   // Learn mode: record score (1=know it, 0=still learning) then advance queue
   const handleMark = useCallback((score) => {
@@ -247,7 +263,8 @@ export default function App() {
     }));
     setQueueIndex(i => i + 1);
     setIsFlipped(false);
-  }, [verse]);
+    handleTouchStreak();
+  }, [verse, handleTouchStreak]);
 
   // "I've got it for now" — move verse to Revise at easy, advance Learn queue
   const handleGotItForNow = useCallback(() => {
@@ -258,7 +275,8 @@ export default function App() {
     }));
     setQueueIndex(i => i + 1);
     setIsFlipped(false);
-  }, [verse]);
+    handleTouchStreak();
+  }, [verse, handleTouchStreak]);
 
   // Revise mode / skip: advance without scoring
   const goNext = useCallback(() => {
@@ -576,7 +594,7 @@ export default function App() {
         <button className="hamburger-btn" onClick={() => setDrawerOpen(true)} aria-label="Open menu">
           <span /><span /><span />
         </button>
-        <div className="ttl" onClick={() => handleModeChange('learn')} style={{ cursor: 'pointer' }}>
+        <div className="ttl" onClick={() => handleModeChange('home')} style={{ cursor: 'pointer' }}>
           <span className="ttl-memory">Memory</span><span className="ttl-dot-bible" style={{ color: currentUser?.colour || '#3a8c5c' }}>.bible</span>
         </div>
         <UserPanel users={users} currentUser={currentUser}
@@ -594,12 +612,29 @@ export default function App() {
         </div>
       )}
 
-      {mode === 'learn'
+      {mode !== 'home' && (mode === 'learn'
         ? <ProgressBar current={Math.min(queueIndex + 1, dailyQueue.length)} total={dailyQueue.length} label="today" />
         : <ProgressBar current={reviseVerses.length ? browseIndex + 1 : 0} total={reviseVerses.length} />
-      }
+      )}
 
-      {queueDone ? (
+      {mode === 'home' ? (
+        <MainScreen
+          verses={allVerses}
+          progress={progress}
+          currentUser={currentUser}
+          version={version}
+          defaultVersion={version}
+          verseTranslations={verseTranslations}
+          onVerseTranslationChange={handleVerseTranslationChange}
+          todayCount={todayCount}
+          nextUnseen={nextUnseen}
+          streak={streak}
+          onTodayExercises={() => handleModeChange('revise')}
+          onLearnNext={() => handleModeChange('learn')}
+          onVerseDetails={null}
+          onAddVerse={() => handleModeChange('add-verse')}
+        />
+      ) : queueDone ? (
         <QueueComplete
             stats={stats}
             onBrowse={() => handleModeChange('revise')}
@@ -615,10 +650,13 @@ export default function App() {
           defaultVersion={version}
           verseTranslations={verseTranslations}
           onVerseTranslationChange={handleVerseTranslationChange}
-          onMark={(v, score) => setProgress(prev => ({
-            ...prev,
-            [v.id]: recordAttempt(getEntry(prev, v.id), score),
-          }))}
+          onMark={(v, score) => {
+            setProgress(prev => ({
+              ...prev,
+              [v.id]: recordAttempt(getEntry(prev, v.id), score),
+            }));
+            handleTouchStreak();
+          }}
           onLearnNew={() => handleModeChange('learn')}
           onLearnNewVerse={handleLearnNewVerse}
         />
@@ -638,16 +676,20 @@ export default function App() {
         </>
       )}
 
-      <StatPills stats={stats} />
+      {mode !== 'home' && <StatPills stats={stats} />}
 
-      <div className="deck-manage-row">
-        <button className="deck-manage-btn" onClick={() => setShowDeckPanel(true)}>
-          Manage my deck ({allVerses.length})
-        </button>
-      </div>
+      {mode !== 'home' && (
+        <div className="deck-manage-row">
+          <button className="deck-manage-btn" onClick={() => setShowDeckPanel(true)}>
+            Manage my deck ({allVerses.length})
+          </button>
+        </div>
+      )}
 
-      <AddVersePanel allVerses={allVerses} customVerses={customVerses}
-        currentUser={currentUser} preferredVersion={version} onAddVerse={handleAddVerse} />
+      {mode !== 'home' && (
+        <AddVersePanel allVerses={allVerses} customVerses={customVerses}
+          currentUser={currentUser} preferredVersion={version} onAddVerse={handleAddVerse} />
+      )}
 
       <footer className="app-footer">
         {ATTRIBUTION[activeVersion] && (
