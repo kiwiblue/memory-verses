@@ -315,7 +315,7 @@ function VerseScreen({ selectedId, onSelect, onNext, translation, verseCache }) 
 
 // ── Screen 3: Personalise ───────────────────────────────────────────────────
 
-function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, setColour, pattern, setPattern, onComplete }) {
+function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, setColour, pattern, setPattern, reminders, setReminders, onComplete }) {
   const [showAccount, setShowAccount] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -350,70 +350,63 @@ function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, s
     onComplete({});
   }
 
-  const previewUser = { ...user, colour, pattern, name: name || 'You' };
-
   return (
     <div className="ob-screen">
       <div className="ob-content">
         <Logo />
         <StepDots step={3} />
-        <h2 className="ob-title">Personalise your experience</h2>
+        <h2 className="ob-title">Personalise</h2>
 
-        {/* Avatar preview */}
-        <div className="ob-avatar-preview" style={{ ...avatarStyle(colour, pattern) }}>
-          {(name || 'Y').charAt(0).toUpperCase()}
-        </div>
-
-        {/* Colour */}
-        <label className="ob-field-label">Colour</label>
-        <div className="swatches ob-swatches">
-          {PRESETS.map(c => (
-            <div
-              key={c}
-              className={`swatch${colour === c ? ' selected' : ''}`}
-              style={{ backgroundColor: c }}
-              onClick={() => setColour(c)}
-            />
-          ))}
-        </div>
-
-        {/* Pattern */}
-        <label className="ob-field-label">Pattern</label>
-        <div className="swatches ob-swatches">
-          {PATTERNS.map(p => (
-            <div
-              key={p.id}
-              className={`swatch${pattern === p.id ? ' selected' : ''}`}
-              style={avatarStyle(colour, p.id)}
-              onClick={() => setPattern(p.id)}
-              title={p.label}
-            />
-          ))}
+        {/* Avatar + pickers row */}
+        <div className="ob-personalise-top">
+          <div className="ob-personalise-left">
+            <label className="ob-field-label" style={{ marginTop: 0 }}>Colour</label>
+            <div className="swatches ob-swatches">
+              {PRESETS.map(c => (
+                <div key={c} className={`swatch${colour === c ? ' selected' : ''}`}
+                  style={{ backgroundColor: c }} onClick={() => setColour(c)} />
+              ))}
+            </div>
+            <label className="ob-field-label">Pattern</label>
+            <div className="swatches ob-swatches">
+              {PATTERNS.map(p => (
+                <div key={p.id} className={`swatch${pattern === p.id ? ' selected' : ''}`}
+                  style={avatarStyle(colour, p.id)} onClick={() => setPattern(p.id)} title={p.label} />
+              ))}
+            </div>
+          </div>
+          <div className="ob-avatar-preview ob-avatar-side" style={{ ...avatarStyle(colour, pattern) }}>
+            {(name || 'Y').charAt(0).toUpperCase()}
+          </div>
         </div>
 
         {/* Name */}
-        <label className="ob-field-label">First name</label>
-        <input
-          className="ob-input"
-          type="text"
-          placeholder="Your name"
-          value={name}
-          onChange={e => setName(e.target.value)}
-        />
+        <label className="ob-field-label">Name</label>
+        <input className="ob-input" type="text" placeholder="Your name"
+          value={name} onChange={e => setName(e.target.value)} />
 
         {/* Age group */}
-        <label className="ob-field-label">Age group</label>
+        <label className="ob-field-label">Age Group</label>
         <div className="ob-age-group">
           {AGE_GROUPS.map(g => (
-            <button
-              key={g.value}
+            <button key={g.value}
               className={`ob-age-btn${bracket === g.value ? ' ob-age-selected' : ''}`}
-              onClick={() => setBracket(g.value)}
-            >
+              onClick={() => setBracket(g.value)}>
               <span className="ob-age-label">{g.label}</span>
               <span className="ob-age-sub">{g.sub}</span>
             </button>
           ))}
+        </div>
+
+        {/* Reminders */}
+        <label className="ob-field-label">Reminders</label>
+        <div className="ob-reminder-row">
+          <span className="ob-reminder-label">Daily Memory Reminder</span>
+          <button
+            className={`ob-toggle${reminders ? ' ob-toggle-on' : ''}`}
+            onClick={() => setReminders(r => !r)}
+            aria-label={reminders ? 'Turn off reminders' : 'Turn on reminders'}
+          />
         </div>
 
         {/* Optional account */}
@@ -428,21 +421,10 @@ function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, s
                 <span className="ob-account-title">Create a free account</span>
                 <button className="ob-link ob-account-skip" onClick={() => setShowAccount(false)}>Maybe later</button>
               </div>
-              <input
-                className="ob-input"
-                type="email"
-                placeholder="Email address"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                autoCapitalize="none"
-              />
-              <input
-                className="ob-input"
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-              />
+              <input className="ob-input" type="email" placeholder="Email address"
+                value={email} onChange={e => setEmail(e.target.value)} autoCapitalize="none" />
+              <input className="ob-input" type="password" placeholder="Password"
+                value={password} onChange={e => setPassword(e.target.value)} />
               {accountError && <div className="ob-account-error">{accountError}</div>}
             </div>
           )}
@@ -511,8 +493,12 @@ export default function OnboardingFlow({ currentUser, verseCache, onComplete, on
   const [bracket, setBracket] = useState(currentUser.bracket || 'adult');
   const [colour, setColour] = useState(currentUser.colour || PRESETS[0]);
   const [pattern, setPattern] = useState(currentUser.pattern || 'none');
+  const [reminders, setReminders] = useState(() => {
+    try { return localStorage.getItem(`mv-reminders-${currentUser.id}`) === 'true'; } catch { return false; }
+  });
 
   function finish({ auth }) {
+    try { localStorage.setItem(`mv-reminders-${currentUser.id}`, reminders ? 'true' : 'false'); } catch {}
     const updatedUser = {
       ...currentUser,
       name: name.trim() || 'Guest',
@@ -569,6 +555,7 @@ export default function OnboardingFlow({ currentUser, verseCache, onComplete, on
       bracket={bracket} setBracket={setBracket}
       colour={colour} setColour={setColour}
       pattern={pattern} setPattern={setPattern}
+      reminders={reminders} setReminders={setReminders}
       onComplete={finish}
     />
   );

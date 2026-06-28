@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { fetchVerse } from '../api/bible.js';
+import OverlayHeader from './OverlayHeader.jsx';
 import { VERSES } from '../data/verses.js';
 import { COLLECTIONS, POPULAR_VERSE_IDS } from '../data/collections.js';
 
@@ -243,7 +244,7 @@ function CollectionDetailView({ collection, allVerses, preferredVersion, onAddDe
 
 // ── Main export ────────────────────────────────────────────────────────────────
 export default function AddVerseFlow({
-  allVerses, preferredVersion,
+  allVerses, preferredVersion, user,
   onAddDeck, onLearnNow, onClose,
 }) {
   const [view, setView] = useState('hub');
@@ -257,10 +258,11 @@ export default function AddVerseFlow({
 
   return (
     <div className="av-overlay">
+      <div className="av-hdr-panel">
+        <OverlayHeader onBack={goBack} user={user} />
+      </div>
+      <div className="av-sheet">
       <div className="av-panel">
-        <div className="av-hdr">
-          <button className="vs-back" onClick={goBack}>‹</button>
-        </div>
 
         {view === 'hub' && (
           <HubView
@@ -295,6 +297,7 @@ export default function AddVerseFlow({
           />
         )}
       </div>
-    </div>
+      </div>
+      </div>
   );
 }

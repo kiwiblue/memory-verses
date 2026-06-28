@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { loadStreak } from '../data/streak.js';
+import OverlayHeader from './OverlayHeader.jsx';
 
 const OT_BOOKS = [
   { f: 'Genesis', a: 'Gen' }, { f: 'Exodus', a: 'Exo' }, { f: 'Leviticus', a: 'Lev' },
@@ -69,7 +70,7 @@ function MiniRing({ pct, color, size = 26 }) {
   );
 }
 
-export default function StatsScreen({ verses, progress, currentUser, users, streak, onClose }) {
+export default function StatsScreen({ verses, progress, currentUser, users, streak, ranking, rankingCount, onClose }) {
   const streakData = loadStreak(currentUser.id);
   const rate = practiceRate(streakData.history);
 
@@ -96,12 +97,23 @@ export default function StatsScreen({ verses, progress, currentUser, users, stre
 
   return (
     <div className="stats-overlay">
+      <div className="stats-hdr-panel">
+        <OverlayHeader onBack={onClose} user={currentUser} />
+      </div>
+      <div className="stats-sheet">
       <div className="stats-panel">
 
         <div className="stats-hdr">
-          <button className="vs-back" onClick={onClose}>‹</button>
           <span className="stats-title">My Statistics</span>
         </div>
+
+        {ranking != null && (
+          <div className="stats-row">
+            <span className="stats-row-icon">🏆</span>
+            <span className="stats-row-label">Ranking</span>
+            <span className="stats-row-value">#{ranking}{rankingCount > 1 ? ` of ${rankingCount}` : ''}</span>
+          </div>
+        )}
 
         <div className="stats-row">
           <span className="stats-row-icon">🔥</span>
@@ -187,6 +199,7 @@ export default function StatsScreen({ verses, progress, currentUser, users, stre
         </div>
 
       </div>
-    </div>
+      </div>
+      </div>
   );
 }

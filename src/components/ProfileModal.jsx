@@ -3,56 +3,236 @@ import { saveUsers, saveCurrentUserId } from '../data/users.js';
 import AuthPanel from './AuthPanel.jsx';
 import { PATTERNS, avatarStyle } from '../data/avatarStyle.js';
 import { isPushSupported, getSubscriptionState, subscribePush, unsubscribePush } from '../data/pushNotifications.js';
+import OverlayHeader from './OverlayHeader.jsx';
 
 const PRESETS = ['#3a8c5c','#2a6ab5','#9a3a3a','#7a5c9a','#9a6c10','#3a7a8c','#555555','#c0392b'];
 const TRANSLATIONS = [
-  { value: 'kjv',  label: 'KJV — King James Version' },
-  { value: 'bsb',  label: 'BSB — Berean Study Bible' },
-  { value: 'esv',  label: 'ESV — English Standard Version' },
-  { value: 'niv',  label: 'NIV — New International Version' },
-  { value: 'nkjv', label: 'NKJV — New King James Version' },
-  { value: 'nasb', label: 'NASB — New American Standard Bible' },
+  { value: 'kjv',  label: 'KJV' },
+  { value: 'bsb',  label: 'BSB' },
+  { value: 'esv',  label: 'ESV' },
+  { value: 'niv',  label: 'NIV' },
+  { value: 'nkjv', label: 'NKJV' },
+  { value: 'nasb', label: 'NASB' },
+];
+const BRACKETS = [
+  { value: 'child', label: 'Child (under 10)' },
+  { value: 'youth', label: 'Youth (10+)' },
+  { value: 'adult', label: 'Adult' },
 ];
 
-function Avatar({ user, size = 72 }) {
+function BigAvatar({ user, colour, pattern, size = 72 }) {
   return (
     <div
       className="profile-avatar"
-      style={{ ...avatarStyle(user.colour, user.pattern), width: size, height: size }}
+      style={{ ...avatarStyle(colour, pattern), width: size, height: size, '--user-colour': colour }}
     >
       {user.name.charAt(0).toUpperCase()}
     </div>
   );
 }
 
-export default function ProfileModal({ user, users, stats, auth, syncStatus, lastSynced, onSave, onDelete, onClose, onAuthChange, onUsersChange }) {
-  const [name, setName]           = useState(user.name);
-  const [bracket, setBracket]     = useState(user.bracket || 'adult');
-  const [colour, setColour]       = useState(user.colour || PRESETS[0]);
-  const [pattern, setPattern]     = useState(user.pattern || 'none');
+// ── Add family member sub-screen ──────────────────────────────────────────────
+function AddMemberForm({ users, onSave, onCancel }) {
+  const [name, setName] = useState('');
+  const [bracket, setBracket] = useState('youth');
+  const [translation, setTranslation] = useState('kjv');
+  const [colour, setColour] = useState(PRESETS[1]);
+  const [error, setError] = useState('');
+
+  function handleSave() {
+    if (!name.trim()) { setError('Name is required.'); return; }
+    const newUser = {
+      id: crypto.randomUUID(),
+      name: name.trim(),
+      bracket,
+      bracket_updated: Date.now(),
+      colour,
+      translation,
+    };
+    const updated = [...users, newUser];
+    saveUsers(updated);
+    saveCurrentUserId(newUser.id);
+    onSave(newUser, updated);
+  }
+
+  return (
+    <div className="pm-add-form">
+      <div className="pm-section-title">Add Family Member</div>
+
+      <div className="pm-field">
+        <label className="pm-label">Name</label>
+        <input
+          className="pm-input"
+          type="text"
+          placeholder="First name"
+          value={name}
+          onChange={e => { setName(e.target.value); setError(''); }}
+          autoFocus
+        />
+        {error && <div className="pm-field-error">{error}</div>}
+      </div>
+
+      <div className="pm-field">
+        <label className="pm-label">Age group</label>
+        <div className="tabs">
+          {BRACKETS.map(opt => (
+            <div key={opt.value} className={`tab${bracket === opt.value ? ' on' : ''}`}
+              onClick={() => setBracket(opt.value)}>{opt.label}</div>
+          ))}
+        </div>
+      </div>
+
+      <div className="pm-field">
+        <label className="pm-label">Translation</label>
+        <select className="pm-select" value={translation} onChange={e => setTranslation(e.target.value)}>
+          {TRANSLATIONS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+        </select>
+      </div>
+
+      <div className="pm-field">
+        <label className="pm-label">Colour</label>
+        <div className="swatches">
+          {PRESETS.map(c => (
+            <div key={c} className={`swatch${colour === c ? ' selected' : ''}`}
+              style={{ background: c }} onClick={() => setColour(c)} />
+          ))}
+        </div>
+      </div>
+
+      <div className="pm-form-btns">
+        <button className="btn btn-ok" onClick={handleSave}>Create profile</button>
+        <button className="btn" onClick={onCancel}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Edit sub-screen [9] ───────────────────────────────────────────────────────
+function EditForm({ user, onSave, onCancel }) {
+  const [name, setName] = useState(user.name);
+  const [bracket, setBracket] = useState(user.bracket || 'adult');
   const [translation, setTranslation] = useState(user.translation || 'kjv');
-  const [deleteStep, setDeleteStep]   = useState(0);
-  const [nameError, setNameError]     = useState('');
-  const [pushState, setPushState]     = useState('loading'); // loading | unsupported | unsubscribed | subscribed | denied
-  const [pushBusy, setPushBusy]       = useState(false);
-
-  useEffect(() => {
-    getSubscriptionState().then(setPushState);
-  }, []);
-
-  const canDelete = users.length > 1;
+  const [colour, setColour] = useState(user.colour || PRESETS[0]);
+  const [pattern, setPattern] = useState(user.pattern || 'none');
+  const [nameError, setNameError] = useState('');
 
   function handleSave() {
     if (!name.trim()) { setNameError('Name is required.'); return; }
-    const updated = { ...user, name: name.trim(), bracket, colour, pattern, translation, bracket_updated: Date.now() };
+    onSave({ name: name.trim(), bracket, translation, colour, pattern });
+  }
+
+  return (
+    <div className="pm-add-form">
+      <div className="pm-edit-title-row">
+        <div className="pm-section-title">Edit Profile</div>
+        <button className="pm-save-btn" onClick={handleSave}>SAVE</button>
+      </div>
+
+      <div className="pm-edit-appearance">
+        <div className="pm-appearance-controls">
+          <div className="pm-field">
+            <label className="pm-label">Colour</label>
+            <div className="swatches">
+              {PRESETS.map(c => (
+                <div key={c} className={`swatch${colour === c ? ' selected' : ''}`}
+                  style={{ background: c }} onClick={() => setColour(c)} />
+              ))}
+            </div>
+          </div>
+          <div className="pm-field">
+            <label className="pm-label">Pattern</label>
+            <div className="swatches">
+              {PATTERNS.map(p => (
+                <div key={p.id} className={`swatch${pattern === p.id ? ' selected' : ''}`}
+                  style={avatarStyle(colour, p.id)} onClick={() => setPattern(p.id)} title={p.label} />
+              ))}
+            </div>
+          </div>
+        </div>
+        <BigAvatar user={{ ...user, name }} colour={colour} pattern={pattern} size={84} />
+      </div>
+
+      <div className="pm-field">
+        <label className="pm-label">Name</label>
+        <input className="pm-input" type="text" value={name}
+          onChange={e => { setName(e.target.value); setNameError(''); }} />
+        {nameError && <div className="pm-field-error">{nameError}</div>}
+      </div>
+
+      <div className="pm-field">
+        <label className="pm-label">Age group</label>
+        <div className="tabs">
+          {BRACKETS.map(opt => (
+            <div key={opt.value} className={`tab${bracket === opt.value ? ' on' : ''}`}
+              onClick={() => setBracket(opt.value)}>{opt.label}</div>
+          ))}
+        </div>
+      </div>
+
+      <div className="pm-field">
+        <label className="pm-label">Preferred translation</label>
+        <select className="pm-select" value={translation} onChange={e => setTranslation(e.target.value)}>
+          {TRANSLATIONS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+        </select>
+      </div>
+
+      <div className="pm-form-btns">
+        <button className="btn" onClick={onCancel}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Main User Profile screen [8] ──────────────────────────────────────────────
+export default function ProfileModal({
+  user, users, stats, ranking, rankingCount, auth, syncStatus, lastSynced,
+  initialSubscreen = null,
+  onSave, onDelete, onClose, onOpenDeck, onOpenStats, onAuthChange, onUsersChange, onAddUser,
+}) {
+  const [colour, setColour]     = useState(user.colour || PRESETS[0]);
+  const [pattern, setPattern]   = useState(user.pattern || 'none');
+  const [subscreen, setSubscreen] = useState(initialSubscreen); // null | 'edit' | 'add'
+  const [deleteStep, setDeleteStep] = useState(0);
+  const [pushState, setPushState]   = useState('loading');
+  const [pushBusy, setPushBusy]     = useState(false);
+
+  useEffect(() => { getSubscriptionState().then(setPushState); }, []);
+
+  const canDelete = users.length > 1;
+  const bracketLabel = BRACKETS.find(b => b.value === (user.bracket || 'adult'))?.label ?? 'Adult';
+  const translationLabel = TRANSLATIONS.find(t => t.value === (user.translation || 'kjv'))?.label ?? 'KJV';
+
+  function saveAppearance(newColour, newPattern) {
+    const updated = { ...user, colour: newColour, pattern: newPattern };
     const updatedUsers = users.map(u => u.id === user.id ? updated : u);
     saveUsers(updatedUsers);
     onSave(updated, updatedUsers);
   }
 
-  function handleDismiss() {
-    if (name.trim()) handleSave();
-    else onClose();
+  function handleColour(c) {
+    setColour(c);
+    saveAppearance(c, pattern);
+  }
+
+  function handlePattern(p) {
+    setPattern(p);
+    saveAppearance(colour, p);
+  }
+
+  function handleEditSave({ name, bracket, translation, colour: newColour, pattern: newPattern }) {
+    const updated = { ...user, name, bracket, translation, colour: newColour, pattern: newPattern, bracket_updated: Date.now() };
+    const updatedUsers = users.map(u => u.id === user.id ? updated : u);
+    saveUsers(updatedUsers);
+    onSave(updated, updatedUsers);
+    setSubscreen(null);
+  }
+
+  const reminders = user.reminders || { daily: true, streak: false };
+  function saveReminders(next) {
+    const updated = { ...user, reminders: { ...reminders, ...next } };
+    const updatedUsers = users.map(u => u.id === user.id ? updated : u);
+    saveUsers(updatedUsers);
+    onSave(updated, updatedUsers);
   }
 
   function handleDeleteConfirm() {
@@ -63,186 +243,161 @@ export default function ProfileModal({ user, users, stats, auth, syncStatus, las
   }
 
   return (
-    <div className="profile-overlay" onClick={e => { if (e.target === e.currentTarget) handleDismiss(); }}>
-      <div className="profile-modal">
-        <div className="profile-modal-hdr">
-          <button className="profile-back" onClick={handleDismiss}>← Back</button>
-          <span className="profile-modal-title">Profile</span>
-          <button className="profile-save-btn" onClick={handleSave}>Save</button>
-        </div>
+    <div className="pm-overlay">
+      <div className="pm-panel">
+        <OverlayHeader onBack={subscreen ? () => setSubscreen(null) : onClose} user={user} />
+      </div>
 
-        {/* Personalise: colour + pattern left, big avatar preview right */}
-        <div className="profile-personalise">
-          <div className="profile-personalise-pickers">
-            <label className="profile-label">Colour</label>
-            <div className="swatches">
-              {PRESETS.map(c => (
-                <div
-                  key={c}
-                  className={`swatch${colour === c ? ' selected' : ''}`}
-                  style={{ background: c }}
-                  onClick={() => setColour(c)}
-                />
-              ))}
-            </div>
-            <label className="profile-label" style={{ marginTop: 14 }}>Pattern</label>
-            <div className="swatches">
-              {PATTERNS.map(p => (
-                <div
-                  key={p.id}
-                  className={`swatch${pattern === p.id ? ' selected' : ''}`}
-                  style={avatarStyle(colour, p.id)}
-                  onClick={() => setPattern(p.id)}
-                  title={p.label}
-                />
-              ))}
-            </div>
-          </div>
-          <div className="profile-personalise-preview">
-            <Avatar user={{ ...user, colour, pattern }} size={80} />
-          </div>
-        </div>
+      <div className="pm-sheet">
+        <div className="pm-sheet-inner">
 
-        {/* Name */}
-        <div className="profile-field">
-          <label className="profile-label">Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={e => { setName(e.target.value); setNameError(''); }}
-            placeholder="First name"
-          />
-          {nameError && <div className="profile-field-error">{nameError}</div>}
-        </div>
-
-        {/* Age bracket */}
-        <div className="profile-field">
-          <label className="profile-label">Age group</label>
-          <div className="tabs">
-            {[
-              { value: 'child', label: 'Child (under 10)' },
-              { value: 'youth', label: 'Youth (10+)' },
-              { value: 'adult', label: 'Adult' },
-            ].map(opt => (
-              <div
-                key={opt.value}
-                className={`tab${bracket === opt.value ? ' on' : ''}`}
-                onClick={() => setBracket(opt.value)}
-              >{opt.label}</div>
-            ))}
-          </div>
-          <div className="profile-field-hint">Controls which verses appear in the deck.</div>
-        </div>
-
-        {/* Translation */}
-        <div className="profile-field">
-          <label className="profile-label">Preferred translation</label>
-          <select
-            className="profile-select"
-            value={translation}
-            onChange={e => setTranslation(e.target.value)}
-          >
-            {TRANSLATIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-          <div className="profile-field-hint">Used by default across the app. Individual verses can still use a different translation.</div>
-        </div>
-
-        {/* Stats */}
-        {stats && (
-          <div className="profile-field">
-            <label className="profile-label">Progress</label>
-            <div className="profile-stats">
-              <div className="profile-stat un">
-                <span className="v">{stats.unseen}</span>
-                <span className="k">Unseen</span>
-              </div>
-              <div className="profile-stat le">
-                <span className="v">{stats.learning}</span>
-                <span className="k">Learning</span>
-              </div>
-              <div className="profile-stat ma">
-                <span className="v">{stats.mastered}</span>
-                <span className="k">Mastered</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Cloud backup */}
-        <div className="profile-field">
-          <label className="profile-label">Cloud backup</label>
-          <AuthPanel
-            auth={auth}
+        {subscreen === 'add' && (
+          <AddMemberForm
             users={users}
-            syncStatus={syncStatus}
-            lastSynced={lastSynced}
-            onAuthChange={onAuthChange}
-            onUsersChange={onUsersChange}
+            onSave={(newUser, updatedUsers) => { onAddUser(newUser, updatedUsers); setSubscreen(null); }}
+            onCancel={() => setSubscreen(null)}
           />
-        </div>
+        )}
 
-        {/* Push notifications */}
-        {auth?.token && isPushSupported() && pushState !== 'loading' && (
-          <div className="profile-field">
-            <label className="profile-label">Reminders</label>
-            {pushState === 'denied' ? (
-              <div className="profile-field-hint">Notifications are blocked in your browser settings.</div>
-            ) : (
-              <div className="push-toggle-row">
-                <span className="push-toggle-label">
-                  {pushState === 'subscribed' ? 'Daily reminders enabled' : 'Daily reminders off'}
-                </span>
-                <button
-                  className={`push-toggle-btn${pushState === 'subscribed' ? ' on' : ''}`}
-                  disabled={pushBusy}
-                  onClick={async () => {
-                    setPushBusy(true);
-                    try {
-                      if (pushState === 'subscribed') {
-                        await unsubscribePush(auth.token);
-                        setPushState('unsubscribed');
-                      } else {
-                        await subscribePush(auth.token);
-                        setPushState('subscribed');
+        {subscreen === 'edit' && (
+          <EditForm user={user} onSave={handleEditSave} onCancel={() => setSubscreen(null)} />
+        )}
+
+        {!subscreen && (<>
+
+          {/* ── Your Profile card ──────────────────────────────────────── */}
+          <div className="pm-card">
+            <div className="pm-card-title-row">
+              <span className="pm-card-title">Your Profile</span>
+              <button className="pm-edit-link" onClick={() => setSubscreen('edit')}>Edit</button>
+            </div>
+            <div className="pm-info-row"><span className="pm-info-key">Name:</span><span className="pm-info-val">{user.name}</span></div>
+            <div className="pm-info-row"><span className="pm-info-key">Age Group:</span><span className="pm-info-val">{bracketLabel}</span></div>
+            <div className="pm-info-row"><span className="pm-info-key">Preferred Bible:</span><span className="pm-info-val">{translationLabel}</span></div>
+            {auth?.email && (
+              <div className="pm-info-row"><span className="pm-info-key">Account:</span><span className="pm-info-val pm-info-email">{auth.email}</span></div>
+            )}
+          </div>
+
+          {/* ── Add family members ─────────────────────────────────────── */}
+          {users.length < 5 && (
+            <button className="pm-action-btn" onClick={() => setSubscreen('add')}>
+              + Add family members
+            </button>
+          )}
+
+          {/* ── My deck ────────────────────────────────────────────────── */}
+          <button className="pm-action-btn" onClick={onOpenDeck}>
+            My deck
+          </button>
+
+          {/* ── Statistics ─────────────────────────────────────────────── */}
+          {stats && (
+            <div className="pm-card pm-stats-card">
+              <div className="pm-card-title-row">
+                <span className="pm-card-title">Statistics</span>
+                <span className="pm-stats-total">{(stats.learning ?? 0) + (stats.mastered ?? 0)}</span>
+              </div>
+              {ranking != null && (
+                <div className="pm-info-row"><span className="pm-info-key">Ranking:</span><span className="pm-info-val">#{ranking}{rankingCount > 1 ? ` of ${rankingCount}` : ''}</span></div>
+              )}
+              <div className="pm-info-row"><span className="pm-info-key">Total Verses:</span><span className="pm-info-val">{(stats.learning ?? 0) + (stats.mastered ?? 0)}</span></div>
+              <div className="pm-info-row"><span className="pm-info-key">Learning:</span><span className="pm-info-val">{stats.learning ?? 0}</span></div>
+              <div className="pm-info-row"><span className="pm-info-key">Mastered:</span><span className="pm-info-val">{stats.mastered ?? 0}</span></div>
+              <div className="pm-stats-link" onClick={onOpenStats}>view all stats ›</div>
+            </div>
+          )}
+
+          {/* ── Reminders ──────────────────────────────────────────────── */}
+          <div className="pm-card">
+            <div className="pm-card-title">Reminders</div>
+            <div className="push-toggle-row">
+              <span className="push-toggle-label">Daily Memory Reminder</span>
+              <button
+                className={`push-toggle-btn${reminders.daily ? ' on' : ''}`}
+                onClick={() => saveReminders({ daily: !reminders.daily })}
+              >{reminders.daily ? 'On' : 'Off'}</button>
+            </div>
+            <div className="push-toggle-row">
+              <span className="push-toggle-label">Danger of losing streak</span>
+              <button
+                className={`push-toggle-btn${reminders.streak ? ' on' : ''}`}
+                onClick={() => saveReminders({ streak: !reminders.streak })}
+              >{reminders.streak ? 'On' : 'Off'}</button>
+            </div>
+          </div>
+
+          {/* ── Cloud backup ───────────────────────────────────────────── */}
+          <div className="pm-card">
+            <div className="pm-card-title">Cloud backup</div>
+            <AuthPanel
+              auth={auth}
+              users={users}
+              syncStatus={syncStatus}
+              lastSynced={lastSynced}
+              onAuthChange={onAuthChange}
+              onUsersChange={onUsersChange}
+            />
+          </div>
+
+          {/* ── Push notifications ─────────────────────────────────────── */}
+          {auth?.token && isPushSupported() && pushState !== 'loading' && (
+            <div className="pm-card">
+              <div className="pm-card-title">Reminders</div>
+              {pushState === 'denied' ? (
+                <div className="pm-hint">Notifications are blocked in your browser settings.</div>
+              ) : (
+                <div className="push-toggle-row">
+                  <span className="push-toggle-label">
+                    {pushState === 'subscribed' ? 'Daily reminders enabled' : 'Daily reminders off'}
+                  </span>
+                  <button
+                    className={`push-toggle-btn${pushState === 'subscribed' ? ' on' : ''}`}
+                    disabled={pushBusy}
+                    onClick={async () => {
+                      setPushBusy(true);
+                      try {
+                        if (pushState === 'subscribed') {
+                          await unsubscribePush(auth.token);
+                          setPushState('unsubscribed');
+                        } else {
+                          await subscribePush(auth.token);
+                          setPushState('subscribed');
+                        }
+                      } catch {
+                        setPushState(await getSubscriptionState());
                       }
-                    } catch {
-                      setPushState(await getSubscriptionState());
-                    }
-                    setPushBusy(false);
-                  }}
-                >
-                  {pushState === 'subscribed' ? 'On' : 'Off'}
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+                      setPushBusy(false);
+                    }}
+                  >{pushState === 'subscribed' ? 'On' : 'Off'}</button>
+                </div>
+              )}
+            </div>
+          )}
 
-        {/* Delete */}
-        {canDelete && (
-          <div className="profile-delete-section">
-            {deleteStep === 0 && (
-              <button className="profile-delete-btn" onClick={() => setDeleteStep(1)}>
-                Delete profile
-              </button>
-            )}
-            {deleteStep === 1 && (
-              <div className="profile-delete-confirm">
-                <div className="profile-delete-warning">
-                  This will permanently delete <strong>{user.name}</strong>'s profile and all their progress. This cannot be undone.
+          {/* ── Delete profile ─────────────────────────────────────────── */}
+          {canDelete && (
+            <div className="pm-delete-section">
+              {deleteStep === 0 && (
+                <button className="pm-delete-btn" onClick={() => setDeleteStep(1)}>Delete profile</button>
+              )}
+              {deleteStep === 1 && (
+                <div className="pm-delete-confirm">
+                  <div className="pm-delete-warning">
+                    This will permanently delete <strong>{user.name}</strong>'s profile and all their progress.
+                  </div>
+                  <div className="pm-delete-actions">
+                    <button className="btn" onClick={() => setDeleteStep(0)}>Cancel</button>
+                    <button className="btn pm-delete-final" onClick={handleDeleteConfirm}>Yes, delete</button>
+                  </div>
                 </div>
-                <div className="profile-delete-actions">
-                  <button className="btn" onClick={() => setDeleteStep(0)}>Cancel</button>
-                  <button className="btn profile-delete-final" onClick={handleDeleteConfirm}>
-                    Yes, delete profile
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
+
+        </>)}
+
+        </div>
       </div>
     </div>
   );

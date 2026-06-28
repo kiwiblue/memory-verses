@@ -309,7 +309,7 @@ function FullTypeMode({ tokens, onDowngrade, onComplete }) {
 
 // ── Main component ──────────────────────────────────────────────────────────
 
-export default function TypeExercise({ verse, version = 'kjv', difficulty = 'easy', onDowngrade, onComplete }) {
+export default function TypeExercise({ verse, version = 'kjv', difficulty = 'easy', onDowngrade, onComplete, onSkip }) {
   const tokens      = useMemo(() => parseTokens(verse[version] || verse.kjv || ''), [verse, version]);
   const blankIndices = useMemo(() => blankIndicesFor(tokens, difficulty), [tokens, difficulty]);
   const [done, setDone]     = useState(false);
@@ -346,6 +346,10 @@ export default function TypeExercise({ verse, version = 'kjv', difficulty = 'eas
           <span className="fill-done-icon">✓</span>
           <span className="fill-done-msg">{result?.errors === 0 ? 'Perfect!' : 'Well done!'}</span>
         </div>
+      )}
+
+      {onSkip && !done && (
+        <button className="ex-skip-btn" onClick={onSkip}>Skip ›</button>
       )}
     </div>
   );

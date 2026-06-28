@@ -6,7 +6,7 @@ import { loadUsers, saveUsers, loadCurrentUserId, saveCurrentUserId, loadVerseTr
 import { loadAuth, saveAuth, clearAuth } from './data/auth.js';
 import { pushSync } from './data/syncService.js';
 import { loadProgress, saveProgress, getEntry } from './data/progress.js';
-import { recordAttempt, startRevising, recordReviseAttempt, buildDailyQueue, progressStats } from './data/spacedRepetition.js';
+import { recordAttempt, startRevising, recordReviseAttempt, buildDailyQueue, progressStats, computeHintScore, computeNextSkillLevel, getSkillLevel } from './data/spacedRepetition.js';
 import { loadCustomVerses, addCustomVerse, removeCustomVerse, saveCustomVerses } from './data/customVerses.js';
 import { loadHiddenVerseIds, hideVerseId, restoreVerseId, restoreAllVerseIds, saveHiddenVerseIds } from './data/hiddenVerses.js';
 import { loadVerseCache, saveVerseCache, mergeVerseIntoCache } from './data/verseCache.js';
@@ -21,14 +21,10 @@ import VerseScreen from './components/VerseScreen.jsx';
 import LearnRevealScreen from './components/LearnRevealScreen.jsx';
 import SelectExercise from './components/exercises/SelectExercise.jsx';
 import ProgressBar from './components/ProgressBar.jsx';
-import StudyControls from './components/StudyControls.jsx';
-import TestControls from './components/TestControls.jsx';
 import StatPills from './components/StatPills.jsx';
 import QueueComplete from './components/QueueComplete.jsx';
-import VersionSelector from './components/VersionSelector.jsx';
 import UserPanel from './components/UserPanel.jsx';
 import ProfileModal from './components/ProfileModal.jsx';
-import AddVersePanel from './components/AddVersePanel.jsx';
 import VerseDeckPanel from './components/VerseDeckPanel.jsx';
 import OnboardingFlow from './components/OnboardingFlow.jsx';
 import LearnPanel from './components/LearnPanel.jsx';
@@ -44,6 +40,8 @@ import StatsScreen from './components/StatsScreen.jsx';
 import AddVerseFlow from './components/AddVerseFlow.jsx';
 import AdminPanel from './components/AdminPanel.jsx';
 import FeedbackModal from './components/FeedbackModal.jsx';
+import InfoModal from './components/InfoModal.jsx';
+import OverlayHeader from './components/OverlayHeader.jsx';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -94,13 +92,16 @@ export default function App() {
   const [showDeckPanel, setShowDeckPanel] = useState(false);
   const [verseScreenVerse, setVerseScreenVerse] = useState(null);
   const [learnRevealVerse, setLearnRevealVerse] = useState(null);
-  const [selectExVerse, setSelectExVerse] = useState(null);
+  const [exercise, setExercise] = useState(null); // { verse, kind: 'type'|'select'|'match' }
   const [removeConfirm, setRemoveConfirm] = useState(false);
 
   const [onboarded, setOnboarded]     = useState(isOnboarded);
   const [profileUser, setProfileUser] = useState(null);
+  const [profileInitSubscreen, setProfileInitSubscreen] = useState(null);
+  const [userPanelOpen, setUserPanelOpen] = useState(false);
   const [auth, setAuth]               = useState(loadAuth);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [infoModal, setInfoModal] = useState(null); // 'about' | 'support'
   const [syncStatus, setSyncStatus]   = useState(null); // null | 'syncing' | 'synced' | 'error'
   const [lastSynced, setLastSynced]   = useState(null);
   const syncTimer = useRef(null);
@@ -110,6 +111,44 @@ export default function App() {
   const [streak, setStreak] = useState(() => loadStreak(initUser().id).days);
   const [showStats, setShowStats] = useState(false);
   const [showAddVerse, setShowAddVerse] = useState(false);
+  const [reviseAutoStart, setReviseAutoStart] = useState(false); // launch today's exercises on entering Revise
+
+  // ── History API: push a state entry each time a panel opens so ‹ and
+  //    browser-back both work. popstate closes the topmost open panel.
+  const prevPanels = useRef({});
+  useEffect(() => {
+    const panels = {
+      profileUser: !!profileUser,
+      showDeckPanel,
+      showStats,
+      showAddVerse,
+      verseScreenVerse: !!verseScreenVerse,
+      learnRevealVerse: !!learnRevealVerse,
+      exercise: !!exercise,
+    };
+    const prev = prevPanels.current;
+    // Push whenever any panel transitions false→true
+    const opened = Object.keys(panels).some(k => panels[k] && !prev[k]);
+    if (opened) window.history.pushState({ mv_panel: true }, '');
+    prevPanels.current = panels;
+  }, [profileUser, showDeckPanel, showStats, showAddVerse, verseScreenVerse, learnRevealVerse, exercise]);
+
+  useEffect(() => {
+    function handlePop() {
+      // Close highest-z-index open panel first
+      if (showAddVerse)       { setShowAddVerse(false);       return; }
+      if (exercise)           { setExercise(null);            return; }
+      if (learnRevealVerse)   { setLearnRevealVerse(null);    return; }
+      if (verseScreenVerse)   { setVerseScreenVerse(null);    return; }
+      if (showStats)          { setShowStats(false);          return; }
+      if (showDeckPanel)      { setShowDeckPanel(false);      return; }
+      if (profileUser)        { setProfileUser(null); setProfileInitSubscreen(null); return; }
+    }
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
+  }, [showAddVerse, exercise, learnRevealVerse, verseScreenVerse, showStats, showDeckPanel, profileUser]);
+
+  function navBack() { window.history.back(); }
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -184,6 +223,20 @@ export default function App() {
     [allVerses, progress, currentUser.bracket]
   );
 
+  // Local-only ranking: position of each profile by verses learned (among this
+  // device's profiles). No global leaderboard backend yet.
+  const userRankings = useMemo(() => {
+    const totals = users.map(u => {
+      const prog = u.id === currentUser.id ? progress : loadProgress(u.id);
+      const total = Object.values(prog).filter(e => e?.status === 'learning' || e?.status === 'mastered').length;
+      return { id: u.id, total };
+    });
+    totals.sort((a, b) => b.total - a.total);
+    const map = {};
+    totals.forEach((t, i) => { map[t.id] = i + 1; });
+    return map;
+  }, [users, progress, currentUser.id]);
+
   const todayCount = useMemo(
     () => reviseVerses.filter(v => (progress[v.id]?.next_review ?? 0) <= Date.now()).length,
     [reviseVerses, progress]
@@ -250,20 +303,44 @@ export default function App() {
   }, []);
 
   const handleDrawerAction = useCallback((id) => {
-    if (id === 'exercises')    { handleModeChange('revise'); }
+    if (id === 'exercises')    { setReviseAutoStart(true); handleModeChange('revise'); }
     else if (id === 'learn')   { handleModeChange('learn'); }
     else if (id === 'deck')    { setShowDeckPanel(true); }
-    else if (id === 'profile') { setProfileUser(currentUser); }
+    else if (id === 'profile') { setProfileUser(currentUser); setProfileInitSubscreen('edit'); }
     else if (id === 'theme')   { setTheme(t => t === 'light' ? 'dark' : 'light'); }
     else if (id === 'add-verse') { setShowAddVerse(true); }
     else if (id === 'stats')    { setShowStats(true); }
-    // 'auth', 'add-member', 'about', 'support', 'feedback' — later phases
-  }, [currentUser, handleModeChange]);
+    else if (id === 'add-member') { setProfileUser(currentUser); setProfileInitSubscreen('add'); }
+    else if (id === 'auth') {
+      if (auth?.token) { handleAuthChange({}); }       // logged in → log out
+      else { setProfileUser(currentUser); setProfileInitSubscreen(null); } // logged out → profile (Cloud backup → Sign in)
+    }
+    else if (id === 'feedback') { setShowFeedback(true); }
+    else if (id === 'about')    { setInfoModal('about'); }
+    else if (id === 'support')  { setInfoModal('support'); }
+    else if (id === 'exercise-settings') { setInfoModal('exercise-settings'); }
+    else if (id === 'flip-reverse')      { setInfoModal('flip-reverse'); }
+    else if (id === 'documentation')     { setInfoModal('documentation'); }
+  }, [currentUser, handleModeChange, auth, handleAuthChange]);
 
   const handleTouchStreak = useCallback(() => {
     const updated = touchStreak(currentUser.id);
     setStreak(updated.days);
   }, [currentUser.id]);
+
+  // Centralized exercise completion — records a revise attempt with the correct
+  // next skill level + hint score, then closes the exercise overlay.
+  const completeExercise = useCallback((exVerse, result = {}) => {
+    setProgress(prev => {
+      const entry = getEntry(prev, exVerse.id);
+      const hintScore = computeHintScore(result.hints || 0, result.errors || 0);
+      const daysSinceLast = entry?.last_seen ? (Date.now() - entry.last_seen) / 86_400_000 : Infinity;
+      const newLevel = computeNextSkillLevel(getSkillLevel(entry), hintScore, daysSinceLast, entry?.attempts || []);
+      return { ...prev, [exVerse.id]: recordReviseAttempt(entry, newLevel, hintScore) };
+    });
+    handleTouchStreak();
+    setExercise(null);
+  }, [handleTouchStreak]);
 
   // Learn mode: record score (1=know it, 0=still learning) then advance queue
   const handleMark = useCallback((score) => {
@@ -509,18 +586,24 @@ export default function App() {
     });
   }, [customVerses, hiddenIds, verseOrder]);
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts — only active in learn mode on the home screen with no
+  // overlay open, so they never mutate the hidden learn queue from another screen.
   useEffect(() => {
+    const overlayOpen = profileUser || showDeckPanel || showStats || showAddVerse ||
+      verseScreenVerse || learnRevealVerse || exercise || infoModal || showFeedback || drawerOpen;
     function onKey(e) {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      if (e.code === 'Space' && mode === 'learn') { e.preventDefault(); handleFlip(); }
+      if (overlayOpen || mode !== 'learn') return;
+      if (e.code === 'Space')      { e.preventDefault(); handleFlip(); }
       if (e.code === 'ArrowRight') goNext();
-      if (e.code === 'KeyK') handleGotItForNow();
-      if (e.code === 'KeyL') handleMark(0);
+      if (e.code === 'KeyK')       handleGotItForNow();
+      if (e.code === 'KeyL')       handleMark(0);
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [handleFlip, goNext, handleMark]);
+  }, [handleFlip, goNext, handleMark, handleGotItForNow, mode,
+      profileUser, showDeckPanel, showStats, showAddVerse, verseScreenVerse,
+      learnRevealVerse, exercise, infoModal, showFeedback, drawerOpen]);
 
   // Use the preferred version, but fall back to first available translation
   // if the preferred one has no data (e.g. API key not configured)
@@ -580,51 +663,59 @@ export default function App() {
       {showDeckPanel && (
         <VerseDeckPanel
           verses={allVerses}
-          curatedVerses={VERSES}
-          hiddenIds={hiddenIds}
           progress={progress}
           dailyQueue={dailyQueue}
           currentUser={currentUser}
           users={users}
-          preferredVersion={version}
           onReorder={handleReorderDeck}
           onRemoveVerse={handleRemoveVerseById}
-          onRestoreVerse={handleRestoreVerse}
-          onRestoreAll={handleRestoreAll}
-          onAddVerse={handleAddVerse}
+          onOpenAddVerse={() => setShowAddVerse(true)}
           onLearnNow={handleLearnNow}
           onLearnLater={handleLearnLater}
+          onStartLearn={v => setLearnRevealVerse(v)}
           onMirror={handleMirrorDeck}
-          onVerseDetails={v => { setVerseScreenVerse(v); setShowDeckPanel(false); }}
-          onClose={() => setShowDeckPanel(false)}
+          onVerseDetails={v => { setVerseScreenVerse(v); }}
+          onClose={navBack}
         />
       )}
 
       {profileUser && (
         <ProfileModal
+          key={profileUser.id + (profileInitSubscreen || '')}
           user={profileUser}
           users={users}
           stats={profileUser.id === currentUser.id ? stats : null}
+          ranking={users.length > 1 ? userRankings[profileUser.id] : null}
+          rankingCount={users.length}
           auth={auth}
           syncStatus={syncStatus}
           lastSynced={lastSynced}
+          initialSubscreen={profileInitSubscreen}
           onAuthChange={handleAuthChange}
+          onAddUser={(newUser, updatedUsers) => {
+            setUsers(updatedUsers);
+            handleUserChange(newUser);
+            navBack();
+          }}
           onUsersChange={(merged, switchTo) => {
             setUsers(merged);
             if (switchTo) handleUserChange(switchTo);
           }}
           onSave={(updated, updatedUsers) => {
             setUsers(updatedUsers);
+            if (updated.id === profileUser.id) setProfileUser(updated);
             if (updated.id === currentUser.id) handleUserChange(updated);
-            setProfileUser(null);
             scheduleSync(auth, updatedUsers);
           }}
           onDelete={(remaining) => {
             setUsers(remaining);
             if (profileUser.id === currentUser.id && remaining.length > 0) handleUserChange(remaining[0]);
-            setProfileUser(null);
+            navBack();
           }}
-          onClose={() => setProfileUser(null)}
+          initialSubscreen={profileInitSubscreen}
+          onOpenDeck={() => setShowDeckPanel(true)}
+          onOpenStats={() => setShowStats(true)}
+          onClose={navBack}
         />
       )}
 
@@ -632,77 +723,89 @@ export default function App() {
         <LearnRevealScreen
           verse={learnRevealVerse}
           version={verseTranslations[learnRevealVerse.id] || version}
+          user={currentUser}
           onComplete={() => {
-            setProgress(prev => ({
-              ...prev,
-              [learnRevealVerse.id]: startRevising(getEntry(prev, learnRevealVerse.id)),
-            }));
+            // Only an unseen verse graduates to "learning"; a verse already being
+            // practiced is just being flipped for review — don't reset its progress.
+            const status = progress[learnRevealVerse.id]?.status || 'unseen';
+            if (status === 'unseen') {
+              setProgress(prev => ({
+                ...prev,
+                [learnRevealVerse.id]: startRevising(getEntry(prev, learnRevealVerse.id)),
+              }));
+            }
             handleTouchStreak();
             setLearnRevealVerse(null);
           }}
-          onClose={() => setLearnRevealVerse(null)}
+          onClose={navBack}
         />
       )}
 
-      {selectExVerse && (
-        <div className="vs-overlay" style={{ zIndex: 500 }}>
-          <div className="vs-panel">
-            <div className="vs-header">
-              <button className="vs-back" onClick={() => setSelectExVerse(null)}>‹</button>
-              <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-text-primary)' }}>
-                {selectExVerse.reference}
-              </span>
+      {exercise && (() => {
+        const exVerse = exercise.verse;
+        const exVersion = verseTranslations[exVerse.id] || version;
+        const exDifficulty = progress[exVerse.id]?.skill_level || 'easy';
+        return (
+          <div className="vs-overlay" style={{ zIndex: 600 }}>
+            <div className="vs-panel">
+              <OverlayHeader onBack={() => setExercise(null)} user={currentUser} />
+              <div className="vs-ex-subhdr">
+                <div className="vs-ex-ref">{exercise.kind === 'match' ? 'Match the reference' : exVerse.reference}</div>
+                <select
+                  className="vs-version-select"
+                  value={exVersion}
+                  onChange={e => handleVerseTranslationChange(exVerse.id, e.target.value)}
+                >
+                  {['kjv','bsb','esv','niv','nkjv','nasb'].map(t => (
+                    <option key={t} value={t}>{t.toUpperCase()}</option>
+                  ))}
+                </select>
+              </div>
+
+              {exercise.kind === 'type' && (
+                <TypeExercise
+                  verse={exVerse}
+                  version={exVersion}
+                  difficulty={exDifficulty}
+                  onComplete={(r) => completeExercise(exVerse, r)}
+                  onSkip={() => setExercise(null)}
+                />
+              )}
+              {exercise.kind === 'select' && (
+                <SelectExercise
+                  verse={exVerse}
+                  version={exVersion}
+                  difficulty={exDifficulty}
+                  onComplete={(r) => completeExercise(exVerse, r)}
+                  onSkip={() => setExercise(null)}
+                />
+              )}
+              {exercise.kind === 'match' && (
+                <MatchExercise
+                  verses={[exVerse, ...allVerses.filter(v => String(v.id) !== String(exVerse.id))]}
+                  version={exVersion}
+                  difficulty={exDifficulty}
+                  onComplete={(r) => completeExercise(exVerse, r)}
+                  onSkip={() => setExercise(null)}
+                />
+              )}
             </div>
-            <SelectExercise
-              verse={selectExVerse}
-              version={verseTranslations[selectExVerse.id] || version}
-              difficulty={progress[selectExVerse.id]?.skill_level || 'easy'}
-              onComplete={({ errors }) => {
-                setProgress(prev => ({
-                  ...prev,
-                  [selectExVerse.id]: recordReviseAttempt(
-                    getEntry(prev, selectExVerse.id),
-                    errors === 0 ? 1 : errors <= 2 ? 0.5 : 0
-                  ),
-                }));
-                handleTouchStreak();
-                setSelectExVerse(null);
-              }}
-              onSkip={() => setSelectExVerse(null)}
-            />
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {verseScreenVerse && (
         <VerseScreen
           verse={verseScreenVerse}
+          user={currentUser}
           progress={progress}
           version={version}
           verseTranslations={verseTranslations}
           onVerseTranslationChange={handleVerseTranslationChange}
-          onFlipCard={() => {
-            const status = progress[verseScreenVerse.id]?.status || 'unseen';
-            if (status === 'unseen') {
-              setLearnRevealVerse(verseScreenVerse);
-              setVerseScreenVerse(null);
-            } else {
-              setVerseScreenVerse(null);
-              handleModeChange('revise');
-            }
-          }}
-          onSelectWord={() => {
-            setSelectExVerse(verseScreenVerse);
-            setVerseScreenVerse(null);
-          }}
-          onTypeVerse={() => {
-            setVerseScreenVerse(null);
-            handleModeChange('revise');
-          }}
-          onMatchRef={() => {
-            setVerseScreenVerse(null);
-            handleModeChange('revise');
-          }}
+          onFlipCard={() => setLearnRevealVerse(verseScreenVerse)}
+          onSelectWord={() => setExercise({ verse: verseScreenVerse, kind: 'select' })}
+          onTypeVerse={() => setExercise({ verse: verseScreenVerse, kind: 'type' })}
+          onMatchRef={() => setExercise({ verse: verseScreenVerse, kind: 'match' })}
           onLessFrequency={() => handleLearnLater(verseScreenVerse)}
           onMoreFrequency={() => {
             setProgress(prev => ({
@@ -713,6 +816,13 @@ export default function App() {
               },
             }));
           }}
+          starred={!!progress[verseScreenVerse.id]?.starred}
+          onToggleStar={(v) => {
+            setProgress(prev => ({
+              ...prev,
+              [v.id]: { ...(prev[v.id] || {}), starred: !prev[v.id]?.starred },
+            }));
+          }}
           onReset={(v) => {
             handleResetVerse(v);
             setVerseScreenVerse(null);
@@ -721,7 +831,7 @@ export default function App() {
             handleRemoveVerseById(v);
             setVerseScreenVerse(null);
           }}
-          onClose={() => setVerseScreenVerse(null)}
+          onClose={navBack}
         />
       )}
 
@@ -729,9 +839,10 @@ export default function App() {
         <AddVerseFlow
           allVerses={allVerses}
           preferredVersion={version}
+          user={currentUser}
           onAddDeck={handleAddDeckFromFlow}
           onLearnNow={handleLearnFromFlow}
-          onClose={() => setShowAddVerse(false)}
+          onClose={navBack}
         />
       )}
 
@@ -742,7 +853,9 @@ export default function App() {
           currentUser={currentUser}
           users={users}
           streak={streak}
-          onClose={() => setShowStats(false)}
+          ranking={users.length > 1 ? userRankings[currentUser.id] : null}
+          rankingCount={users.length}
+          onClose={navBack}
         />
       )}
 
@@ -752,6 +865,7 @@ export default function App() {
         theme={theme}
         onToggleTheme={() => setTheme(t => t === 'light' ? 'dark' : 'light')}
         auth={auth}
+        currentUser={currentUser}
         onAction={handleDrawerAction}
       />
 
@@ -763,10 +877,17 @@ export default function App() {
         <div className="ttl" onClick={() => handleModeChange('home')} style={{ cursor: 'pointer' }}>
           <span className="ttl-memory">Memory</span><span className="ttl-dot-bible" style={{ color: currentUser?.colour || '#3a8c5c' }}>.bible</span>
         </div>
-        <UserPanel users={users} currentUser={currentUser}
-          onUserChange={handleUserChange} onUsersChange={handleUsersChange}
-          onOpenProfile={(u) => setProfileUser(u)} />
+        <UserPanel
+          users={users}
+          currentUser={currentUser}
+          open={userPanelOpen}
+          onToggle={setUserPanelOpen}
+          onUserChange={handleUserChange}
+          onOpenProfile={(u) => { setUserPanelOpen(false); setProfileUser(u); setProfileInitSubscreen(null); }}
+        />
       </div>
+
+      <div className="content-sheet">
 
       {showBracketReminder && (
         <div className="bracket-reminder">
@@ -795,8 +916,8 @@ export default function App() {
           todayCount={todayCount}
           nextUnseen={nextUnseen}
           streak={streak}
-          onTodayExercises={() => handleModeChange('revise')}
-          onLearnNext={() => nextUnseen && setVerseScreenVerse(nextUnseen)}
+          onTodayExercises={() => { setReviseAutoStart(true); handleModeChange('revise'); }}
+          onLearnNext={() => nextUnseen && setLearnRevealVerse(nextUnseen)}
           onVerseDetails={v => setVerseScreenVerse(v)}
           onAddVerse={() => setShowAddVerse(true)}
         />
@@ -815,6 +936,8 @@ export default function App() {
           version={version}
           defaultVersion={version}
           verseTranslations={verseTranslations}
+          autoStart={reviseAutoStart}
+          onAutoStartConsumed={() => setReviseAutoStart(false)}
           onVerseTranslationChange={handleVerseTranslationChange}
           onMark={(v, score) => {
             setProgress(prev => ({
@@ -842,20 +965,6 @@ export default function App() {
         </>
       )}
 
-      {mode !== 'home' && <StatPills stats={stats} />}
-
-      {mode !== 'home' && (
-        <div className="deck-manage-row">
-          <button className="deck-manage-btn" onClick={() => setShowDeckPanel(true)}>
-            Manage my deck ({allVerses.length})
-          </button>
-        </div>
-      )}
-
-      {mode !== 'home' && (
-        <AddVersePanel allVerses={allVerses} customVerses={customVerses}
-          currentUser={currentUser} preferredVersion={version} onAddVerse={handleAddVerse} />
-      )}
 
       <footer className="app-footer">
         {ATTRIBUTION[activeVersion] && (
@@ -874,7 +983,9 @@ export default function App() {
         </div>
       </footer>
       {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
-      </div>
+      {infoModal && <InfoModal kind={infoModal} onClose={() => setInfoModal(null)} />}
+      </div>{/* end content-sheet */}
+      </div>{/* end scene */}
     </>
   );
 }

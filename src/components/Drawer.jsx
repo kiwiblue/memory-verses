@@ -1,30 +1,24 @@
 import { useEffect } from 'react';
 import { APP_VERSION } from '../data/version.js';
+import { avatarStyle } from '../data/avatarStyle.js';
 
 const SECTIONS = [
   {
-    heading: 'Practice',
+    heading: 'Settings',
     items: [
-      { id: 'exercises',   label: "Today's Exercises" },
-      { id: 'learn',       label: 'Learn next verse' },
-      { id: 'deck',        label: 'My Deck' },
-      { id: 'add-verse',   label: 'Add new verse' },
-      { id: 'stats',       label: 'My Statistics' },
+      { id: 'exercise-settings', label: 'Exercise Settings' },
+      { id: 'deck',              label: 'My Deck' },
+      { id: 'exercises',         label: "Today's Exercises" },
+      { id: 'add-verse',         label: 'Add new verse' },
+      { id: 'flip-reverse',      label: 'Flip Card Reverse' },
     ],
   },
   {
     heading: 'Account',
     items: [
-      { id: 'profile',     label: 'Edit Profile' },
-      { id: 'add-member',  label: 'Add family member' },
       { id: 'auth',        label: null }, // dynamic: Log In / Log Out
-    ],
-  },
-  {
-    heading: 'App',
-    items: [
-      { id: 'theme',       label: null }, // dynamic: Light / Dark mode
-      { id: 'feedback',    label: 'Send Feedback' },
+      { id: 'add-member',  label: 'Add family member' },
+      { id: 'profile',     label: 'Edit Profile' },
     ],
   },
   {
@@ -34,9 +28,17 @@ const SECTIONS = [
       { id: 'support',     label: 'Support' },
     ],
   },
+  {
+    heading: 'App Support',
+    items: [
+      { id: 'feedback',    label: 'App Feedback' },
+      { id: 'documentation', label: 'Documentation' },
+      { id: 'theme',       label: null }, // dynamic: Light / Dark mode
+    ],
+  },
 ];
 
-export default function Drawer({ open, onClose, theme, onToggleTheme, auth, onAction }) {
+export default function Drawer({ open, onClose, theme, onToggleTheme, auth, currentUser, onAction }) {
   // Close on Escape
   useEffect(() => {
     if (!open) return;
@@ -69,10 +71,16 @@ export default function Drawer({ open, onClose, theme, onToggleTheme, auth, onAc
       {/* Panel */}
       <nav className={`drawer${open ? ' drawer-open' : ''}`} aria-label="Main menu">
         <div className="drawer-header">
-          <div className="drawer-brand">
-            <span className="ttl-memory">Memory</span><span className="ttl-dot-bible">.bible</span>
-          </div>
-          <button className="drawer-close" onClick={onClose} aria-label="Close menu">✕</button>
+          <button className="drawer-back" onClick={onClose} aria-label="Close menu">‹</button>
+          <span className="drawer-title">Settings</span>
+          {currentUser && (
+            <div
+              className="avatar drawer-avatar"
+              style={{ ...avatarStyle(currentUser.colour, currentUser.pattern), '--user-colour': currentUser.colour, width: 34, height: 34 }}
+            >
+              {currentUser.name?.charAt(0).toUpperCase()}
+            </div>
+          )}
         </div>
 
         <div className="drawer-body">

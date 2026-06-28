@@ -59,6 +59,9 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
     await run(async () => {
       const data = await registerAccount(email.trim(), password, users);
       saveAuth(data);
+      // Report users too so onboarding's login screen (which waits for both
+      // users + auth before completing) doesn't dead-end on register.
+      onUsersChange?.(users);
       onAuthChange(data);
       reset();
     });

@@ -25,7 +25,7 @@ function shuffle(arr) {
 
 // ── Drag-and-drop match (Easy / Moderate) ──────────────────────────────────
 
-function DragMatch({ verses, version = 'kjv', onComplete }) {
+function DragMatch({ verses, version = 'kjv', onComplete, onSkip }) {
   // slots[i] = reference string placed in slot i, or null
   const [slots, setSlots]         = useState(() => verses.map(() => null));
   // available pool (shuffled references not yet placed)
@@ -75,6 +75,21 @@ function DragMatch({ verses, version = 'kjv', onComplete }) {
     setSlots(newSlots);
     setPool(p => [...p, ref]);
     setDragSource(null);
+  }
+
+  // Reveal one correct pairing (counts as an error/hint penalty)
+  function handleHint() {
+    const i = verses.findIndex((v, idx) => slots[idx] !== v.reference);
+    if (i === -1) return;
+    const correctRef = verses[i].reference;
+    const newSlots = [...slots];
+    const existingIdx = newSlots.indexOf(correctRef);
+    if (existingIdx !== -1) newSlots[existingIdx] = null;
+    newSlots[i] = correctRef;
+    setSlots(newSlots);
+    const allRefs = verses.map(v => v.reference);
+    setPool(shuffle(allRefs.filter(r => !newSlots.includes(r))));
+    setErrors(e => e + 1);
   }
 
   function handleCheck() {
@@ -178,6 +193,13 @@ function DragMatch({ verses, version = 'kjv', onComplete }) {
       {checked && !correct.every(c => c) && (
         <p className="match-hint-msg">Move the highlighted ones to correct them.</p>
       )}
+
+      {!checked && (
+        <div className="ex-actions-row">
+          <button className="type-hint-btn" onClick={handleHint} disabled={correct.every(c => c)}>Hint</button>
+          {onSkip && <button className="ex-skip-btn" onClick={onSkip}>Skip ›</button>}
+        </div>
+      )}
     </div>
   );
 }
@@ -227,7 +249,7 @@ function gradeAnswer(input, correctRef) {
   return (numMatch && bookMatch) ? 'close' : 'wrong';
 }
 
-function TypeMatch({ verses, version = 'kjv', onComplete }) {
+function TypeMatch({ verses, version = 'kjv', onComplete, onSkip }) {
   const [inputs, setInputs]       = useState(() => verses.map(() => ''));
   const [hintLevels, setHintLevels] = useState(() => verses.map(() => 0));
   const [results, setResults]     = useState(null); // null | Array<'correct'|'close'|'wrong'>
@@ -307,13 +329,18 @@ function TypeMatch({ verses, version = 'kjv', onComplete }) {
       {results && !allPassed && results.some(g => g === 'wrong') && (
         <p className="match-hint-msg">Correct the highlighted references and try again.</p>
       )}
+      {onSkip && !allPassed && (
+        <div className="ex-actions-row">
+          <button className="ex-skip-btn" onClick={onSkip}>Skip ›</button>
+        </div>
+      )}
     </div>
   );
 }
 
 // ── Main component ──────────────────────────────────────────────────────────
 
-export default function MatchExercise({ verses: allVerses, version = 'kjv', difficulty = 'easy', onDowngrade, onComplete }) {
+export default function MatchExercise({ verses: allVerses, version = 'kjv', difficulty = 'easy', onDowngrade, onComplete, onSkip }) {
   const count = VERSE_COUNT[difficulty];
 
   // Pick `count` verses deterministically from the provided list
@@ -348,9 +375,9 @@ export default function MatchExercise({ verses: allVerses, version = 'kjv', diff
           <span className="fill-done-msg">{result?.errors === 0 ? 'Perfect!' : 'Well done!'}</span>
         </div>
       ) : difficulty === 'hard' ? (
-        <TypeMatch verses={verses} version={version} onComplete={handleComplete} />
+        <TypeMatch verses={verses} version={version} onComplete={handleComplete} onSkip={onSkip} />
       ) : (
-        <DragMatch verses={verses} version={version} onComplete={handleComplete} />
+        <DragMatch verses={verses} version={version} onComplete={handleComplete} onSkip={onSkip} />
       )}
     </div>
   );

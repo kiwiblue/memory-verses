@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import FlipCard from './FlipCard.jsx';
 import FillExercise from './exercises/FillExercise.jsx';
 import TypeExercise from './exercises/TypeExercise.jsx';
@@ -200,6 +200,7 @@ export default function RevisePanel({
   verses, progress, currentUser,
   version, defaultVersion, verseTranslations, onVerseTranslationChange,
   onMark, onLearnNew, onLearnNewVerse,
+  autoStart, onAutoStartConsumed,
 }) {
   const [panelMode, setPanelMode] = useState('browse'); // 'browse' | 'exercising' | 'done'
   const [browseIdx, setBrowseIdx] = useState(0);
@@ -227,6 +228,16 @@ export default function RevisePanel({
     setPanelMode('exercising');
     setIsFlipped(false);
   }
+
+  // "Today's Exercises" entry points (main screen + drawer) ask us to launch the
+  // due-verse queue straight away instead of landing in browse. Runs once on mount.
+  useEffect(() => {
+    if (autoStart) {
+      if (todayQueue.length > 0) startExercises(todayQueue);
+      onAutoStartConsumed?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Empty state ─────────────────────────────────────────────────────────────
   if (reviseVerses.length === 0) {

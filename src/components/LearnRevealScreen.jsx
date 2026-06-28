@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import OverlayHeader from './OverlayHeader.jsx';
 
 function splitChunks(text) {
   if (!text) return [];
@@ -16,6 +17,7 @@ function splitChunks(text) {
 export default function LearnRevealScreen({
   verse,
   version,
+  user,
   onComplete,   // () => void — called when done (moves verse to learning)
   onClose,      // () => void — back without completing
 }) {
@@ -46,25 +48,30 @@ export default function LearnRevealScreen({
 
   if (!verse) return null;
 
+  const header = (
+    <div className="lr-panel">
+      <OverlayHeader onBack={onClose} user={user} />
+    </div>
+  );
+
   // ── TEST mode ────────────────────────────────────────────────────────────
   if (testMode) {
     return (
       <div className="lr-overlay">
-        <div className="lr-panel">
-          <div className="lr-hdr">
-            <button className="vs-back" onClick={onClose}>‹</button>
-            <span className="lr-title">TEST</span>
+        {header}
+        <div className="lr-sheet">
+          <div className="lr-sheet-inner">
+            <button className="lr-test-area" onClick={handleTestTap}>
+              <div className="lr-test-instruction">Recite the full verse</div>
+              <div className="lr-test-ref">{verse.reference}</div>
+              <div className="lr-test-hint">tap to restart</div>
+            </button>
+            <div className="lr-actions lr-actions-sticky">
+              <button className="ob-btn-primary lr-done-btn" onClick={onComplete}>
+                Done — I know it ✓
+              </button>
+            </div>
           </div>
-
-          <button className="lr-test-area" onClick={handleTestTap}>
-            <div className="lr-test-instruction">Recite the full verse</div>
-            <div className="lr-test-ref">{verse.reference}</div>
-            <div className="lr-test-hint">tap to restart</div>
-          </button>
-
-          <button className="ob-btn-primary lr-done-btn" onClick={onComplete}>
-            Done — I know it ✓
-          </button>
         </div>
       </div>
     );
@@ -73,58 +80,49 @@ export default function LearnRevealScreen({
   // ── REVEAL mode ──────────────────────────────────────────────────────────
   return (
     <div className="lr-overlay">
-      <div className="lr-panel">
+      {header}
+      <div className="lr-sheet">
+        <div className="lr-sheet-inner">
 
-        {/* Header */}
-        <div className="lr-hdr">
-          <button className="vs-back" onClick={onClose}>‹</button>
-          <span className="lr-title">Reveal</span>
-        </div>
+          <div className="lr-instructions">
+            <p className="lr-instr-title">Reveal</p>
+            <p className="lr-instr-main">
+              Learn each section of the verse until you can recite the whole verse without looking.
+            </p>
+            <p className="lr-instr-sub">
+              <strong>Read out loud</strong> — for best retention, try to say it aloud.
+            </p>
+          </div>
 
-        {/* Instructions */}
-        <div className="lr-instructions">
-          <p className="lr-instr-main">
-            Learn each section of the verse until you can recite the whole verse without looking.
-          </p>
-          <p className="lr-instr-sub">
-            <strong>Read out loud</strong> — for best retention, try to say it aloud.
-          </p>
-        </div>
+          <div className="lr-verse-area">
+            <span className="lr-verse-ref">{verse.reference} </span>
+            {revealCount === 0 && (
+              <span className="lr-verse-prompt">tap "Reveal Next" to begin</span>
+            )}
+            {chunks.slice(0, revealCount).map((chunk, i) => (
+              <span
+                key={i}
+                className={`lr-chunk${i === revealCount - 1 ? ' lr-chunk-new' : ''}`}
+              >
+                {chunk}{' '}
+              </span>
+            ))}
+          </div>
 
-        {/* Verse reveal area */}
-        <div className="lr-verse-area">
-          <div className="lr-verse-ref">{verse.reference}</div>
-          {revealCount === 0 && (
-            <div className="lr-verse-prompt">tap "Reveal Next" to begin</div>
-          )}
-          {chunks.slice(0, revealCount).map((chunk, i) => (
-            <span
-              key={i}
-              className={`lr-chunk${i === revealCount - 1 ? ' lr-chunk-new' : ''}`}
-            >
-              {chunk}{' '}
-            </span>
-          ))}
-        </div>
-
-        {/* Action buttons */}
-        <div className="lr-actions">
-          {!allRevealed ? (
-            <button className="ob-btn-primary lr-reveal-btn" onClick={handleRevealNext}>
-              Reveal Next →
-            </button>
-          ) : (
-            <>
-              <button className="lr-test-btn" onClick={handleTest}>
-                TEST
+          <div className="lr-actions lr-actions-sticky">
+            {!allRevealed ? (
+              <button className="ob-btn-primary lr-reveal-btn" onClick={handleRevealNext}>
+                Reveal Next →
               </button>
-              <button className="lr-restart-btn" onClick={handleRestart}>
-                Restart
-              </button>
-            </>
-          )}
-        </div>
+            ) : (
+              <>
+                <button className="lr-test-btn" onClick={handleTest}>TEST</button>
+                <button className="lr-restart-btn" onClick={handleRestart}>Restart</button>
+              </>
+            )}
+          </div>
 
+        </div>
       </div>
     </div>
   );
