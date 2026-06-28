@@ -71,7 +71,7 @@ function MiniRing({ pct, color, size = 26 }) {
   );
 }
 
-export default function StatsScreen({ verses, progress, currentUser, users, streak, ranking, rankingCount, onClose }) {
+export default function StatsScreen({ verses, progress, currentUser, users, streak, ranking, rankingCount, onClose, onHome }) {
   const streakData = loadStreak(currentUser.id);
   const rate = practiceRate(streakData.history);
 
@@ -99,7 +99,7 @@ export default function StatsScreen({ verses, progress, currentUser, users, stre
   return (
     <div className="stats-overlay">
       <div className="stats-hdr-panel">
-        <OverlayHeader onBack={onClose} user={currentUser} />
+        <OverlayHeader onBack={onClose} user={currentUser} onHome={onHome} />
       </div>
       <div className="stats-sheet">
       <div className="stats-panel">

@@ -152,9 +152,22 @@ export default function App() {
 
   function navBack() { window.history.back(); }
 
+  // Logo is a permanent link to the main screen — close every overlay and reset.
+  function goHome() {
+    setProfileUser(null); setProfileInitSubscreen(null);
+    setShowDeckPanel(false); setShowStats(false); setShowAddVerse(false);
+    setVerseScreenVerse(null); setLearnRevealVerse(null); setExercise(null);
+    setDrawerOpen(false);
+    setMode('home'); setIsFlipped(false);
+  }
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
+    // Keep the browser chrome (status bar / address bar) a fixed colour so it
+    // doesn't get stuck dark after an overlay (e.g. the drawer) dims the page.
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', theme === 'dark' ? '#111110' : '#dddbd6');
   }, [theme]);
 
   const [showBracketReminder, setShowBracketReminder] = useState(() => {
@@ -308,6 +321,7 @@ export default function App() {
     if (id === 'exercises')    { setReviseAutoStart(true); handleModeChange('revise'); }
     else if (id === 'learn')   { handleModeChange('learn'); }
     else if (id === 'deck')    { setShowDeckPanel(true); }
+    else if (id === 'view-profile') { setProfileUser(currentUser); setProfileInitSubscreen(null); }
     else if (id === 'profile') { setProfileUser(currentUser); setProfileInitSubscreen('edit'); }
     else if (id === 'theme')   { setTheme(t => t === 'light' ? 'dark' : 'light'); }
     else if (id === 'add-verse') { setShowAddVerse(true); }
@@ -681,6 +695,7 @@ export default function App() {
           onMirror={handleMirrorDeck}
           onVerseDetails={v => { setVerseScreenVerse(v); }}
           onClose={navBack}
+          onHome={goHome}
         />
       )}
 
@@ -721,6 +736,7 @@ export default function App() {
           onOpenDeck={() => setShowDeckPanel(true)}
           onOpenStats={() => setShowStats(true)}
           onClose={navBack}
+          onHome={goHome}
         />
       )}
 
@@ -743,6 +759,7 @@ export default function App() {
             setLearnRevealVerse(null);
           }}
           onClose={navBack}
+          onHome={goHome}
         />
       )}
 
@@ -753,7 +770,10 @@ export default function App() {
         return (
           <div className="vs-overlay" style={{ zIndex: 600 }}>
             <div className="vs-panel">
-              <OverlayHeader onBack={() => setExercise(null)} user={currentUser} />
+              <OverlayHeader onBack={() => setExercise(null)} user={currentUser} onHome={goHome} />
+            </div>
+            <div className="vs-sheet">
+              <div className="vs-sheet-inner">
               <div className="vs-ex-subhdr">
                 <div className="vs-ex-ref">{exercise.kind === 'match' ? 'Match the reference' : exVerse.reference}</div>
                 <select
@@ -794,6 +814,7 @@ export default function App() {
                   onSkip={() => setExercise(null)}
                 />
               )}
+              </div>
             </div>
           </div>
         );
@@ -836,6 +857,7 @@ export default function App() {
             setVerseScreenVerse(null);
           }}
           onClose={navBack}
+          onHome={goHome}
         />
       )}
 
@@ -847,6 +869,7 @@ export default function App() {
           onAddDeck={handleAddDeckFromFlow}
           onLearnNow={handleLearnFromFlow}
           onClose={navBack}
+          onHome={goHome}
         />
       )}
 
@@ -860,6 +883,7 @@ export default function App() {
           ranking={users.length > 1 ? userRankings[currentUser.id] : null}
           rankingCount={users.length}
           onClose={navBack}
+          onHome={goHome}
         />
       )}
 
@@ -878,8 +902,8 @@ export default function App() {
         <button className="hamburger-btn" onClick={() => setDrawerOpen(true)} aria-label="Open menu">
           <span /><span /><span />
         </button>
-        <div className="ttl" onClick={() => handleModeChange('home')} style={{ cursor: 'pointer' }}>
-          <span className="ttl-memory">Memory</span><span className="ttl-dot-bible" style={{ color: currentUser?.colour || '#3a8c5c' }}>.bible</span>
+        <div className="ttl" onClick={goHome} style={{ cursor: 'pointer' }}>
+          <span className="ttl-memory">Memory</span><span className="ttl-dot-bible" style={{ color: currentUser?.colour || 'var(--color-brand)' }}>.bible</span>
         </div>
         <UserPanel
           users={users}

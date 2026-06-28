@@ -246,7 +246,7 @@ function CollectionDetailView({ collection, allVerses, preferredVersion, onAddDe
 // ── Main export ────────────────────────────────────────────────────────────────
 export default function AddVerseFlow({
   allVerses, preferredVersion, user,
-  onAddDeck, onLearnNow, onClose,
+  onAddDeck, onLearnNow, onClose, onHome,
 }) {
   const [view, setView] = useState('hub');
   const [selectedCollection, setSelectedCollection] = useState(null);
@@ -260,7 +260,7 @@ export default function AddVerseFlow({
   return (
     <div className="av-overlay">
       <div className="av-hdr-panel">
-        <OverlayHeader onBack={goBack} user={user} />
+        <OverlayHeader onBack={goBack} user={user} onHome={onHome} />
       </div>
       <div className="av-sheet">
       <div className="av-panel">

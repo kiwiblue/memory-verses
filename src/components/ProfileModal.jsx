@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { saveUsers, saveCurrentUserId } from '../data/users.js';
 import AuthPanel from './AuthPanel.jsx';
 import { PATTERNS, avatarStyle } from '../data/avatarStyle.js';
-import { isPushSupported, getSubscriptionState, subscribePush, unsubscribePush } from '../data/pushNotifications.js';
 import OverlayHeader from './OverlayHeader.jsx';
 
 const PRESETS = ['#3a8c5c','#2a6ab5','#9a3a3a','#7a5c9a','#9a6c10','#3a7a8c','#555555','#c0392b'];
@@ -37,6 +36,7 @@ function AddMemberForm({ users, onSave, onCancel }) {
   const [bracket, setBracket] = useState('youth');
   const [translation, setTranslation] = useState('kjv');
   const [colour, setColour] = useState(PRESETS[1]);
+  const [pattern, setPattern] = useState('none');
   const [error, setError] = useState('');
 
   function handleSave() {
@@ -47,6 +47,7 @@ function AddMemberForm({ users, onSave, onCancel }) {
       bracket,
       bracket_updated: Date.now(),
       colour,
+      pattern,
       translation,
     };
     const updated = [...users, newUser];
@@ -89,14 +90,28 @@ function AddMemberForm({ users, onSave, onCancel }) {
         </select>
       </div>
 
-      <div className="pm-field">
-        <label className="pm-label">Colour</label>
-        <div className="swatches">
-          {PRESETS.map(c => (
-            <div key={c} className={`swatch${colour === c ? ' selected' : ''}`}
-              style={{ background: c }} onClick={() => setColour(c)} />
-          ))}
+      <div className="pm-edit-appearance">
+        <div className="pm-appearance-controls">
+          <div className="pm-field">
+            <label className="pm-label">Colour</label>
+            <div className="swatches">
+              {PRESETS.map(c => (
+                <div key={c} className={`swatch${colour === c ? ' selected' : ''}`}
+                  style={{ background: c }} onClick={() => setColour(c)} />
+              ))}
+            </div>
+          </div>
+          <div className="pm-field">
+            <label className="pm-label">Pattern</label>
+            <div className="swatches">
+              {PATTERNS.map(p => (
+                <div key={p.id} className={`swatch${pattern === p.id ? ' selected' : ''}`}
+                  style={avatarStyle(colour, p.id)} onClick={() => setPattern(p.id)} title={p.label} />
+              ))}
+            </div>
+          </div>
         </div>
+        <BigAvatar user={{ name: name || '?' }} colour={colour} pattern={pattern} size={84} />
       </div>
 
       <div className="pm-form-btns">
@@ -187,16 +202,12 @@ function EditForm({ user, onSave, onCancel }) {
 export default function ProfileModal({
   user, users, stats, ranking, rankingCount, auth, syncStatus, lastSynced,
   initialSubscreen = null,
-  onSave, onDelete, onClose, onOpenDeck, onOpenStats, onAuthChange, onUsersChange, onAddUser,
+  onSave, onDelete, onClose, onHome, onOpenDeck, onOpenStats, onAuthChange, onUsersChange, onAddUser,
 }) {
   const [colour, setColour]     = useState(user.colour || PRESETS[0]);
   const [pattern, setPattern]   = useState(user.pattern || 'none');
   const [subscreen, setSubscreen] = useState(initialSubscreen); // null | 'edit' | 'add'
   const [deleteStep, setDeleteStep] = useState(0);
-  const [pushState, setPushState]   = useState('loading');
-  const [pushBusy, setPushBusy]     = useState(false);
-
-  useEffect(() => { getSubscriptionState().then(setPushState); }, []);
 
   const canDelete = users.length > 1;
   const bracketLabel = BRACKETS.find(b => b.value === (user.bracket || 'adult'))?.label ?? 'Adult';
@@ -245,7 +256,7 @@ export default function ProfileModal({
   return (
     <div className="pm-overlay">
       <div className="pm-panel">
-        <OverlayHeader onBack={subscreen ? () => setSubscreen(null) : onClose} user={user} />
+        <OverlayHeader onBack={subscreen ? () => setSubscreen(null) : onClose} user={user} onHome={onHome} />
       </div>
 
       <div className="pm-sheet">
@@ -339,41 +350,6 @@ export default function ProfileModal({
               onUsersChange={onUsersChange}
             />
           </div>
-
-          {/* ── Push notifications ─────────────────────────────────────── */}
-          {auth?.token && isPushSupported() && pushState !== 'loading' && (
-            <div className="pm-card">
-              <div className="pm-card-title">Reminders</div>
-              {pushState === 'denied' ? (
-                <div className="pm-hint">Notifications are blocked in your browser settings.</div>
-              ) : (
-                <div className="push-toggle-row">
-                  <span className="push-toggle-label">
-                    {pushState === 'subscribed' ? 'Daily reminders enabled' : 'Daily reminders off'}
-                  </span>
-                  <button
-                    className={`push-toggle-btn${pushState === 'subscribed' ? ' on' : ''}`}
-                    disabled={pushBusy}
-                    onClick={async () => {
-                      setPushBusy(true);
-                      try {
-                        if (pushState === 'subscribed') {
-                          await unsubscribePush(auth.token);
-                          setPushState('unsubscribed');
-                        } else {
-                          await subscribePush(auth.token);
-                          setPushState('subscribed');
-                        }
-                      } catch {
-                        setPushState(await getSubscriptionState());
-                      }
-                      setPushBusy(false);
-                    }}
-                  >{pushState === 'subscribed' ? 'On' : 'Off'}</button>
-                </div>
-              )}
-            </div>
-          )}
 
           {/* ── Delete profile ─────────────────────────────────────────── */}
           {canDelete && (

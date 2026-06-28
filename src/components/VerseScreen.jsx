@@ -57,6 +57,7 @@ export default function VerseScreen({
   onReset,
   onDelete,
   onClose,
+  onHome,
 }) {
   const [confirmAction, setConfirmAction] = useState(null); // 'reset' | 'delete'
   const [view, setView] = useState('menu'); // 'menu' | 'card' (Flip Card [18])
@@ -90,7 +91,7 @@ export default function VerseScreen({
   return (
     <div className="vs-overlay">
       <div className="vs-panel">
-        <OverlayHeader onBack={view === 'card' ? () => setView('menu') : onClose} user={user} />
+        <OverlayHeader onBack={view === 'card' ? () => setView('menu') : onClose} user={user} onHome={onHome} />
       </div>
 
       <div className="vs-sheet">

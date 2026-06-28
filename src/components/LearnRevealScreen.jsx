@@ -21,6 +21,7 @@ export default function LearnRevealScreen({
   user,
   onComplete,   // () => void — called when done (moves verse to learning)
   onClose,      // () => void — back without completing
+  onHome,
 }) {
   const [revealCount, setRevealCount] = useState(0);
   const [testMode, setTestMode] = useState(false);
@@ -51,7 +52,7 @@ export default function LearnRevealScreen({
 
   const header = (
     <div className="lr-panel">
-      <OverlayHeader onBack={onClose} user={user} />
+      <OverlayHeader onBack={onClose} user={user} onHome={onHome} />
     </div>
   );
 

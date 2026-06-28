@@ -96,7 +96,7 @@ export default function MainScreen({
                   className="main-nav-arrow"
                   onClick={() => navigate(-1)}
                   disabled={clampedIdx === 0}
-                ><Icon name="back" size={26} /></button>
+                ><Icon name="back" size={22} /></button>
                 <span className="main-nav-pos">
                   {clampedIdx + 1}/{displayVerses.length}
                 </span>
@@ -104,7 +104,7 @@ export default function MainScreen({
                   className="main-nav-arrow"
                   onClick={() => navigate(1)}
                   disabled={clampedIdx >= displayVerses.length - 1}
-                ><Icon name="forward" size={18} /></button>
+                ><Icon name="forward" size={22} /></button>
               </div>
             )}
           </div>

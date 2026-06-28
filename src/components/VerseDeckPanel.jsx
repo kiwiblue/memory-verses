@@ -21,7 +21,7 @@ function firstUnseenIndex(verses, progress) {
 
 // ── Deck row ──────────────────────────────────────────────────────────────────
 function DeckRow({ verse, i, progress, queueIds, upNextIdx, dragging,
-  onDragStart, onDragOver, onDrop,
+  onDragStart, onDragOver, onDrop, onTouchDragStart,
   onVerseDetails, onLearnToday, onStartLearn, onBackOfDeck, onRemoveVerse }) {
 
   const [expanded, setExpanded] = useState(false);
@@ -44,6 +44,7 @@ function DeckRow({ verse, i, progress, queueIds, upNextIdx, dragging,
   return (
     <div
       ref={rowRef}
+      data-row-idx={i}
       className={`dp-row${dragging ? ' dp-row-dragging' : ''}`}
       draggable={!expanded}
       onDragStart={e => onDragStart(e, i)}
@@ -52,7 +53,11 @@ function DeckRow({ verse, i, progress, queueIds, upNextIdx, dragging,
       onDragEnd={onDrop}
     >
       <div className="dp-row-main">
-        <span className="dp-drag"><Icon name="drag" size={16} /></span>
+        <span
+          className="dp-drag"
+          onTouchStart={e => onTouchDragStart(e, i)}
+          style={{ touchAction: 'none' }}
+        ><Icon name="drag" size={16} /></span>
         {progress[verse.id]?.starred && <span className="dp-star" title="Starred"><Icon name="star" size={16} weight="fill" /></span>}
         <span className="dp-ref">{verse.reference}</span>
         {badge && <span className={`dp-badge ${badge.cls}`}>{badge.label}</span>}
@@ -71,11 +76,11 @@ function DeckRow({ verse, i, progress, queueIds, upNextIdx, dragging,
             {inQueue ? (
               <button className="dp-learn-today-btn" onClick={() => onStartLearn?.(verse)}>learn today</button>
             ) : isActive ? (
-              <button className="dp-circle-btn dp-btn-info" onClick={() => onVerseDetails?.(verse)} title="Verse details"><Icon name="info" size={16} /></button>
+              <button className="dp-circle-btn dp-btn-info" onClick={() => onVerseDetails?.(verse)} title="Verse details"><Icon name="info" size={19} weight="bold" /></button>
             ) : (
-              <button className="dp-circle-btn dp-btn-add" onClick={() => onLearnToday(verse)} title="Learn today"><Icon name="add" size={16} /></button>
+              <button className="dp-circle-btn dp-btn-add" onClick={() => onLearnToday(verse)} title="Learn today"><Icon name="add" size={19} weight="bold" /></button>
             )}
-            <button className="dp-circle-btn dp-btn-del" onClick={() => setExpanded(true)} title="Remove options"><Icon name="close" size={16} /></button>
+            <button className="dp-circle-btn dp-btn-del" onClick={() => setExpanded(true)} title="Remove options"><Icon name="close" size={19} weight="bold" /></button>
           </div>
         )}
       </div>
@@ -88,7 +93,7 @@ export default function VerseDeckPanel({
   verses, progress, dailyQueue,
   currentUser, users,
   onReorder, onRemoveVerse, onOpenAddVerse,
-  onLearnNow, onLearnLater, onStartLearn, onMirror, onVerseDetails, onClose,
+  onLearnNow, onLearnLater, onStartLearn, onMirror, onVerseDetails, onClose, onHome,
 }) {
   const queueIds = new Set((dailyQueue || []).map(v => String(v.id)));
   const [list, setList]   = useState(verses);
@@ -111,6 +116,40 @@ export default function VerseDeckPanel({
     setList(next);
   }
   function onDrop() { onReorder(list.map(v => String(v.id))); dragIdx.current = null; }
+
+  // Touch reordering (mobile): native HTML5 drag doesn't fire on touch, so we
+  // drive it from touchstart on the drag handle + document-level move/end.
+  function onTouchDragStart(e, startIdx) {
+    dragIdx.current = startIdx;
+    function move(ev) {
+      if (dragIdx.current === null) return;
+      ev.preventDefault(); // stop the page scrolling while dragging
+      const t = ev.touches[0];
+      const el = document.elementFromPoint(t.clientX, t.clientY);
+      const rowEl = el?.closest('[data-row-idx]');
+      if (!rowEl) return;
+      const over = Number(rowEl.dataset.rowIdx);
+      const from = dragIdx.current;
+      if (Number.isNaN(over) || over === from) return;
+      setList(prev => {
+        const next = [...prev];
+        const [item] = next.splice(from, 1);
+        next.splice(over, 0, item);
+        return next;
+      });
+      dragIdx.current = over;
+    }
+    function end() {
+      document.removeEventListener('touchmove', move);
+      document.removeEventListener('touchend', end);
+      document.removeEventListener('touchcancel', end);
+      setList(curr => { onReorder(curr.map(v => String(v.id))); return curr; });
+      dragIdx.current = null;
+    }
+    document.addEventListener('touchmove', move, { passive: false });
+    document.addEventListener('touchend', end);
+    document.addEventListener('touchcancel', end);
+  }
 
   function handleLearnToday(verse) {
     onLearnNow(verse);
@@ -143,7 +182,7 @@ export default function VerseDeckPanel({
 
       {/* ── Header (on dark bg) ──────────────────────────────────────────── */}
       <div className="dp-hdr-panel">
-        <OverlayHeader onBack={onClose} user={currentUser} />
+        <OverlayHeader onBack={onClose} user={currentUser} onHome={onHome} />
       </div>
 
       {/* ── White content sheet ──────────────────────────────────────────── */}
@@ -169,6 +208,7 @@ export default function VerseDeckPanel({
                     onDragStart={onDragStart}
                     onDragOver={onDragOver}
                     onDrop={onDrop}
+                    onTouchDragStart={onTouchDragStart}
                     onVerseDetails={v => { onVerseDetails?.(v); }}
                     onLearnToday={handleLearnToday}
                     onStartLearn={onStartLearn}

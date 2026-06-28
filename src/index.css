@@ -287,6 +287,8 @@ body {
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 .drawer-link:hover { background: var(--color-surface-hover); color: var(--color-brand); }
+.drawer-link.soon { color: var(--color-text-faint); }
+.drawer-link.soon::after { content: ' · soon'; font-size: var(--font-size-2xs); letter-spacing: .04em; text-transform: uppercase; }
 
 .drawer-footer {
   padding: 12px 20px;
@@ -317,10 +319,13 @@ body {
   padding: 4px 2px;
 }
 .main-verse-details {
-  background: none; border: none; cursor: pointer;
-  font-size: var(--font-size-sm); color: var(--color-brand);
-  padding: 4px 0; text-decoration: underline; text-underline-offset: 2px;
+  background: none; cursor: pointer;
+  border: 1.5px solid var(--color-brand-accent); border-radius: var(--radius-full);
+  font-size: var(--font-size-sm); font-weight: 600; color: var(--color-brand);
+  padding: 6px 14px;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
 }
+.main-verse-details:hover { background: var(--color-brand-muted); border-color: var(--color-brand); }
 .main-nav-controls { display: flex; align-items: center; gap: 6px; }
 .main-nav-arrow {
   background: none; border: 0.5px solid var(--color-border);
@@ -335,7 +340,7 @@ body {
 
 .main-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
 
-.main-btn-exercises { font-size: var(--font-size-md) !important; }
+.main-btn-exercises { font-size: var(--font-size-md) !important; border-radius: var(--radius-xl) !important; }
 
 .main-btn-learn {
   width: 100%; padding: 13px 16px; border-radius: var(--radius-xl);
@@ -1017,6 +1022,7 @@ input[type="search"], input[type="number"], textarea, select {
 .merge-btn-desc { font-size: 12px; color: var(--color-text-muted); }
 
 .push-toggle-row { display: flex; align-items: center; justify-content: space-between; }
+.push-toggle-row + .push-toggle-row { margin-top: 14px; }
 .push-toggle-label { font-size: 13px; color: var(--color-text-secondary); }
 .push-toggle-btn {
   padding: 4px 14px; border-radius: 20px; border: 0.5px solid var(--color-border-strong);
@@ -1171,14 +1177,14 @@ input[type="search"], input[type="number"], textarea, select {
 .ob-logo-bible { color: inherit; }
 .ob-tagline { text-align: center; font-size: 17px; color: var(--color-text-secondary); margin-bottom: 28px; }
 .ob-bullets {
-  list-style: none; display: flex; flex-direction: column; gap: 10px;
-  margin-bottom: 32px; padding: 0 8px;
+  list-style: none; display: flex; flex-direction: column; gap: 12px;
+  margin-bottom: 32px; padding: 0;
 }
 .ob-bullets li {
-  padding-left: 20px; position: relative; font-size: 15px; color: var(--color-text-secondary); line-height: 1.4;
+  text-align: center; font-size: 15px; color: var(--color-text-secondary); line-height: 1.4;
 }
 .ob-bullets li::before {
-  content: '✦'; position: absolute; left: 0; color: var(--color-brand); font-size: 10px; top: 3px;
+  content: '✦'; color: var(--color-brand); font-size: 10px; margin-right: 8px; vertical-align: middle;
 }
 .ob-btn-primary {
   width: 100%; padding: 14px; border-radius: 12px; border: none;
@@ -1188,8 +1194,8 @@ input[type="search"], input[type="number"], textarea, select {
 .ob-btn-primary:hover { background: var(--color-brand-dark); }
 .ob-btn-primary:disabled { opacity: .5; cursor: default; }
 .ob-links {
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
-  margin-top: 16px;
+  display: flex; flex-direction: column; align-items: center; gap: 22px;
+  margin-top: 20px;
 }
 .ob-link {
   background: none; border: none; color: var(--color-brand); font-size: 13px;
@@ -1528,6 +1534,11 @@ input[type="search"], input[type="number"], textarea, select {
 .match-ref-chip:hover   { border-color: var(--color-brand); box-shadow: 0 2px 6px rgba(0,0,0,.08); }
 .match-chip-dragging    { opacity: .45; }
 .match-ref-in-slot      { font-size: 12px; padding: 4px 10px; text-align: center; }
+.match-drag-ghost {
+  position: fixed; transform: translate(-50%, -50%); z-index: 700; pointer-events: none;
+  padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;
+  background: var(--color-brand); color: #fff; box-shadow: var(--shadow-md);
+}
 
 .match-pool {
   display: flex; flex-wrap: wrap; gap: 8px;
@@ -1540,7 +1551,7 @@ input[type="search"], input[type="number"], textarea, select {
 .match-type-input {
   width: 130px; flex-shrink: 0; padding: 10px 12px;
   border: 1.5px solid var(--color-border); border-radius: 10px;
-  font-size: 13px; outline: none; transition: border-color .15s;
+  font-size: 16px; outline: none; transition: border-color .15s;
 }
 .match-type-input:focus { border-color: var(--color-brand); }
 .match-type-row { display: flex; flex-direction: column; gap: 6px; }

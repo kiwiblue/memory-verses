@@ -102,12 +102,22 @@ function DragMatch({ verses, version = 'kjv', onComplete, onSkip }) {
     }
   }
 
-  // Touch drag support
+  // Touch drag support — a floating "ghost" chip follows the finger so the drag
+  // is visible (native HTML5 drag images don't fire on touch).
   const touchDragRef = useRef(null);
+  const [ghost, setGhost] = useState(null); // { ref, x, y }
 
   function onTouchStart(source, e) {
-    touchDragRef.current = { source, startY: e.touches[0].clientY };
+    const t = e.touches[0];
+    touchDragRef.current = { source };
     setDragSource(source);
+    setGhost({ ref: source.ref, x: t.clientX, y: t.clientY });
+  }
+
+  function onTouchMove(e) {
+    if (!touchDragRef.current) return;
+    const t = e.touches[0];
+    setGhost(g => (g ? { ...g, x: t.clientX, y: t.clientY } : g));
   }
 
   function onTouchEnd(e) {
@@ -123,6 +133,7 @@ function DragMatch({ verses, version = 'kjv', onComplete, onSkip }) {
     }
     touchDragRef.current = null;
     setDragSource(null);
+    setGhost(null);
   }
 
   return (
@@ -150,6 +161,8 @@ function DragMatch({ verses, version = 'kjv', onComplete, onSkip }) {
                       draggable
                       onDragStart={() => startDragSlot(i)}
                       onTouchStart={e => onTouchStart({ from: 'slot', index: i, ref: slots[i] }, e)}
+                      onTouchMove={onTouchMove}
+                      onTouchEnd={onTouchEnd}
                     >
                       {slots[i]}
                     </span>
@@ -177,6 +190,7 @@ function DragMatch({ verses, version = 'kjv', onComplete, onSkip }) {
               draggable
               onDragStart={() => startDragPool(ref)}
               onTouchStart={e => onTouchStart({ from: 'pool', ref }, e)}
+              onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
             >
               {ref}
@@ -200,6 +214,10 @@ function DragMatch({ verses, version = 'kjv', onComplete, onSkip }) {
           <button className="type-hint-btn" onClick={handleHint} disabled={correct.every(c => c)}>Hint</button>
           {onSkip && <button className="ex-skip-btn" onClick={onSkip}>Skip <Icon name="forward" size={18} /></button>}
         </div>
+      )}
+
+      {ghost && (
+        <span className="match-drag-ghost" style={{ left: ghost.x, top: ghost.y }}>{ghost.ref}</span>
       )}
     </div>
   );

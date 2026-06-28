@@ -7,19 +7,20 @@ const SECTIONS = [
   {
     heading: 'Settings',
     items: [
-      { id: 'exercise-settings', label: 'Exercise Settings' },
-      { id: 'deck',              label: 'My Deck' },
       { id: 'exercises',         label: "Today's Exercises" },
+      { id: 'deck',              label: 'My Deck' },
+      { id: 'exercise-settings', label: 'Exercise Settings', soon: true },
+      { id: 'flip-reverse',      label: 'Flip Card Reverse', soon: true },
       { id: 'add-verse',         label: 'Add new verse' },
-      { id: 'flip-reverse',      label: 'Flip Card Reverse' },
     ],
   },
   {
     heading: 'Account',
     items: [
-      { id: 'auth',        label: null }, // dynamic: Log In / Log Out
-      { id: 'add-member',  label: 'Add family member' },
-      { id: 'profile',     label: 'Edit Profile' },
+      { id: 'view-profile', label: 'View Profile' },
+      { id: 'profile',      label: 'Edit Profile' },
+      { id: 'add-member',   label: 'Add family member' },
+      { id: 'auth',         label: null }, // dynamic: Log In / Log Out
     ],
   },
   {
@@ -33,7 +34,6 @@ const SECTIONS = [
     heading: 'App Support',
     items: [
       { id: 'feedback',    label: 'App Feedback' },
-      { id: 'documentation', label: 'Documentation' },
       { id: 'theme',       label: null }, // dynamic: Light / Dark mode
     ],
   },
@@ -93,7 +93,7 @@ export default function Drawer({ open, onClose, theme, onToggleTheme, auth, curr
               {section.items.map(item => (
                 <button
                   key={item.id}
-                  className="drawer-link"
+                  className={`drawer-link${item.soon ? ' soon' : ''}`}
                   onClick={() => { onAction(item.id); onClose(); }}
                 >
                   {label(item.id)}
