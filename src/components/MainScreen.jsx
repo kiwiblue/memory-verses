@@ -77,6 +77,7 @@ export default function MainScreen({
               verseTranslations={verseTranslations}
               isFlipped={isFlipped}
               mode="browse"
+              starred={!!progress[currentVerse.id]?.starred}
               onFlip={() => setIsFlipped(f => !f)}
               onVerseTranslationChange={onVerseTranslationChange}
             />
@@ -142,7 +143,7 @@ export default function MainScreen({
         </div>
 
         <button className="main-fab" onClick={onAddVerse} aria-label="Add verse">
-          <Icon name="add" size={16} />
+          <Icon name="add" size={26} weight="bold" />
         </button>
       </div>
     </div>

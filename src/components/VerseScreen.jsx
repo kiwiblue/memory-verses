@@ -121,6 +121,7 @@ export default function VerseScreen({
               verseTranslations={verseTranslations}
               isFlipped={flipped}
               mode="learn"
+              starred={!!entry?.starred}
               onFlip={() => setFlipped(f => !f)}
               onVerseTranslationChange={onVerseTranslationChange}
             />

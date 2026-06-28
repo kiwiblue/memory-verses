@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
+import Icon from './Icon.jsx';
 
 const TRANSLATIONS = ['kjv', 'bsb', 'esv', 'niv', 'nkjv', 'nasb'];
 
 
-export default function FlipCard({ verse, version, defaultVersion, verseTranslations, isFlipped, mode, onFlip, onVerseTranslationChange }) {
+export default function FlipCard({ verse, version, defaultVersion, verseTranslations, isFlipped, mode, starred, onFlip, onVerseTranslationChange }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [cardHeight, setCardHeight] = useState(200);
   const backRef = useRef(null);
@@ -56,6 +57,7 @@ export default function FlipCard({ verse, version, defaultVersion, verseTranslat
 
   return (
     <div className="wrap" ref={wrapRef} style={{ minHeight: cardHeight }} onClick={handleClick}>
+      {starred && <span className="card-star" title="Starred"><Icon name="star" size={18} weight="fill" /></span>}
       <div className={`card${isFlipped ? ' flip' : ''}`} style={{ minHeight: cardHeight }}>
         <div className="face">
           <div className="lbl">{frontLabel}</div>

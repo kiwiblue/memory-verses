@@ -25,8 +25,33 @@ function DeckRow({ verse, i, progress, queueIds, upNextIdx, dragging,
   onVerseDetails, onLearnToday, onStartLearn, onBackOfDeck, onRemoveVerse }) {
 
   const [expanded, setExpanded] = useState(false);
+  const [swipeDx, setSwipeDx] = useState(0);
+  const swipe = useRef(null);
   const rowRef = useRef(null);
   const status = progress[verse.id]?.status || 'unseen';
+
+  // Swipe a row left to delete it straight away (mobile).
+  function onRowTouchStart(e) {
+    if (expanded) return;
+    swipe.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, locked: null };
+  }
+  function onRowTouchMove(e) {
+    if (!swipe.current) return;
+    const dx = e.touches[0].clientX - swipe.current.x;
+    const dy = e.touches[0].clientY - swipe.current.y;
+    if (swipe.current.locked === null && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+      swipe.current.locked = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+    }
+    if (swipe.current.locked === 'h' && dx < 0) setSwipeDx(Math.max(dx, -140));
+  }
+  function onRowTouchEnd() {
+    if (swipe.current?.locked === 'h' && swipeDx <= -90) {
+      onRemoveVerse(verse); // row unmounts
+    } else {
+      setSwipeDx(0);
+    }
+    swipe.current = null;
+  }
   const isActive = status === 'learning' || status === 'mastered';
   const inQueue  = queueIds.has(String(verse.id));
   const badge    = getBadge(verse, progress, queueIds, upNextIdx, i);
@@ -51,13 +76,20 @@ function DeckRow({ verse, i, progress, queueIds, upNextIdx, dragging,
       onDragOver={e => onDragOver(e, i)}
       onDrop={onDrop}
       onDragEnd={onDrop}
+      onTouchStart={onRowTouchStart}
+      onTouchMove={onRowTouchMove}
+      onTouchEnd={onRowTouchEnd}
     >
-      <div className="dp-row-main">
+      <div className="dp-swipe-bg"><Icon name="close" size={15} weight="bold" /> Delete</div>
+      <div
+        className="dp-row-main"
+        style={{ transform: `translateX(${swipeDx}px)`, transition: swipeDx === 0 ? 'transform .2s' : 'none' }}
+      >
         <span
           className="dp-drag"
-          onTouchStart={e => onTouchDragStart(e, i)}
+          onTouchStart={e => { e.stopPropagation(); onTouchDragStart(e, i); }}
           style={{ touchAction: 'none' }}
-        ><Icon name="drag" size={16} /></span>
+        ><Icon name="drag" size={18} weight="regular" /></span>
         {progress[verse.id]?.starred && <span className="dp-star" title="Starred"><Icon name="star" size={16} weight="fill" /></span>}
         <span className="dp-ref">{verse.reference}</span>
         {badge && <span className={`dp-badge ${badge.cls}`}>{badge.label}</span>}

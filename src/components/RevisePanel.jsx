@@ -200,7 +200,7 @@ function ExerciseFlow({ queue, progress, version = 'kjv', sessionKey, onAdvance,
 export default function RevisePanel({
   verses, progress, currentUser,
   version, defaultVersion, verseTranslations, onVerseTranslationChange,
-  onMark, onLearnNew, onLearnNewVerse,
+  onMark, onLearnNew, onLearnNewVerse, onViewStats,
   autoStart, onAutoStartConsumed,
 }) {
   const [panelMode, setPanelMode] = useState('browse'); // 'browse' | 'exercising' | 'done'
@@ -276,6 +276,11 @@ export default function RevisePanel({
             <button className="learn-repeat-btn" onClick={() => startExercises(todayQueue)}>
               ↺ Practice more verses
             </button>
+            {onViewStats && (
+              <button className="revise-stats-btn" onClick={onViewStats}>
+                View your Statistics →
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -311,6 +316,7 @@ export default function RevisePanel({
         verseTranslations={verseTranslations}
         isFlipped={isFlipped}
         mode="revise"
+        starred={!!progress[browseVerse.id]?.starred}
         onFlip={() => setIsFlipped(f => !f)}
         onVerseTranslationChange={onVerseTranslationChange}
       />

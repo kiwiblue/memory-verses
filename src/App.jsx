@@ -976,6 +976,7 @@ export default function App() {
           }}
           onLearnNew={() => handleModeChange('learn')}
           onLearnNewVerse={handleLearnNewVerse}
+          onViewStats={() => setShowStats(true)}
         />
       ) : (
         <>

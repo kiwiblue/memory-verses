@@ -399,7 +399,8 @@ select {
 .tab.on { background: var(--color-surface); color: var(--color-text-primary); font-weight: 500; border: 0.5px solid var(--color-border); }
 
 /* Flip card */
-.wrap { perspective: 1200px; width: 100%; min-height: 200px; margin-bottom: 1rem; cursor: pointer; }
+.wrap { perspective: 1200px; width: 100%; min-height: 200px; margin-bottom: 1rem; cursor: pointer; position: relative; }
+.card-star { position: absolute; top: 14px; right: 16px; z-index: 2; color: var(--color-star); pointer-events: none; display: flex; }
 .card {
   width: 100%; height: 100%; min-height: 200px; position: relative;
   transform-style: preserve-3d;
@@ -1474,8 +1475,12 @@ input[type="search"], input[type="number"], textarea, select {
 .type-ex-hint  { font-size: 13px; color: var(--color-text-muted); margin-bottom: 20px; min-height: 20px; }
 .type-hint-letter { color: var(--color-brand); font-size: 15px; }
 .type-hidden-input {
-  position: fixed; left: -9999px; top: 0;
-  width: 1px; height: 1px; opacity: 0;
+  /* Kept in-viewport (not off-screen) so iOS will actually raise the keyboard
+     when focused; transparent + pointer-events:none so it's invisible and taps
+     fall through to the verse area (which focuses it). 16px avoids focus-zoom. */
+  position: fixed; left: 0; bottom: 0;
+  width: 1px; height: 1px; opacity: 0; pointer-events: none;
+  font-size: 16px; border: none; background: transparent;
 }
 .type-word-auto { color: var(--color-text-muted); font-style: italic; opacity: 0.5; }
 .type-word-hint { color: var(--color-text-muted); font-style: italic; opacity: 0.4; }
@@ -1634,6 +1639,12 @@ input[type="search"], input[type="number"], textarea, select {
   cursor: pointer; transition: border-color .15s, color .15s;
 }
 .learn-repeat-btn:hover { border-color: var(--color-brand); color: var(--color-brand); }
+.revise-stats-btn {
+  padding: 12px; border-radius: 12px; border: 1.5px solid var(--color-brand-accent);
+  background: none; font-size: 15px; font-weight: 600; color: var(--color-brand);
+  cursor: pointer; transition: background .15s, border-color .15s;
+}
+.revise-stats-btn:hover { background: var(--color-brand-muted); border-color: var(--color-brand); }
 
 /* Fill option intro wiggle — draws attention on load */
 @keyframes fill-option-wiggle {
@@ -2119,13 +2130,21 @@ input[type="search"], input[type="number"], textarea, select {
 .dp-row {
   border-bottom: 0.5px solid var(--color-border-subtle);
   transition: background .1s;
+  position: relative; overflow: hidden; touch-action: pan-y;
 }
-.dp-row:hover { background: var(--color-surface); }
+.dp-swipe-bg {
+  position: absolute; inset: 0; z-index: 0;
+  display: flex; align-items: center; justify-content: flex-end; gap: 6px;
+  padding-right: 18px; background: var(--color-danger); color: #fff;
+  font-size: 13px; font-weight: 600;
+}
+.dp-row:hover .dp-row-main { background: var(--color-surface); }
 .dp-row-dragging { background: var(--color-brand-muted); opacity: .8; }
 
 .dp-row-main {
   display: flex; align-items: center; gap: 8px;
   padding: 11px 0;
+  position: relative; z-index: 1; background: var(--color-bg);
 }
 .dp-drag {
   color: var(--color-text-faint); font-size: 14px; cursor: grab; flex-shrink: 0;
