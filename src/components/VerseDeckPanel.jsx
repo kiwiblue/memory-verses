@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import OverlayHeader from './OverlayHeader.jsx';
+import Icon from './Icon.jsx';
 
 const SKILL_LABEL = { easy: 'easy', moderate: 'moderate', hard: 'hard' };
 
@@ -51,8 +52,8 @@ function DeckRow({ verse, i, progress, queueIds, upNextIdx, dragging,
       onDragEnd={onDrop}
     >
       <div className="dp-row-main">
-        <span className="dp-drag">⠿</span>
-        {progress[verse.id]?.starred && <span className="dp-star" title="Starred">★</span>}
+        <span className="dp-drag"><Icon name="drag" size={16} /></span>
+        {progress[verse.id]?.starred && <span className="dp-star" title="Starred"><Icon name="star" size={16} weight="fill" /></span>}
         <span className="dp-ref">{verse.reference}</span>
         {badge && <span className={`dp-badge ${badge.cls}`}>{badge.label}</span>}
 
@@ -70,11 +71,11 @@ function DeckRow({ verse, i, progress, queueIds, upNextIdx, dragging,
             {inQueue ? (
               <button className="dp-learn-today-btn" onClick={() => onStartLearn?.(verse)}>learn today</button>
             ) : isActive ? (
-              <button className="dp-circle-btn dp-btn-info" onClick={() => onVerseDetails?.(verse)} title="Verse details">?</button>
+              <button className="dp-circle-btn dp-btn-info" onClick={() => onVerseDetails?.(verse)} title="Verse details"><Icon name="info" size={16} /></button>
             ) : (
-              <button className="dp-circle-btn dp-btn-add" onClick={() => onLearnToday(verse)} title="Learn today">+</button>
+              <button className="dp-circle-btn dp-btn-add" onClick={() => onLearnToday(verse)} title="Learn today"><Icon name="add" size={16} /></button>
             )}
-            <button className="dp-circle-btn dp-btn-del" onClick={() => setExpanded(true)} title="Remove options">✕</button>
+            <button className="dp-circle-btn dp-btn-del" onClick={() => setExpanded(true)} title="Remove options"><Icon name="close" size={16} /></button>
           </div>
         )}
       </div>
@@ -182,7 +183,7 @@ export default function VerseDeckPanel({
                   <div className="panel-divider" style={{ margin: '12px 0' }} />
                   <div className="deck-mirror-hdr" onClick={() => setMirrorOpen(o => !o)}>
                     <span className="deck-mirror-title">Copy deck to other profiles</span>
-                    <span className="deck-mirror-chevron">{mirrorOpen ? '▲' : '▼'}</span>
+                    <span className="deck-mirror-chevron">{mirrorOpen ? <Icon name="up" size={14} /> : <Icon name="down" size={14} />}</span>
                   </div>
                   {mirrorOpen && (
                     <div className="deck-mirror-body">
@@ -190,12 +191,12 @@ export default function VerseDeckPanel({
                       {otherUsers.map(u => (
                         <label key={u.id} className="deck-mirror-row">
                           <input type="checkbox" checked={mirrorIds.includes(u.id)} onChange={() => toggleMirrorId(u.id)} />
-                          <span className="deck-mirror-avatar" style={{ background: u.colour || '#888' }}>{u.name[0].toUpperCase()}</span>
+                          <span className="deck-mirror-avatar" style={{ background: u.colour || 'var(--color-text-muted)' }}>{u.name[0].toUpperCase()}</span>
                           <span className="deck-mirror-name">{u.name}</span>
                         </label>
                       ))}
                       {mirrorDone
-                        ? <div className="deck-mirror-done">✓ Copied!</div>
+                        ? <div className="deck-mirror-done"><Icon name="check" size={16} /> Copied!</div>
                         : <button className="btn btn-ok deck-mirror-btn" onClick={handleMirror} disabled={mirrorIds.length === 0}>Copy deck</button>
                       }
                     </div>

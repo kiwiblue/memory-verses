@@ -1,7 +1,9 @@
+import Icon from './Icon.jsx';
+
 export default function QueueComplete({ stats, onBrowse, onRestart, onLearnNewVerse }) {
   return (
     <div className="queue-complete">
-      <div className="qc-icon">✓</div>
+      <div className="qc-icon"><Icon name="check" size={28} /></div>
       <div className="qc-title">Today's session complete</div>
       <div className="qc-sub">Come back tomorrow for your next review.</div>
       <div className="qc-stats">

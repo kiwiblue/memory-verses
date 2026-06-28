@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import Icon from '../Icon.jsx';
 import { logEvent } from '../../data/telemetry.js';
 
 function parseTokens(text) {
@@ -343,13 +344,13 @@ export default function TypeExercise({ verse, version = 'kjv', difficulty = 'eas
 
       {done && (
         <div className="fill-done" style={{ marginTop: 20 }}>
-          <span className="fill-done-icon">✓</span>
+          <span className="fill-done-icon"><Icon name="check" size={28} /></span>
           <span className="fill-done-msg">{result?.errors === 0 ? 'Perfect!' : 'Well done!'}</span>
         </div>
       )}
 
       {onSkip && !done && (
-        <button className="ex-skip-btn" onClick={onSkip}>Skip ›</button>
+        <button className="ex-skip-btn" onClick={onSkip}>Skip <Icon name="forward" size={18} /></button>
       )}
     </div>
   );

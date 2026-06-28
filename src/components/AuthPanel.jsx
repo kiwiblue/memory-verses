@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { registerAccount, loginAccount, logoutAccount, pushSync } from '../data/syncService.js';
+import { registerAccount, loginAccount, logoutAccount } from '../data/syncService.js';
 import { saveAuth, clearAuth } from '../data/auth.js';
 import { saveUsers, saveCurrentUserId } from '../data/users.js';
 import { saveProgress } from '../data/progress.js';
@@ -39,7 +39,6 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
   const [busy, setBusy]         = useState(false);
   const [error, setError]       = useState('');
   const [success, setSuccess]   = useState('');
-  const [pendingLogin, setPendingLogin] = useState(null); // { data, cloudUsers, localOnly }
 
   function reset(nextView = 'idle') {
     setEmail(''); setPassword(''); setConfirm('');
@@ -68,36 +67,24 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
   }
 
   // ── Login ───────────────────────────────────────────────────────────────
+  // Logging in always switches to the account's own (cloud) profiles. The
+  // current local guest profile is discarded — to keep the current profile,
+  // the user should "Create an account" (register) instead.
   async function handleLogin() {
     await run(async () => {
       const data = await loginAccount(email.trim(), password);
       const cloudUsers = (data.profiles || []).map(p => JSON.parse(p.profile_json));
-      const cloudIds = new Set(cloudUsers.map(u => u.id));
-      const localOnly = users.filter(u => !cloudIds.has(u.id));
-
-      if (localOnly.length > 0) {
-        // Pause and ask user what to do with their local profiles
-        setPendingLogin({ data, cloudUsers, localOnly });
-        setView('merge-choice');
-      } else {
-        await applyLogin(data, cloudUsers, []);
-      }
+      saveAuth(data);
+      saveUsers(cloudUsers);
+      saveCurrentUserId(cloudUsers[0]?.id);
+      (data.profiles || []).forEach(p => {
+        try { saveProgress(p.id, JSON.parse(p.progress_json)); } catch {}
+        try { saveVerseTranslations(p.id, JSON.parse(p.trans_json)); } catch {}
+      });
+      onUsersChange(cloudUsers, cloudUsers[0]);
+      onAuthChange(data);
+      reset();
     });
-  }
-
-  async function applyLogin(data, cloudUsers, localOnly) {
-    saveAuth(data);
-    const finalUsers = [...cloudUsers, ...localOnly];
-    saveUsers(finalUsers);
-    saveCurrentUserId(cloudUsers[0]?.id || finalUsers[0].id);
-    (data.profiles || []).forEach(p => {
-      try { saveProgress(p.id, JSON.parse(p.progress_json)); } catch {}
-      try { saveVerseTranslations(p.id, JSON.parse(p.trans_json)); } catch {}
-    });
-    onUsersChange(finalUsers, cloudUsers[0] || finalUsers[0]);
-    await pushSync(data.token, finalUsers).catch(() => {});
-    onAuthChange(data);
-    reset();
   }
 
   // ── Logout ──────────────────────────────────────────────────────────────
@@ -305,41 +292,6 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
       </div>
     </div>
   );
-
-  if (view === 'merge-choice' && pendingLogin) {
-    const { data, cloudUsers, localOnly } = pendingLogin;
-    return (
-      <div className="auth-panel">
-        <div className="auth-form-title">Import local profiles?</div>
-        <div className="auth-form-note">
-          You have {localOnly.length} local profile{localOnly.length > 1 ? 's' : ''} ({localOnly.map(u => u.name).join(', ')}) not in your cloud account.
-        </div>
-        {error && <div className="auth-error">{error}</div>}
-        <div className="merge-options">
-          <button className="merge-btn" onClick={async () => {
-            setBusy(true);
-            await applyLogin(data, cloudUsers, localOnly);
-            setBusy(false);
-          }} disabled={busy}>
-            <span className="merge-btn-title">Import</span>
-            <span className="merge-btn-desc">Add my local profiles to my cloud account</span>
-          </button>
-          <button className="merge-btn" onClick={async () => {
-            setBusy(true);
-            await applyLogin(data, cloudUsers, []);
-            setBusy(false);
-          }} disabled={busy}>
-            <span className="merge-btn-title">Discard</span>
-            <span className="merge-btn-desc">Use only my cloud profiles, remove local ones</span>
-          </button>
-        </div>
-        <span className="auth-link" style={{ display: 'block', textAlign: 'center', marginTop: 8, fontSize: 12 }}
-          onClick={() => { setPendingLogin(null); reset('login'); }}>
-          Cancel
-        </span>
-      </div>
-    );
-  }
 
   // Idle — not signed in
   return (

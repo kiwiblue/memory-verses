@@ -1,4 +1,5 @@
 import { APP_VERSION } from '../data/version.js';
+import Icon from './Icon.jsx';
 
 // Simple informational modal for the drawer's "About" and "Support" items.
 // NOTE: copy below is placeholder starter content — replace with the ministry's
@@ -48,7 +49,7 @@ export default function InfoModal({ kind, onClose }) {
   return (
     <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal-box info-modal">
-        <button className="modal-close-btn" onClick={onClose} aria-label="Close">✕</button>
+        <button className="modal-close-btn" onClick={onClose} aria-label="Close"><Icon name="close" size={16} /></button>
         <h2 className="info-modal-title">{content.title}</h2>
         <div className="info-modal-body">{content.body}</div>
         <button className="ob-btn-primary" onClick={onClose}>Close</button>

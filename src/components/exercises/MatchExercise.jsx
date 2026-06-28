@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
+import Icon from '../Icon.jsx';
 import { logEvent } from '../../data/telemetry.js';
 import { parseRef, toDisplayRef } from '../../api/bibleRef.js';
 
@@ -197,7 +198,7 @@ function DragMatch({ verses, version = 'kjv', onComplete, onSkip }) {
       {!checked && (
         <div className="ex-actions-row">
           <button className="type-hint-btn" onClick={handleHint} disabled={correct.every(c => c)}>Hint</button>
-          {onSkip && <button className="ex-skip-btn" onClick={onSkip}>Skip ›</button>}
+          {onSkip && <button className="ex-skip-btn" onClick={onSkip}>Skip <Icon name="forward" size={18} /></button>}
         </div>
       )}
     </div>
@@ -331,7 +332,7 @@ function TypeMatch({ verses, version = 'kjv', onComplete, onSkip }) {
       )}
       {onSkip && !allPassed && (
         <div className="ex-actions-row">
-          <button className="ex-skip-btn" onClick={onSkip}>Skip ›</button>
+          <button className="ex-skip-btn" onClick={onSkip}>Skip <Icon name="forward" size={18} /></button>
         </div>
       )}
     </div>
@@ -371,7 +372,7 @@ export default function MatchExercise({ verses: allVerses, version = 'kjv', diff
 
       {done ? (
         <div className="fill-done">
-          <span className="fill-done-icon">✓</span>
+          <span className="fill-done-icon"><Icon name="check" size={28} /></span>
           <span className="fill-done-msg">{result?.errors === 0 ? 'Perfect!' : 'Well done!'}</span>
         </div>
       ) : difficulty === 'hard' ? (

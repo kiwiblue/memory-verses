@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { APP_VERSION } from '../data/version.js';
 import { avatarStyle } from '../data/avatarStyle.js';
+import Icon from './Icon.jsx';
 
 const SECTIONS = [
   {
@@ -55,7 +56,9 @@ export default function Drawer({ open, onClose, theme, onToggleTheme, auth, curr
 
   function label(id) {
     if (id === 'auth')  return auth ? 'Log Out' : 'Log In';
-    if (id === 'theme') return theme === 'light' ? '🌙  Dark mode' : '☀️  Light mode';
+    if (id === 'theme') return theme === 'light'
+      ? <><Icon name="moon" size={18} /> Dark mode</>
+      : <><Icon name="sun" size={18} /> Light mode</>;
     return SECTIONS.flatMap(s => s.items).find(i => i.id === id)?.label ?? id;
   }
 
@@ -71,7 +74,7 @@ export default function Drawer({ open, onClose, theme, onToggleTheme, auth, curr
       {/* Panel */}
       <nav className={`drawer${open ? ' drawer-open' : ''}`} aria-label="Main menu">
         <div className="drawer-header">
-          <button className="drawer-back" onClick={onClose} aria-label="Close menu">‹</button>
+          <button className="drawer-back" onClick={onClose} aria-label="Close menu"><Icon name="back" size={26} /></button>
           <span className="drawer-title">Settings</span>
           {currentUser && (
             <div

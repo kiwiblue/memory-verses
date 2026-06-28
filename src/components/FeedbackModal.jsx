@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { loadAuth } from '../data/auth.js';
+import Icon from './Icon.jsx';
 
 const TYPES = [
   { value: 'bug',     label: 'Bug report' },
@@ -32,11 +33,11 @@ export default function FeedbackModal({ onClose }) {
   return (
     <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal-box feedback-modal">
-        <button className="modal-close-btn" onClick={onClose} aria-label="Close">✕</button>
+        <button className="modal-close-btn" onClick={onClose} aria-label="Close"><Icon name="close" size={16} /></button>
 
         {status === 'done' ? (
           <div className="feedback-done">
-            <div className="feedback-done-icon">✓</div>
+            <div className="feedback-done-icon"><Icon name="check" size={28} /></div>
             <div className="feedback-done-title">Thanks for your feedback!</div>
             <p className="feedback-done-sub">We read every submission and use it to improve Memory.bible.</p>
             <button className="ob-btn-primary" onClick={onClose}>Close</button>

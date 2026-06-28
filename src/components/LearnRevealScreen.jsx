@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import OverlayHeader from './OverlayHeader.jsx';
+import Icon from './Icon.jsx';
 
 function splitChunks(text) {
   if (!text) return [];
@@ -68,7 +69,7 @@ export default function LearnRevealScreen({
             </button>
             <div className="lr-actions lr-actions-sticky">
               <button className="ob-btn-primary lr-done-btn" onClick={onComplete}>
-                Done — I know it ✓
+                Done — I know it <Icon name="check" size={16} />
               </button>
             </div>
           </div>

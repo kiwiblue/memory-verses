@@ -42,6 +42,8 @@ import AdminPanel from './components/AdminPanel.jsx';
 import FeedbackModal from './components/FeedbackModal.jsx';
 import InfoModal from './components/InfoModal.jsx';
 import OverlayHeader from './components/OverlayHeader.jsx';
+import Icon from './components/Icon.jsx';
+import StyleGuide from './components/StyleGuide.jsx';
 
 const ATTRIBUTION = {
   esv:  'ESV® © 2001 Crossway. All rights reserved.',
@@ -617,6 +619,9 @@ export default function App() {
   // Admin route
   if (new URLSearchParams(window.location.search).has('admin')) return <AdminPanel />;
 
+  // Style guide route (hidden) — ?styleguide
+  if (new URLSearchParams(window.location.search).has('styleguide')) return <StyleGuide />;
+
   // DEV: test exercises via ?fill=easy|moderate|hard or ?type=easy|moderate|hard
   if (import.meta.env.DEV) {
     const params = new URLSearchParams(window.location.search);
@@ -802,7 +807,6 @@ export default function App() {
           version={version}
           verseTranslations={verseTranslations}
           onVerseTranslationChange={handleVerseTranslationChange}
-          onFlipCard={() => setLearnRevealVerse(verseScreenVerse)}
           onSelectWord={() => setExercise({ verse: verseScreenVerse, kind: 'select' })}
           onTypeVerse={() => setExercise({ verse: verseScreenVerse, kind: 'type' })}
           onMatchRef={() => setExercise({ verse: verseScreenVerse, kind: 'match' })}
@@ -895,7 +899,7 @@ export default function App() {
           <span className="bracket-reminder-link" onClick={() => setShowBracketReminder(false)}>
             Update in profile
           </span>
-          <button className="bracket-reminder-close" onClick={() => setShowBracketReminder(false)}>✕</button>
+          <button className="bracket-reminder-close" onClick={() => setShowBracketReminder(false)}><Icon name="close" size={14} /></button>
         </div>
       )}
 

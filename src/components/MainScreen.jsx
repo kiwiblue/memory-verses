@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import FlipCard from './FlipCard.jsx';
+import Icon from './Icon.jsx';
 
 // Sort active verses by next_review ascending (most overdue first)
 function sortedActiveVerses(verses, progress) {
@@ -60,7 +61,7 @@ export default function MainScreen({
       {/* ── Flip card + nav ─────────────────────────────────────────────── */}
       {isEmpty ? (
         <div className="main-empty-card">
-          <div className="main-empty-icon">📖</div>
+          <div className="main-empty-icon"><Icon name="book" size={18} /></div>
           <div className="main-empty-text">Add a verse to get started</div>
         </div>
       ) : (
@@ -95,7 +96,7 @@ export default function MainScreen({
                   className="main-nav-arrow"
                   onClick={() => navigate(-1)}
                   disabled={clampedIdx === 0}
-                >‹</button>
+                ><Icon name="back" size={26} /></button>
                 <span className="main-nav-pos">
                   {clampedIdx + 1}/{displayVerses.length}
                 </span>
@@ -103,7 +104,7 @@ export default function MainScreen({
                   className="main-nav-arrow"
                   onClick={() => navigate(1)}
                   disabled={clampedIdx >= displayVerses.length - 1}
-                >›</button>
+                ><Icon name="forward" size={18} /></button>
               </div>
             )}
           </div>
@@ -134,14 +135,14 @@ export default function MainScreen({
       {/* ── Bottom row: streak + FAB ─────────────────────────────────────── */}
       <div className="main-bottom-row">
         <div className="main-streak">
-          <span className="main-streak-icon">🔥</span>
+          <span className="main-streak-icon"><Icon name="streak" size={18} /></span>
           <span className="main-streak-text">
             Streak: <strong>{streak}</strong> {streak === 1 ? 'day' : 'days'}
           </span>
         </div>
 
         <button className="main-fab" onClick={onAddVerse} aria-label="Add verse">
-          +
+          <Icon name="add" size={16} />
         </button>
       </div>
     </div>

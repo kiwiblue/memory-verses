@@ -9,6 +9,7 @@ import {
   computeHintScore,
   computeNextSkillLevel,
 } from '../data/spacedRepetition.js';
+import Icon from './Icon.jsx';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -244,7 +245,7 @@ export default function RevisePanel({
     return (
       <div className="revise-panel">
         <div className="revise-empty">
-          <div className="revise-empty-icon">📖</div>
+          <div className="revise-empty-icon"><Icon name="book" size={18} /></div>
           <div className="revise-empty-title">Nothing to revise yet</div>
           <div className="revise-empty-sub">
             Complete a Learn session first — verses you've started will appear here.
@@ -260,7 +261,7 @@ export default function RevisePanel({
     return (
       <div className="revise-panel">
         <div className="revise-done">
-          <div className="revise-done-icon">🎉</div>
+          <div className="revise-done-icon"><Icon name="celebrate" size={28} /></div>
           <h2 className="revise-done-title">Revision complete!</h2>
           <p className="revise-done-sub">You reviewed {completedCount} verse{completedCount !== 1 ? 's' : ''}.</p>
           <div className="revise-done-actions">

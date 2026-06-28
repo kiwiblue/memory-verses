@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import Icon from '../Icon.jsx';
 import { logEvent } from '../../data/telemetry.js';
 
 function parseTokens(text) {
@@ -157,7 +158,7 @@ export default function FillExercise({ verse, version = 'kjv', difficulty = 'eas
 
       {done && (
         <div className="fill-done">
-          <span className="fill-done-icon">✓</span>
+          <span className="fill-done-icon"><Icon name="check" size={28} /></span>
           <span className="fill-done-msg">{errors === 0 ? 'Perfect!' : 'Well done!'}</span>
         </div>
       )}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import FlipCard from './FlipCard.jsx';
 import FillExercise from './exercises/FillExercise.jsx';
 import TypeExercise from './exercises/TypeExercise.jsx';
+import Icon from './Icon.jsx';
 
 // step: 'card' | 'fill' | 'type' | 'checkup'
 
@@ -82,7 +83,7 @@ export default function LearnPanel({
                 }}
                 onBlur={() => setRemoveArmed(false)}
               >
-                {removeArmed ? 'Delete' : '✕'}
+                {removeArmed ? 'Delete' : <Icon name="close" size={16} />}
               </button>
             )}
           </div>
@@ -131,7 +132,7 @@ export default function LearnPanel({
   // ── Check-up ──────────────────────────────────────────────────────────────
   return (
     <div className="learn-panel learn-checkup">
-      <div className="learn-checkup-icon">🎉</div>
+      <div className="learn-checkup-icon"><Icon name="celebrate" size={28} /></div>
       <h2 className="learn-checkup-title">How did you go?</h2>
       <p className="learn-checkup-sub">
         If it felt shaky, run through the exercises again.<br />

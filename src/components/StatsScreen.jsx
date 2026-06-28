@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { loadStreak } from '../data/streak.js';
 import OverlayHeader from './OverlayHeader.jsx';
+import Icon from './Icon.jsx';
 
 const OT_BOOKS = [
   { f: 'Genesis', a: 'Gen' }, { f: 'Exodus', a: 'Exo' }, { f: 'Leviticus', a: 'Lev' },
@@ -109,26 +110,26 @@ export default function StatsScreen({ verses, progress, currentUser, users, stre
 
         {ranking != null && (
           <div className="stats-row">
-            <span className="stats-row-icon">🏆</span>
+            <span className="stats-row-icon"><Icon name="ranking" size={18} /></span>
             <span className="stats-row-label">Ranking</span>
             <span className="stats-row-value">#{ranking}{rankingCount > 1 ? ` of ${rankingCount}` : ''}</span>
           </div>
         )}
 
         <div className="stats-row">
-          <span className="stats-row-icon">🔥</span>
+          <span className="stats-row-icon"><Icon name="streak" size={18} /></span>
           <span className="stats-row-label">Streak</span>
           <span className="stats-row-value">{streak} day{streak !== 1 ? 's' : ''}</span>
         </div>
 
         <div className="stats-row">
-          <span className="stats-row-icon">📅</span>
+          <span className="stats-row-icon"><Icon name="calendar" size={18} /></span>
           <span className="stats-row-label">Practice Rate</span>
           <span className="stats-row-value">{rate}/10 days</span>
         </div>
 
         <div className="stats-row">
-          <span className="stats-row-icon">📖</span>
+          <span className="stats-row-icon"><Icon name="book" size={18} /></span>
           <span className="stats-row-label">Total Verses</span>
           <span className="stats-row-value">{activeVerses.length}</span>
         </div>

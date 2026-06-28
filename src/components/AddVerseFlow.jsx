@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { fetchVerse } from '../api/bible.js';
+import Icon from './Icon.jsx';
 import OverlayHeader from './OverlayHeader.jsx';
 import { VERSES } from '../data/verses.js';
 import { COLLECTIONS, POPULAR_VERSE_IDS } from '../data/collections.js';
@@ -37,7 +38,7 @@ function VerseRow({ verse, preferredVersion, allVerses, addedIds, onAdd, onLearn
         <span className="av-badge-added">Added</span>
       ) : (
         <div className="av-verse-btns">
-          <button className="av-plus-btn" onClick={() => onAdd(verse)} title="Add to deck">+</button>
+          <button className="av-plus-btn" onClick={() => onAdd(verse)} title="Add to deck"><Icon name="add" size={16} /></button>
           {onLearn && (
             <button className="av-learn-row-btn" onClick={() => onLearn(verse)}>Learn</button>
           )}
@@ -222,7 +223,7 @@ function CollectionDetailView({ collection, allVerses, preferredVersion, onAddDe
         onClick={handleAddAll}
         disabled={allInDeck || allAdded}
       >
-        {allInDeck || allAdded ? '✓ All in deck' : '+Add whole collection'}
+        {allInDeck || allAdded ? <><Icon name="check" size={16} /> All in deck</> : '+Add whole collection'}
       </button>
 
       <div className="av-verse-list">

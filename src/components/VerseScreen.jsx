@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getSkillLevel } from '../data/spacedRepetition.js';
 import OverlayHeader from './OverlayHeader.jsx';
+import FlipCard from './FlipCard.jsx';
+import Icon from './Icon.jsx';
 
 const SKILL_FILL = { easy: 1 / 3, moderate: 2 / 3, hard: 1 };
 
@@ -43,7 +45,6 @@ export default function VerseScreen({
   verseTranslations,
   onVerseTranslationChange,
   // exercise launchers
-  onFlipCard,
   onTypeVerse,
   onSelectWord,
   onMatchRef,
@@ -58,6 +59,11 @@ export default function VerseScreen({
   onClose,
 }) {
   const [confirmAction, setConfirmAction] = useState(null); // 'reset' | 'delete'
+  const [view, setView] = useState('menu'); // 'menu' | 'card' (Flip Card [18])
+  const [flipped, setFlipped] = useState(false);
+
+  // Reset to the menu whenever a different verse is opened
+  useEffect(() => { setView('menu'); setFlipped(false); setConfirmAction(null); }, [verse?.id]);
 
   if (!verse) return null;
 
@@ -84,7 +90,7 @@ export default function VerseScreen({
   return (
     <div className="vs-overlay">
       <div className="vs-panel">
-        <OverlayHeader onBack={onClose} user={user} />
+        <OverlayHeader onBack={view === 'card' ? () => setView('menu') : onClose} user={user} />
       </div>
 
       <div className="vs-sheet">
@@ -93,7 +99,7 @@ export default function VerseScreen({
           <div className="vs-meta-row">
             <div className="vs-rings">
               <Ring fill={freshness} label="Fresh" color="var(--color-brand)" />
-              <Ring fill={masteryFill} label="Mastery" color="#f59e0b" />
+              <Ring fill={masteryFill} label="Mastery" color="var(--color-mastery)" />
             </div>
             <select
               className="vs-version-select"
@@ -106,16 +112,31 @@ export default function VerseScreen({
             </select>
           </div>
 
-          <div className="vs-ref-row">
-            <div className="vs-ref-text">{verse.reference}</div>
-          </div>
+          {view === 'card' ? (
+            <FlipCard
+              verse={verse}
+              version={activeVersion}
+              defaultVersion={version}
+              verseTranslations={verseTranslations}
+              isFlipped={flipped}
+              mode="learn"
+              onFlip={() => setFlipped(f => !f)}
+              onVerseTranslationChange={onVerseTranslationChange}
+            />
+          ) : (
+            <>
+              <div className="vs-ref-row">
+                <div className="vs-ref-text">{verse.reference}</div>
+              </div>
 
-          <div className="vs-exercises">
-            <button className="vs-ex-btn" onClick={onFlipCard}>Flip Card</button>
-            <button className="vs-ex-btn" onClick={onTypeVerse} disabled={!isActive}>Type the verse</button>
-            <button className="vs-ex-btn" onClick={onSelectWord} disabled={!isActive}>Select the word</button>
-            <button className="vs-ex-btn" onClick={onMatchRef} disabled={!isActive}>Match the reference</button>
-          </div>
+              <div className="vs-exercises">
+                <button className="vs-ex-btn" onClick={() => { setFlipped(false); setView('card'); }}>Flip Card</button>
+                <button className="vs-ex-btn" onClick={onTypeVerse} disabled={!isActive}>Type the verse</button>
+                <button className="vs-ex-btn" onClick={onSelectWord} disabled={!isActive}>Select the word</button>
+                <button className="vs-ex-btn" onClick={onMatchRef} disabled={!isActive}>Match the reference</button>
+              </div>
+            </>
+          )}
 
           <div className="vs-flex-grow" />
 
@@ -135,7 +156,7 @@ export default function VerseScreen({
               onClick={() => onToggleStar?.(verse)}
               aria-label={starred ? 'Remove star' : 'Add star'}
             >
-              {starred ? '★ Starred' : '☆ Star'}
+              <><Icon name="star" size={16} weight={starred ? 'fill' : 'regular'} /> {starred ? 'Starred' : 'Star'}</>
             </button>
             <button
               className={`vs-action-btn${confirmAction === 'reset' ? ' vs-confirm' : ''}`}
