@@ -47,7 +47,7 @@ export default function LearnPanel({
         <div className={wobble ? 'card-wobble-wrap' : ''}>
           <FlipCard
             verse={verse}
-            version={version}
+            version={verseTranslations[verse.id] || version}
             defaultVersion={defaultVersion}
             verseTranslations={verseTranslations}
             isFlipped={isFlipped}

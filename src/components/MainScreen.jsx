@@ -52,14 +52,17 @@ export default function MainScreen({
   const isEmpty      = displayVerses.length === 0;
   const isPreview    = activeVerses.length === 0 && !!nextUnseen;
 
-  // Fetch the displayed card's translation if it isn't cached yet. The card
-  // always renders the user's default `version`, and the user can navigate
-  // between cards here, so we can't rely on the parent's active-verse fetch.
+  // The card shows the per-verse translation override if set, else the default.
+  const cardVersion = currentVerse ? (verseTranslations[currentVerse.id] || version) : version;
+
+  // Fetch the displayed card's translation if it isn't cached yet. The user can
+  // navigate between cards and switch translation here, so we can't rely on the
+  // parent's active-verse fetch.
   useEffect(() => {
-    if (currentVerse && version && !currentVerse[version]) {
-      onEnsureTranslation?.(currentVerse.reference, version);
+    if (currentVerse && cardVersion && !currentVerse[cardVersion]) {
+      onEnsureTranslation?.(currentVerse.reference, cardVersion);
     }
-  }, [currentVerse, version, onEnsureTranslation]);
+  }, [currentVerse, cardVersion, onEnsureTranslation]);
 
   function navigate(dir) {
     setIsFlipped(false);
@@ -83,7 +86,7 @@ export default function MainScreen({
             )}
             <FlipCard
               verse={currentVerse}
-              version={version}
+              version={cardVersion}
               defaultVersion={defaultVersion}
               verseTranslations={verseTranslations}
               isFlipped={isFlipped}

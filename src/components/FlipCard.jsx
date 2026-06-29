@@ -14,7 +14,7 @@ export default function FlipCard({ verse, version, defaultVersion, verseTranslat
   const frontLabel = mode === 'revise' ? 'Recall the verse for…' : 'Reference';
   const showHint = mode === 'learn';
   const isOverride = version !== defaultVersion;
-  const showPicker = mode === 'learn' || mode === 'revise';
+  const showPicker = true;  // translation selector available on every flip card
 
   useEffect(() => {
     const el = backRef.current;
