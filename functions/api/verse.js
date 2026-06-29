@@ -1,9 +1,15 @@
-// Normalise common book name variants to match D1 storage
+// Normalise common book name variants to match D1 storage.
+// D1 stores numbered books with Roman-numeral prefixes ("I John", "II
+// Corinthians") and Revelation as "Revelation of John", so map the app's
+// canonical Arabic-numeral references onto those forms before querying.
 function normaliseBook(ref) {
   return ref
     .replace(/^Psalm\s+/i, 'Psalms ')
     .replace(/^Song of Solomon\s+/i, 'Song of Songs ')
-    .replace(/^Revelations\s+/i, 'Revelation ');
+    .replace(/^Revelations?\s+/i, 'Revelation of John ')
+    .replace(/^3\s+/, 'III ')
+    .replace(/^2\s+/, 'II ')
+    .replace(/^1\s+/, 'I ');
 }
 
 // Expand "Book Chapter:start-end" into individual verse references
