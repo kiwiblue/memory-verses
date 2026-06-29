@@ -233,6 +233,16 @@ export default function App() {
     ? (dailyQueue[queueIndex] ?? null)
     : (reviseVerses[browseIndex] || reviseVerses[0] || null);
 
+  // Overlays (verse detail, learn-reveal, exercise) store a snapshot of the verse
+  // they opened with. Re-resolve it against allVerses each render so freshly
+  // fetched translation text shows up instead of being stuck on a stale object.
+  const liveVerse = useCallback((snap) =>
+    snap ? (allVerses.find(v => String(v.id) === String(snap.id)) || snap) : null,
+    [allVerses]);
+  const verseScreenVerseLive = useMemo(() => liveVerse(verseScreenVerse), [liveVerse, verseScreenVerse]);
+  const learnRevealVerseLive = useMemo(() => liveVerse(learnRevealVerse), [liveVerse, learnRevealVerse]);
+  const exerciseVerseLive    = useMemo(() => liveVerse(exercise?.verse),  [liveVerse, exercise]);
+
   const stats = useMemo(() =>
     progressStats(allVerses, progress, currentUser.bracket || 'adult'),
     [allVerses, progress, currentUser.bracket]
@@ -296,22 +306,36 @@ export default function App() {
     }
   }, [progress, currentUser]);
 
-  // Fetch the active translation for the active verse when not yet cached.
-  // Only the translation actually being shown is fetched (not all six) — this
-  // keeps external API usage minimal so we don't exhaust the api.bible quota.
-  useEffect(() => {
-    if (!verse) return;
-    const activeVersion = verseTranslations[verse.id] || version;
-    if (verse[activeVersion]) return;
-    fetchTranslation(verse.reference, activeVersion).then(text => {
+  // Fetch a single translation for a verse and merge it into the cache.
+  // Only the translation actually being shown is fetched (never all six), so
+  // external API usage stays minimal and we don't exhaust the api.bible quota.
+  const ensureTranslation = useCallback((reference, ver) => {
+    fetchTranslation(reference, ver).then(text => {
       if (!text) return;
       setVerseCache(prev => {
-        const updated = mergeVerseIntoCache(prev, { reference: verse.reference, [activeVersion]: text });
+        const updated = mergeVerseIntoCache(prev, { reference, [ver]: text });
         saveVerseCache(updated);
         return updated;
       });
     }).catch(() => {});
-  }, [verse?.reference, verse ? (verseTranslations[verse.id] || version) : null]);
+  }, []);
+
+  // Fetch the active translation for every verse currently on screen (the main
+  // card AND any open overlay — verse detail, learn-reveal, exercise) when its
+  // text isn't cached yet. Without this, overlays show "Loading…" forever.
+  useEffect(() => {
+    const displayed = [verse, verseScreenVerseLive, learnRevealVerseLive, exerciseVerseLive];
+    const seen = new Set();
+    for (const v of displayed) {
+      if (!v) continue;
+      const ver = verseTranslations[v.id] || version;
+      if (v[ver]) continue;
+      const key = `${v.reference}|${ver}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      ensureTranslation(v.reference, ver);
+    }
+  }, [verse, verseScreenVerseLive, learnRevealVerseLive, exerciseVerseLive, verseTranslations, version, ensureTranslation]);
 
   // Debounced cloud sync — fires 10s after any progress change, if signed in
   const scheduleSync = useCallback((currentAuth, currentUsers) => {
@@ -768,7 +792,7 @@ export default function App() {
 
       {learnRevealVerse && (
         <LearnRevealScreen
-          verse={learnRevealVerse}
+          verse={learnRevealVerseLive}
           version={verseTranslations[learnRevealVerse.id] || version}
           user={currentUser}
           onComplete={() => {
@@ -790,7 +814,7 @@ export default function App() {
       )}
 
       {exercise && (() => {
-        const exVerse = exercise.verse;
+        const exVerse = exerciseVerseLive;
         const exVersion = verseTranslations[exVerse.id] || version;
         const exDifficulty = progress[exVerse.id]?.skill_level || 'easy';
         return (
@@ -848,7 +872,7 @@ export default function App() {
 
       {verseScreenVerse && (
         <VerseScreen
-          verse={verseScreenVerse}
+          verse={verseScreenVerseLive}
           user={currentUser}
           progress={progress}
           version={version}
