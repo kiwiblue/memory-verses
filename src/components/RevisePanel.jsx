@@ -221,11 +221,12 @@ export default function RevisePanel({
   // Fetch the browse card's translation if not cached. The browse card has its
   // own navigation index, independent of the parent's active-verse fetch.
   const browseVerseForFetch = reviseVerses[Math.min(browseIdx, Math.max(0, reviseVerses.length - 1))];
+  const browseVersion = browseVerseForFetch ? (verseTranslations[browseVerseForFetch.id] || version) : version;
   useEffect(() => {
-    if (panelMode === 'browse' && browseVerseForFetch && version && !browseVerseForFetch[version]) {
-      onEnsureTranslation?.(browseVerseForFetch.reference, version);
+    if (panelMode === 'browse' && browseVerseForFetch && browseVersion && !browseVerseForFetch[browseVersion]) {
+      onEnsureTranslation?.(browseVerseForFetch.reference, browseVersion);
     }
-  }, [panelMode, browseVerseForFetch, version, onEnsureTranslation]);
+  }, [panelMode, browseVerseForFetch, browseVersion, onEnsureTranslation]);
 
   const todayQueue = useMemo(
     () => buildReviseQueue(verses, progress, currentUser.bracket || 'adult', 5),
@@ -328,7 +329,7 @@ export default function RevisePanel({
     <div className="revise-panel">
       <FlipCard
         verse={browseVerse}
-        version={version}
+        version={verseTranslations[browseVerse.id] || version}
         defaultVersion={defaultVersion}
         verseTranslations={verseTranslations}
         isFlipped={isFlipped}

@@ -1020,10 +1020,13 @@ export default function App() {
           autoStart={reviseAutoStart}
           onAutoStartConsumed={() => setReviseAutoStart(false)}
           onVerseTranslationChange={handleVerseTranslationChange}
-          onMark={(v, score) => {
+          onMark={(v, newLevel, hintScore) => {
+            // ExerciseFlow passes the computed skill level + hint score, so use
+            // recordReviseAttempt (not the legacy numeric recordAttempt) to keep
+            // skill_level and next_review correct.
             setProgress(prev => ({
               ...prev,
-              [v.id]: recordAttempt(getEntry(prev, v.id), score),
+              [v.id]: recordReviseAttempt(getEntry(prev, v.id), newLevel, hintScore),
             }));
             handleTouchStreak();
           }}
