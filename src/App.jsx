@@ -4,7 +4,7 @@ import './App.css';
 import { VERSES } from './data/verses.js';
 import { loadUsers, saveUsers, loadCurrentUserId, saveCurrentUserId, loadVerseTranslations, saveVerseTranslations } from './data/users.js';
 import { loadAuth, saveAuth, clearAuth } from './data/auth.js';
-import { pushSync } from './data/syncService.js';
+import { pushSync, pullSync, deleteCloudProfile } from './data/syncService.js';
 import { loadProgress, saveProgress, getEntry } from './data/progress.js';
 import { recordAttempt, startRevising, recordReviseAttempt, buildDailyQueue, progressStats, computeHintScore, computeNextSkillLevel, getSkillLevel } from './data/spacedRepetition.js';
 import { loadCustomVerses, addCustomVerse, removeCustomVerse, saveCustomVerses } from './data/customVerses.js';
@@ -267,6 +267,26 @@ export default function App() {
     if (!onboarded) return;
     logEvent('session_start', { bracket: currentUser.bracket || 'adult', registered: !!auth?.token });
   }, [onboarded]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Pull cloud profiles on startup so devices stay in sync
+  useEffect(() => {
+    if (!auth?.token) return;
+    pullSync(auth.token).then(data => {
+      const cloudUsers = (data.profiles || []).map(p => JSON.parse(p.profile_json));
+      if (cloudUsers.length === 0) return;
+      saveUsers(cloudUsers);
+      saveCurrentUserId(cloudUsers[0].id);
+      data.profiles.forEach(p => {
+        try { saveProgress(p.id, JSON.parse(p.progress_json)); } catch {}
+        try { saveVerseTranslations(p.id, JSON.parse(p.trans_json)); } catch {}
+        try { saveCustomVerses(p.id, JSON.parse(p.custom_json)); } catch {}
+        try { saveHiddenVerseIds(p.id, new Set(JSON.parse(p.hidden_json))); } catch {}
+      });
+      setUsers(cloudUsers);
+      const restoredUser = cloudUsers.find(u => u.id === currentUser.id) || cloudUsers[0];
+      handleUserChange(restoredUser);
+    }).catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Persist progress whenever it changes, then schedule a cloud sync
   useEffect(() => {
@@ -730,6 +750,9 @@ export default function App() {
           onDelete={(remaining) => {
             setUsers(remaining);
             if (profileUser.id === currentUser.id && remaining.length > 0) handleUserChange(remaining[0]);
+            if (auth?.token) {
+              deleteCloudProfile(auth.token, profileUser.id).catch(() => {});
+            }
             navBack();
           }}
           initialSubscreen={profileInitSubscreen}

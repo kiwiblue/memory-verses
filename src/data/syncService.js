@@ -32,6 +32,15 @@ export async function pullSync(token) {
   return res.json(); // { profiles: [...] }
 }
 
+export async function deleteCloudProfile(token, profileId) {
+  const res = await fetch(`/api/sync?id=${encodeURIComponent(profileId)}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  });
+  if (!res.ok) throw new Error('Delete failed');
+  return res.json();
+}
+
 export async function registerAccount(email, password, users) {
   const profiles = users.map(u => ({
     id:           u.id,

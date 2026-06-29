@@ -4,6 +4,8 @@ import { saveAuth, clearAuth } from '../data/auth.js';
 import { saveUsers, saveCurrentUserId } from '../data/users.js';
 import { saveProgress } from '../data/progress.js';
 import { saveVerseTranslations } from '../data/users.js';
+import { saveCustomVerses } from '../data/customVerses.js';
+import { saveHiddenVerseIds } from '../data/hiddenVerses.js';
 
 function timeSince(ts) {
   if (!ts) return null;
@@ -80,6 +82,8 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
       (data.profiles || []).forEach(p => {
         try { saveProgress(p.id, JSON.parse(p.progress_json)); } catch {}
         try { saveVerseTranslations(p.id, JSON.parse(p.trans_json)); } catch {}
+        try { saveCustomVerses(p.id, JSON.parse(p.custom_json)); } catch {}
+        try { saveHiddenVerseIds(p.id, new Set(JSON.parse(p.hidden_json))); } catch {}
       });
       onUsersChange(cloudUsers, cloudUsers[0]);
       onAuthChange(data);

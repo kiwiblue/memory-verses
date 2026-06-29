@@ -12,6 +12,23 @@ export async function onRequestGet({ request, env }) {
   return json({ profiles: rows.results || [] });
 }
 
+// DELETE /api/sync — remove a single cloud profile by id
+export async function onRequestDelete({ request, env }) {
+  const accountId = await requireAuth(request, env);
+  if (!accountId) return json({ error: 'Unauthorised' }, 401);
+
+  const url = new URL(request.url);
+  const profileId = url.searchParams.get('id');
+  if (!profileId) return json({ error: 'Missing id' }, 400);
+
+  // Only allow deleting profiles that belong to this account
+  await env.DB.prepare(
+    'DELETE FROM cloud_profiles WHERE id = ? AND account_id = ?'
+  ).bind(profileId, accountId).run();
+
+  return json({ ok: true });
+}
+
 // POST /api/sync — push/upsert all profiles for the authenticated account
 export async function onRequestPost({ request, env }) {
   const accountId = await requireAuth(request, env);
