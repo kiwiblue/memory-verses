@@ -10,7 +10,7 @@ import { recordAttempt, startRevising, recordReviseAttempt, buildDailyQueue, pro
 import { loadCustomVerses, addCustomVerse, removeCustomVerse, saveCustomVerses } from './data/customVerses.js';
 import { loadHiddenVerseIds, hideVerseId, restoreVerseId, restoreAllVerseIds, saveHiddenVerseIds } from './data/hiddenVerses.js';
 import { loadVerseCache, saveVerseCache, mergeVerseIntoCache } from './data/verseCache.js';
-import { fetchVerse } from './api/bible.js';
+import { fetchTranslation } from './api/bible.js';
 import { appendReviseLog } from './data/reviseLog.js';
 import { loadVerseOrder, saveVerseOrder } from './data/verseOrder.js';
 
@@ -296,14 +296,17 @@ export default function App() {
     }
   }, [progress, currentUser]);
 
-  // Fetch translation text for the active verse when not yet cached
+  // Fetch the active translation for the active verse when not yet cached.
+  // Only the translation actually being shown is fetched (not all six) — this
+  // keeps external API usage minimal so we don't exhaust the api.bible quota.
   useEffect(() => {
     if (!verse) return;
     const activeVersion = verseTranslations[verse.id] || version;
     if (verse[activeVersion]) return;
-    fetchVerse(verse.reference).then(data => {
+    fetchTranslation(verse.reference, activeVersion).then(text => {
+      if (!text) return;
       setVerseCache(prev => {
-        const updated = mergeVerseIntoCache(prev, data);
+        const updated = mergeVerseIntoCache(prev, { reference: verse.reference, [activeVersion]: text });
         saveVerseCache(updated);
         return updated;
       });
