@@ -1,9 +1,15 @@
+import { useContext, useState } from 'react';
 import { avatarStyle } from '../data/avatarStyle.js';
 import Icon from './Icon.jsx';
+import UserPanel from './UserPanel.jsx';
+import { UserSwitcherContext } from './UserSwitcherContext.js';
 
 // Shared header for every full-screen overlay so they all match the main
-// screen header exactly: ‹ back · Memory.bible · user avatar.
+// screen header exactly: ‹ back · Memory.bible · user avatar (profile switcher).
 export default function OverlayHeader({ onBack, user, onHome }) {
+  const switcher = useContext(UserSwitcherContext);
+  const [panelOpen, setPanelOpen] = useState(false);
+
   return (
     <div className="vs-header">
       <button className="vs-back" onClick={onBack} aria-label="Back"><Icon name="back" size={26} /></button>
@@ -17,7 +23,16 @@ export default function OverlayHeader({ onBack, user, onHome }) {
         <span className="ttl-memory">Memory</span>
         <span className="ttl-dot-bible" style={{ color: user?.colour || 'var(--color-brand)' }}>.bible</span>
       </div>
-      {user ? (
+      {switcher?.currentUser ? (
+        <UserPanel
+          users={switcher.users}
+          currentUser={switcher.currentUser}
+          open={panelOpen}
+          onToggle={setPanelOpen}
+          onUserChange={switcher.onUserChange}
+          onOpenProfile={switcher.onOpenProfile}
+        />
+      ) : user ? (
         <div
           className="vs-header-avatar avatar"
           style={{ ...avatarStyle(user.colour, user.pattern), '--user-colour': user.colour }}

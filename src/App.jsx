@@ -24,6 +24,7 @@ import ProgressBar from './components/ProgressBar.jsx';
 import StatPills from './components/StatPills.jsx';
 import QueueComplete from './components/QueueComplete.jsx';
 import UserPanel from './components/UserPanel.jsx';
+import { UserSwitcherContext } from './components/UserSwitcherContext.js';
 import ProfileModal from './components/ProfileModal.jsx';
 import VerseDeckPanel from './components/VerseDeckPanel.jsx';
 import OnboardingFlow from './components/OnboardingFlow.jsx';
@@ -585,6 +586,15 @@ export default function App() {
       setVerseOrder(ordered);
     }
 
+    // Start the deck with ONLY the chosen verse — hide the rest of the curated
+    // set so the user adds them from the Collection at their own pace, rather
+    // than being handed all 104 verses up front. (A custom first verse lives in
+    // customVerses and isn't curated, so in that case hide the whole set.)
+    const keepId = (resolvedVerseId && resolvedVerseId !== -1) ? Number(resolvedVerseId) : null;
+    const toHide = new Set(VERSES.map(v => v.id).filter(id => id !== keepId));
+    saveHiddenVerseIds(updatedUser.id, toHide);
+    setHiddenIds(toHide);
+
     // Save auth if account was created during onboarding
     if (auth?.token) {
       saveAuth(auth);
@@ -725,7 +735,12 @@ export default function App() {
   );
 
   return (
-    <>
+    <UserSwitcherContext.Provider value={{
+      users,
+      currentUser,
+      onUserChange: handleUserChange,
+      onOpenProfile: (u) => { setProfileUser(u); setProfileInitSubscreen(null); },
+    }}>
       {showDeckPanel && (
         <VerseDeckPanel
           verses={allVerses}
@@ -1072,6 +1087,6 @@ export default function App() {
       {infoModal && <InfoModal kind={infoModal} onClose={() => setInfoModal(null)} />}
       </div>{/* end content-sheet */}
       </div>{/* end scene */}
-    </>
+    </UserSwitcherContext.Provider>
   );
 }

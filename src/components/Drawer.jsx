@@ -9,8 +9,8 @@ const SECTIONS = [
     items: [
       { id: 'exercises',         label: "Today's Exercises" },
       { id: 'deck',              label: 'My Deck' },
+      { id: 'stats',             label: 'My Statistics' },
       { id: 'exercise-settings', label: 'Exercise Settings', soon: true },
-      { id: 'flip-reverse',      label: 'Flip Card Reverse', soon: true },
       { id: 'add-verse',         label: 'Add new verse' },
     ],
   },
