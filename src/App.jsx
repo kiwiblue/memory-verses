@@ -1000,6 +1000,7 @@ export default function App() {
           onLearnNext={() => nextUnseen && setLearnRevealVerse(nextUnseen)}
           onVerseDetails={v => setVerseScreenVerse(v)}
           onAddVerse={() => setShowAddVerse(true)}
+          onEnsureTranslation={ensureTranslation}
         />
       ) : queueDone ? (
         <QueueComplete
@@ -1029,6 +1030,7 @@ export default function App() {
           onLearnNew={() => handleModeChange('learn')}
           onLearnNewVerse={handleLearnNewVerse}
           onViewStats={() => setShowStats(true)}
+          onEnsureTranslation={ensureTranslation}
         />
       ) : (
         <>

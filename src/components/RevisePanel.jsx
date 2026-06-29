@@ -201,7 +201,7 @@ export default function RevisePanel({
   verses, progress, currentUser,
   version, defaultVersion, verseTranslations, onVerseTranslationChange,
   onMark, onLearnNew, onLearnNewVerse, onViewStats,
-  autoStart, onAutoStartConsumed,
+  autoStart, onAutoStartConsumed, onEnsureTranslation,
 }) {
   const [panelMode, setPanelMode] = useState('browse'); // 'browse' | 'exercising' | 'done'
   const [browseIdx, setBrowseIdx] = useState(0);
@@ -217,6 +217,15 @@ export default function RevisePanel({
     }),
     [verses, progress]
   );
+
+  // Fetch the browse card's translation if not cached. The browse card has its
+  // own navigation index, independent of the parent's active-verse fetch.
+  const browseVerseForFetch = reviseVerses[Math.min(browseIdx, Math.max(0, reviseVerses.length - 1))];
+  useEffect(() => {
+    if (panelMode === 'browse' && browseVerseForFetch && version && !browseVerseForFetch[version]) {
+      onEnsureTranslation?.(browseVerseForFetch.reference, version);
+    }
+  }, [panelMode, browseVerseForFetch, version, onEnsureTranslation]);
 
   const todayQueue = useMemo(
     () => buildReviseQueue(verses, progress, currentUser.bracket || 'adult', 5),

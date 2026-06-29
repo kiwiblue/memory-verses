@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import FlipCard from './FlipCard.jsx';
 import Icon from './Icon.jsx';
 
@@ -32,6 +32,7 @@ export default function MainScreen({
   onLearnNext,
   onVerseDetails,
   onAddVerse,
+  onEnsureTranslation,
 }) {
   const [browseIdx, setBrowseIdx] = useState(0);
   const [isFlipped, setIsFlipped]  = useState(false);
@@ -50,6 +51,15 @@ export default function MainScreen({
   const currentVerse = displayVerses[clampedIdx] ?? null;
   const isEmpty      = displayVerses.length === 0;
   const isPreview    = activeVerses.length === 0 && !!nextUnseen;
+
+  // Fetch the displayed card's translation if it isn't cached yet. The card
+  // always renders the user's default `version`, and the user can navigate
+  // between cards here, so we can't rely on the parent's active-verse fetch.
+  useEffect(() => {
+    if (currentVerse && version && !currentVerse[version]) {
+      onEnsureTranslation?.(currentVerse.reference, version);
+    }
+  }, [currentVerse, version, onEnsureTranslation]);
 
   function navigate(dir) {
     setIsFlipped(false);
