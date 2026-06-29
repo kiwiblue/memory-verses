@@ -45,6 +45,7 @@ export default function VerseScreen({
   verseTranslations,
   onVerseTranslationChange,
   // exercise launchers
+  onLearnVerse,
   onTypeVerse,
   onSelectWord,
   onMatchRef,
@@ -132,6 +133,9 @@ export default function VerseScreen({
               </div>
 
               <div className="vs-exercises">
+                {status === 'unseen' && (
+                  <button className="vs-ex-btn vs-ex-learn" onClick={() => onLearnVerse?.(verse)}>Learn Verse</button>
+                )}
                 <button className="vs-ex-btn" onClick={() => { setFlipped(false); setView('card'); }}>Flip Card</button>
                 <button className="vs-ex-btn" onClick={onTypeVerse} disabled={!isActive}>Type the verse</button>
                 <button className="vs-ex-btn" onClick={onSelectWord} disabled={!isActive}>Select the word</button>

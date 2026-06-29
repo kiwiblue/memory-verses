@@ -28,6 +28,7 @@ export default function MainScreen({
   nextUnseen,
   streak,
   onTodayExercises,
+  onPracticeAnyway,
   onLearnNext,
   onVerseDetails,
   onAddVerse,
@@ -123,6 +124,15 @@ export default function MainScreen({
             ? `Today's Exercises  (${todayCount} verse${todayCount !== 1 ? 's' : ''})`
             : 'No exercises due today'}
         </button>
+
+        {todayCount === 0 && activeVerses.length > 0 && (
+          <button
+            className="main-btn-practice-anyway"
+            onClick={onPracticeAnyway}
+          >
+            Practice exercises anyway
+          </button>
+        )}
 
         <button
           className="main-btn-learn"

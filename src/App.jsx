@@ -113,7 +113,7 @@ export default function App() {
   const [streak, setStreak] = useState(() => loadStreak(initUser().id).days);
   const [showStats, setShowStats] = useState(false);
   const [showAddVerse, setShowAddVerse] = useState(false);
-  const [reviseAutoStart, setReviseAutoStart] = useState(false); // launch today's exercises on entering Revise
+  const [reviseAutoStart, setReviseAutoStart] = useState(false); // false | 'today' | 'practice' — auto-launch a queue on entering Revise
 
   // ── History API: push a state entry each time a panel opens so ‹ and
   //    browser-back both work. popstate closes the topmost open panel.
@@ -338,7 +338,7 @@ export default function App() {
   }, []);
 
   const handleDrawerAction = useCallback((id) => {
-    if (id === 'exercises')    { setReviseAutoStart(true); handleModeChange('revise'); }
+    if (id === 'exercises')    { setReviseAutoStart('today'); handleModeChange('revise'); }
     else if (id === 'learn')   { handleModeChange('learn'); }
     else if (id === 'deck')    { setShowDeckPanel(true); }
     else if (id === 'view-profile') { setProfileUser(currentUser); setProfileInitSubscreen(null); }
@@ -851,6 +851,7 @@ export default function App() {
           version={version}
           verseTranslations={verseTranslations}
           onVerseTranslationChange={handleVerseTranslationChange}
+          onLearnVerse={() => setLearnRevealVerse(verseScreenVerse)}
           onSelectWord={() => setExercise({ verse: verseScreenVerse, kind: 'select' })}
           onTypeVerse={() => setExercise({ verse: verseScreenVerse, kind: 'type' })}
           onMatchRef={() => setExercise({ verse: verseScreenVerse, kind: 'match' })}
@@ -967,7 +968,8 @@ export default function App() {
           todayCount={todayCount}
           nextUnseen={nextUnseen}
           streak={streak}
-          onTodayExercises={() => { setReviseAutoStart(true); handleModeChange('revise'); }}
+          onTodayExercises={() => { setReviseAutoStart('today'); handleModeChange('revise'); }}
+          onPracticeAnyway={() => { setReviseAutoStart('practice'); handleModeChange('revise'); }}
           onLearnNext={() => nextUnseen && setLearnRevealVerse(nextUnseen)}
           onVerseDetails={v => setVerseScreenVerse(v)}
           onAddVerse={() => setShowAddVerse(true)}

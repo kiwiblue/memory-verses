@@ -223,6 +223,12 @@ export default function RevisePanel({
     [verses, progress, currentUser.bracket]
   );
 
+  // "Practice anyway" — top 3 verses needing the most practice, regardless of due date
+  const practiceQueue = useMemo(
+    () => buildReviseQueue(verses, progress, currentUser.bracket || 'adult', 3),
+    [verses, progress, currentUser.bracket]
+  );
+
   function startExercises(queue) {
     setExerciseQueue(queue);
     setSessionKey(k => k + 1);
@@ -230,11 +236,13 @@ export default function RevisePanel({
     setIsFlipped(false);
   }
 
-  // "Today's Exercises" entry points (main screen + drawer) ask us to launch the
-  // due-verse queue straight away instead of landing in browse. Runs once on mount.
+  // Entry points (main screen + drawer) can ask us to launch a queue straight away
+  // instead of landing in browse. 'today' = due verses; 'practice' = top 3 anyway.
+  // Runs once on mount.
   useEffect(() => {
     if (autoStart) {
-      if (todayQueue.length > 0) startExercises(todayQueue);
+      const queue = autoStart === 'practice' ? practiceQueue : todayQueue;
+      if (queue.length > 0) startExercises(queue);
       onAutoStartConsumed?.();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -351,6 +351,14 @@ body {
 .main-btn-learn:hover:not(:disabled) { background: var(--color-brand-muted); }
 .main-btn-learn:disabled { opacity: 0.4; cursor: default; border-color: var(--color-border); color: var(--color-text-muted); }
 
+.main-btn-practice-anyway {
+  width: 100%; padding: 11px 16px; border-radius: var(--radius-xl);
+  border: 1.5px dashed var(--color-brand); background: none;
+  color: var(--color-brand); font-size: var(--font-size-sm); font-weight: 600;
+  cursor: pointer; transition: background var(--transition-fast);
+}
+.main-btn-practice-anyway:hover { background: var(--color-brand-muted); }
+
 .main-bottom-row {
   display: flex; align-items: center; justify-content: space-between;
   margin-top: 8px; padding: 0 2px;
@@ -1998,6 +2006,11 @@ input[type="search"], input[type="number"], textarea, select {
 }
 .vs-ex-btn:hover:not(:disabled) { border-color: var(--color-brand); background: var(--color-brand-muted); }
 .vs-ex-btn:disabled { opacity: .4; cursor: default; }
+.vs-ex-learn {
+  background: var(--color-brand); border-color: var(--color-brand);
+  color: #fff; font-weight: 600;
+}
+.vs-ex-learn:hover:not(:disabled) { background: var(--color-brand); border-color: var(--color-brand); filter: brightness(1.05); }
 
 /* practice frequency */
 .vs-frequency {
