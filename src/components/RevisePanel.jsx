@@ -80,7 +80,7 @@ function diffFor(skill) {
   return 'easy';
 }
 
-function ExerciseFlow({ queue, progress, version = 'kjv', sessionKey, onAdvance, onDone }) {
+function ExerciseFlow({ queue, progress, version = 'kjv', verseTranslations = {}, sessionKey, onAdvance, onDone }) {
   const [queueIdx, setQueueIdx] = useState(0);
   const [stepIdx, setStepIdx]   = useState(0);
   const [accHints, setAccHints] = useState(0);
@@ -89,6 +89,7 @@ function ExerciseFlow({ queue, progress, version = 'kjv', sessionKey, onAdvance,
 
   const verse = queue[queueIdx] ?? null;
   const skill = verse ? getSkillLevel(progress[verse.id]) : 'easy';
+  const verseVersion = verseTranslations[verse?.id] || version;
   const steps = stepsFor(skill);
   const difficulty = diffFor(skill);
 
@@ -177,7 +178,7 @@ function ExerciseFlow({ queue, progress, version = 'kjv', sessionKey, onAdvance,
         <FillExercise
           key={`${verse.id}-fill-${sessionKey}-${queueIdx}`}
           verse={verse}
-          version={version}
+          version={verseVersion}
           difficulty={difficulty}
           onComplete={advanceStep}
         />
@@ -186,7 +187,7 @@ function ExerciseFlow({ queue, progress, version = 'kjv', sessionKey, onAdvance,
         <TypeExercise
           key={`${verse.id}-type-${sessionKey}-${queueIdx}`}
           verse={verse}
-          version={version}
+          version={verseVersion}
           difficulty={difficulty}
           onDowngrade={() => {}}
           onComplete={advanceStep}
@@ -314,6 +315,7 @@ export default function RevisePanel({
           queue={exerciseQueue}
           progress={progress}
           version={version}
+          verseTranslations={verseTranslations}
           sessionKey={sessionKey}
           onAdvance={onMark}
           onDone={(count) => { setCompletedCount(count); setPanelMode('done'); }}
