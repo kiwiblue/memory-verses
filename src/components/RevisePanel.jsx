@@ -154,6 +154,7 @@ function ExerciseFlow({ queue, progress, version = 'kjv', verseTranslations = {}
           key={`match-${sessionKey}`}
           verses={queue}
           version={version}
+          verseTranslations={verseTranslations}
           difficulty={matchDifficulty}
           onDowngrade={() => {}}
           onComplete={() => onDone(queue.length)}

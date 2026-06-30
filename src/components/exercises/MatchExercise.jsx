@@ -26,7 +26,7 @@ function shuffle(arr) {
 
 // ── Drag-and-drop match (Easy / Moderate) ──────────────────────────────────
 
-function DragMatch({ verses, version = 'kjv', onComplete, onSkip }) {
+function DragMatch({ verses, version = 'kjv', verseTranslations = {}, onComplete, onSkip }) {
   // slots[i] = reference string placed in slot i, or null
   const [slots, setSlots]         = useState(() => verses.map(() => null));
   // available pool (shuffled references not yet placed)
@@ -144,7 +144,7 @@ function DragMatch({ verses, version = 'kjv', onComplete, onSkip }) {
           const isCorrect = checked ? correct[i] : null;
           return (
             <div key={v.id} className="match-row">
-              <div className="match-verse-text">{truncate(v[version] || v.kjv || '')}</div>
+              <div className="match-verse-text">{truncate(v[verseTranslations[v.id] || version] || v.kjv || '')}</div>
               <div
                 className={`match-slot${slots[i] ? ' match-slot-filled' : ''}${
                   isCorrect === true ? ' match-slot-correct' : isCorrect === false ? ' match-slot-wrong' : ''
@@ -268,7 +268,7 @@ function gradeAnswer(input, correctRef) {
   return (numMatch && bookMatch) ? 'close' : 'wrong';
 }
 
-function TypeMatch({ verses, version = 'kjv', onComplete, onSkip }) {
+function TypeMatch({ verses, version = 'kjv', verseTranslations = {}, onComplete, onSkip }) {
   const [inputs, setInputs]       = useState(() => verses.map(() => ''));
   const [hintLevels, setHintLevels] = useState(() => verses.map(() => 0));
   const [results, setResults]     = useState(null); // null | Array<'correct'|'close'|'wrong'>
@@ -307,7 +307,7 @@ function TypeMatch({ verses, version = 'kjv', onComplete, onSkip }) {
           const hintLevel = hintLevels[i];
           return (
             <div key={v.id} className="match-type-row">
-              <div className="match-verse-text">{truncate(v[version] || v.kjv || '')}</div>
+              <div className="match-verse-text">{truncate(v[verseTranslations[v.id] || version] || v.kjv || '')}</div>
               <div className="match-type-controls">
                 <div className="match-input-wrap">
                   <input
@@ -359,7 +359,7 @@ function TypeMatch({ verses, version = 'kjv', onComplete, onSkip }) {
 
 // ── Main component ──────────────────────────────────────────────────────────
 
-export default function MatchExercise({ verses: allVerses, version = 'kjv', difficulty = 'easy', onDowngrade, onComplete, onSkip }) {
+export default function MatchExercise({ verses: allVerses, version = 'kjv', verseTranslations = {}, difficulty = 'easy', onDowngrade, onComplete, onSkip }) {
   const count = VERSE_COUNT[difficulty];
 
   // Pick `count` verses deterministically from the provided list
@@ -394,9 +394,9 @@ export default function MatchExercise({ verses: allVerses, version = 'kjv', diff
           <span className="fill-done-msg">{result?.errors === 0 ? 'Perfect!' : 'Well done!'}</span>
         </div>
       ) : difficulty === 'hard' ? (
-        <TypeMatch verses={verses} version={version} onComplete={handleComplete} onSkip={onSkip} />
+        <TypeMatch verses={verses} version={version} verseTranslations={verseTranslations} onComplete={handleComplete} onSkip={onSkip} />
       ) : (
-        <DragMatch verses={verses} version={version} onComplete={handleComplete} onSkip={onSkip} />
+        <DragMatch verses={verses} version={version} verseTranslations={verseTranslations} onComplete={handleComplete} onSkip={onSkip} />
       )}
     </div>
   );

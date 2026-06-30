@@ -879,6 +879,7 @@ export default function App() {
                 <MatchExercise
                   verses={[exVerse, ...allVerses.filter(v => String(v.id) !== String(exVerse.id))]}
                   version={exVersion}
+                  verseTranslations={verseTranslations}
                   difficulty={exDifficulty}
                   onComplete={(r) => completeExercise(exVerse, r)}
                   onSkip={() => setExercise(null)}
