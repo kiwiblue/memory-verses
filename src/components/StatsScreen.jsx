@@ -198,13 +198,20 @@ export default function StatsScreen({ verses, progress, currentUser, users, stre
           )}
           {activeVerses.map(v => {
             const entry = progress[v.id] || {};
-            const scores = entry.scores || [];
+            const scores = (entry.scores || []).filter(x => Number.isFinite(x));
             const accuracyPct = scores.length
               ? scores.reduce((s, x) => s + x, 0) / scores.length
               : 0;
-            const intervalMs = Math.max(1, (entry.next_review || now) - (entry.last_seen || now));
-            const elapsedMs = now - (entry.last_seen || now);
-            const sessionPct = Math.max(0, 1 - elapsedMs / intervalMs);
+            // Match computeFreshness in VerseScreen exactly so rings are consistent
+            let sessionPct = 0;
+            if (entry.status !== 'unseen') {
+              if (!entry.next_review || !entry.last_seen) {
+                sessionPct = 1;
+              } else {
+                const window = entry.next_review - entry.last_seen;
+                if (window > 0) sessionPct = Math.max(0, Math.min(1, (entry.next_review - now) / window));
+              }
+            }
             const skill = entry.skill_level || 'easy';
             const masteryFill = SKILL_FILL[skill] ?? 1 / 3;
             const daysSince = entry.last_seen ? Math.floor((now - entry.last_seen) / 86400000) : null;

@@ -75,7 +75,7 @@ export default function VerseScreen({
   const skill = getSkillLevel(entry);
   const freshness = computeFreshness(entry);
   const masteryFill = SKILL_FILL[skill] ?? 1 / 3;
-  const scores = entry?.scores || [];
+  const scores = (entry?.scores || []).filter(x => Number.isFinite(x));
   const accuracyFill = scores.length ? scores.reduce((s, x) => s + x, 0) / scores.length : 0;
 
   const statusLabel = { unseen: 'New verse', learning: 'Learning', mastered: 'Mastered' }[status] ?? 'New verse';
