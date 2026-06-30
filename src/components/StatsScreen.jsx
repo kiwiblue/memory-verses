@@ -76,6 +76,12 @@ function MiniRing({ pct, color, size = 26 }) {
 export default function StatsScreen({ verses, progress, currentUser, users, streak, ranking, rankingCount, onClose, onHome }) {
   const streakData = loadStreak(currentUser.id);
   const rate = practiceRate(streakData.history);
+  const missed = 10 - rate;
+  const today = new Date().toISOString().slice(0, 10);
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const practicedToday = streakData.history?.includes(today);
+  const streakAtRisk = !practicedToday && streakData.lastDate === yesterday && streak > 0;
+  const streakBroken = !practicedToday && streakData.lastDate !== yesterday && streak > 0;
   const [expandedRow, setExpandedRow] = useState(null);
 
   function toggleRow(id) { setExpandedRow(r => r === id ? null : id); }
@@ -129,13 +135,27 @@ export default function StatsScreen({ verses, progress, currentUser, users, stre
 
         <div className={`stats-row-group${expandedRow === 'streak' ? ' stats-row-group-open' : ''}`}>
           <div className="stats-row stats-row-expandable" onClick={() => toggleRow('streak')}>
-            <span className="stats-row-icon"><Icon name="streak" size={18} /></span>
+            <span className={`stats-row-icon${streakAtRisk ? ' streak-icon-risk' : streakBroken ? ' streak-icon-broken' : ''}`}>
+              <Icon name="streak" size={18} />
+            </span>
             <span className="stats-row-label">Streak</span>
             <span className="stats-row-value">{streak} day{streak !== 1 ? 's' : ''}</span>
+            {(streakAtRisk || streakBroken) && (
+              <span className={`streak-badge${streakBroken ? ' streak-badge-broken' : ''}`}>!</span>
+            )}
             <Icon name={expandedRow === 'streak' ? 'up' : 'down'} size={14} />
           </div>
           {expandedRow === 'streak' && (
-            <div className="stats-row-detail">Complete your exercises at least 7 out of the past 10 days to keep your streak.</div>
+            <div className="stats-row-detail">
+              {streakAtRisk && <p className="streak-detail-warn">Practice today to keep your {streak}-day streak!</p>}
+              {streakBroken && <p className="streak-detail-danger">Your streak has reset — practice today to start fresh.</p>}
+              {missed >= 3
+                ? <p className="streak-detail-danger">You've missed {missed} of the last 10 days — try to practice daily.</p>
+                : missed >= 2
+                ? <p className="streak-detail-warn">You've missed {missed} of the last 10 days — keep it up!</p>
+                : <p>Your streak resets if you miss any single day of practice.</p>
+              }
+            </div>
           )}
         </div>
 
@@ -214,10 +234,12 @@ export default function StatsScreen({ verses, progress, currentUser, users, stre
             }
             const skill = entry.skill_level || 'easy';
             const masteryFill = SKILL_FILL[skill] ?? 1 / 3;
-            const daysSince = entry.last_seen ? Math.floor((now - entry.last_seen) / 86400000) : null;
-            const lastLabel = daysSince === null ? 'Never practiced'
-              : daysSince === 0 ? 'Last practiced today'
-              : `Last practiced ${daysSince} day${daysSince !== 1 ? 's' : ''} ago`;
+            const msUntilDue = entry.next_review ? entry.next_review - now : null;
+            const daysUntilDue = msUntilDue !== null ? Math.ceil(msUntilDue / 86400000) : null;
+            const dueLabel = !entry.last_seen ? 'Not yet practiced'
+              : msUntilDue === null || msUntilDue <= 0 ? 'Practice overdue'
+              : daysUntilDue <= 1 ? 'Due today'
+              : `Due in ${daysUntilDue} days`;
             return (
               <div key={v.id} className="stats-verse-row">
                 <div className="stats-verse-row-top">
@@ -230,7 +252,7 @@ export default function StatsScreen({ verses, progress, currentUser, users, stre
                   </div>
                 </div>
                 <div className="stats-verse-detail">
-                  Accuracy {Math.round(accuracyPct * 100)}% · {lastLabel} · Mastery {Math.round(masteryFill * 100)}%
+                  Accuracy {Math.round(accuracyPct * 100)}% · {dueLabel} · Mastery {Math.round(masteryFill * 100)}%
                 </div>
               </div>
             );

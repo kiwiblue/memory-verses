@@ -16,6 +16,9 @@ function sortedActiveVerses(verses, progress) {
     });
 }
 
+function todayDateStr() { return new Date().toISOString().slice(0, 10); }
+function yesterdayDateStr() { return new Date(Date.now() - 86400000).toISOString().slice(0, 10); }
+
 export default function MainScreen({
   verses,
   progress,
@@ -27,6 +30,7 @@ export default function MainScreen({
   todayCount,
   nextUnseen,
   streak,
+  streakData,
   onTodayExercises,
   onPracticeAnyway,
   onLearnNext,
@@ -36,6 +40,15 @@ export default function MainScreen({
 }) {
   const [browseIdx, setBrowseIdx] = useState(0);
   const [isFlipped, setIsFlipped]  = useState(false);
+
+  const practicedToday = streakData?.lastDate === todayDateStr();
+  const practicedYesterday = streakData?.lastDate === yesterdayDateStr();
+  // 'safe' = practiced today, 'risk' = haven't practiced today but streak still intact,
+  // 'broken' = missed at least 1 full day (streak will reset on next practice)
+  const streakLevel = practicedToday ? 'safe'
+    : (streak > 0 && practicedYesterday) ? 'risk'
+    : streak > 0 ? 'broken'
+    : 'safe';
 
   const activeVerses = useMemo(
     () => sortedActiveVerses(verses, progress),
@@ -158,10 +171,14 @@ export default function MainScreen({
 
       {/* ── Bottom row: streak + FAB ─────────────────────────────────────── */}
       <div className="main-bottom-row">
-        <div className="main-streak">
-          <span className="main-streak-icon"><Icon name="streak" size={18} /></span>
+        <div className={`main-streak main-streak-${streakLevel}`}>
+          <span className={`main-streak-icon main-streak-icon-${streakLevel}`}>
+            <Icon name="streak" size={18} />
+          </span>
           <span className="main-streak-text">
             Streak: <strong>{streak}</strong> {streak === 1 ? 'day' : 'days'}
+            {streakLevel === 'risk' && <span className="main-streak-nudge"> — practice today!</span>}
+            {streakLevel === 'broken' && <span className="main-streak-nudge"> — start fresh!</span>}
           </span>
         </div>
 

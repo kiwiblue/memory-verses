@@ -112,6 +112,7 @@ export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [streak, setStreak] = useState(() => loadStreak(initUser().id).days);
+  const [streakData, setStreakData] = useState(() => loadStreak(initUser().id));
   const [showStats, setShowStats] = useState(false);
   const [showAddVerse, setShowAddVerse] = useState(false);
   const [reviseAutoStart, setReviseAutoStart] = useState(false); // false | 'today' | 'practice' — auto-launch a queue on entering Revise
@@ -390,6 +391,7 @@ export default function App() {
   const handleTouchStreak = useCallback(() => {
     const updated = touchStreak(currentUser.id);
     setStreak(updated.days);
+    setStreakData(updated);
   }, [currentUser.id]);
 
   // Centralized exercise completion — records a revise attempt with the correct
@@ -460,6 +462,9 @@ export default function App() {
     setHiddenIds(loadHiddenVerseIds(user.id));
     setVersion(user.translation || 'kjv');
     setVerseOrder(loadVerseOrder(user.id));
+    const sd = loadStreak(user.id);
+    setStreak(sd.days);
+    setStreakData(sd);
     setQueueIndex(0);
     setBrowseIndex(0);
     setIsFlipped(false);
@@ -1010,6 +1015,7 @@ export default function App() {
           todayCount={todayCount}
           nextUnseen={nextUnseen}
           streak={streak}
+          streakData={streakData}
           onTodayExercises={() => { setReviseAutoStart('today'); handleModeChange('revise'); }}
           onPracticeAnyway={() => { setReviseAutoStart('practice'); handleModeChange('revise'); }}
           onLearnNext={() => nextUnseen && setLearnRevealVerse(nextUnseen)}
