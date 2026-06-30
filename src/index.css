@@ -388,8 +388,10 @@ body {
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .streak-badge-broken { background: var(--color-danger-dark); }
-.streak-detail-warn   { color: var(--color-warning-text); font-weight: 500; margin: 0 0 4px; }
-.streak-detail-danger { color: var(--color-danger-dark);   font-weight: 500; margin: 0 0 4px; }
+.streak-detail-encourage { color: var(--color-brand-dark);  font-weight: 500; margin: 0 0 4px; }
+.streak-detail-warn      { color: var(--color-warning-text); font-weight: 500; margin: 0 0 4px; }
+.streak-detail-freeze    { color: var(--color-info);         font-weight: 500; margin: 0 0 4px; }
+.streak-detail-neutral   { color: var(--color-text-muted);   font-weight: 500; margin: 0 0 4px; }
 
 /* Freeze count chip on the streak row */
 .streak-freeze-count {

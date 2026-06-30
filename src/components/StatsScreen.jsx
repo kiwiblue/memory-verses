@@ -159,12 +159,13 @@ function MiniRing({ pct, color, size = 26 }) {
 export default function StatsScreen({ verses, progress, currentUser, users, streak, ranking, rankingCount, onClose, onHome }) {
   const streakData = loadStreak(currentUser.id);
   const rate = practiceRate(streakData.history);
-  const missed = 10 - rate;
   const today = new Date().toISOString().slice(0, 10);
   const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
   const practicedToday = streakData.history?.includes(today);
+  const isNewUser = !streakData.history?.length;
   const streakAtRisk = !practicedToday && streakData.lastDate === yesterday && streak > 0;
   const streakBroken = !practicedToday && streakData.lastDate !== yesterday && streak > 0;
+  const recentFreezeUsed = streakData.freezeHistory?.includes(yesterday);
   const [expandedRow, setExpandedRow] = useState(null);
 
   function toggleRow(id) { setExpandedRow(r => r === id ? null : id); }
@@ -233,14 +234,10 @@ export default function StatsScreen({ verses, progress, currentUser, users, stre
           </div>
           {expandedRow === 'streak' && (
             <div className="stats-row-detail">
-              {streakAtRisk && <p className="streak-detail-warn">Practice today to keep your {streak}-day streak!</p>}
-              {streakBroken && <p className="streak-detail-danger">Your streak has reset — practice today to start fresh.</p>}
-              {missed >= 3
-                ? <p className="streak-detail-danger">You've missed {missed} of the last 10 days — try to practice daily.</p>
-                : missed >= 2
-                ? <p className="streak-detail-warn">You've missed {missed} of the last 10 days — keep it up!</p>
-                : null
-              }
+              {isNewUser && <p className="streak-detail-encourage">You're just getting started — great work!</p>}
+              {!isNewUser && streakAtRisk && <p className="streak-detail-warn">Practice today to keep your {streak}-day streak!</p>}
+              {!isNewUser && recentFreezeUsed && <p className="streak-detail-freeze">Freeze activated. Your streak continues.</p>}
+              {!isNewUser && streakBroken && <p className="streak-detail-neutral">No freeze available. New day, fresh start.</p>}
 
               <div className="streak-freeze-info">
                 <span className="streak-freeze-label">
