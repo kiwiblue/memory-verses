@@ -56,6 +56,89 @@ function practiceRate(history) {
   return count;
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+function StreakCalendar({ history, freezeHistory }) {
+  const now = new Date();
+  const [viewYear,  setViewYear]  = useState(now.getFullYear());
+  const [viewMonth, setViewMonth] = useState(now.getMonth()); // 0-indexed
+
+  const todayStr = now.toISOString().slice(0, 10);
+  const curYear  = now.getFullYear();
+  const curMonth = now.getMonth();
+  const minDate  = new Date(Date.now() - 365 * DAY_MS).toISOString().slice(0, 10);
+
+  const historySet = new Set(history || []);
+  const freezeSet  = new Set(freezeHistory || []);
+  const earliest   = history?.length ? [...history].sort()[0] : todayStr;
+
+  const daysInMonth    = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const firstDayOfWeek = new Date(viewYear, viewMonth, 1).getDay(); // 0=Sun
+  const isCurrentMonth = viewYear === curYear && viewMonth === curMonth;
+
+  const monthLabel = new Date(viewYear, viewMonth, 1)
+    .toLocaleString('default', { month: 'long', year: 'numeric' });
+
+  function goBack() {
+    if (viewMonth === 0) { setViewYear(y => y - 1); setViewMonth(11); }
+    else setViewMonth(m => m - 1);
+  }
+  function goForward() {
+    if (viewMonth === 11) { setViewYear(y => y + 1); setViewMonth(0); }
+    else setViewMonth(m => m + 1);
+  }
+
+  const canGoBack = new Date(viewYear, viewMonth - 1, 1).toISOString().slice(0, 10) >= minDate.slice(0, 7);
+
+  const cells = [];
+  for (let i = 0; i < firstDayOfWeek; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const isPracticed  = historySet.has(ds);
+    const isFrozen     = freezeSet.has(ds);
+    const isToday      = ds === todayStr;
+    const isFuture     = ds > todayStr;
+    const isUntracked  = ds < earliest;
+    cells.push({ d, ds, isPracticed, isFrozen, isToday, isFuture, isUntracked });
+  }
+
+  return (
+    <div className="streak-cal">
+      <div className="streak-cal-header">
+        <button className="streak-cal-nav" onClick={goBack} disabled={!canGoBack}>‹</button>
+        <span className="streak-cal-month">{monthLabel}</span>
+        <button className="streak-cal-nav" onClick={goForward} disabled={isCurrentMonth}>›</button>
+      </div>
+      <div className="streak-cal-grid">
+        {DAY_LABELS.map((l, i) => <div key={i} className="streak-cal-label">{l}</div>)}
+        {cells.map((cell, i) => {
+          if (!cell) return <div key={`e${i}`} className="streak-cal-empty" />;
+          const { d, isPracticed, isFrozen, isToday, isFuture, isUntracked } = cell;
+          let cls = 'streak-cal-cell';
+          if      (isPracticed)              cls += ' scc-practiced';
+          else if (isFrozen)                 cls += ' scc-frozen';
+          else if (isFuture || isUntracked)  cls += ' scc-neutral';
+          else                               cls += ' scc-missed';
+          if (isToday) cls += ' scc-today';
+          return (
+            <div key={i} className={cls}>
+              <span className="scc-day">{d}</span>
+              {isPracticed && <span className="scc-icon">✓</span>}
+              {isFrozen    && <span className="scc-icon">❄</span>}
+            </div>
+          );
+        })}
+      </div>
+      <div className="streak-cal-legend">
+        <span className="scl-item"><span className="scl-dot scc-practiced" />Practiced</span>
+        <span className="scl-item"><span className="scl-dot scc-frozen" />Freeze used</span>
+        <span className="scl-item"><span className="scl-dot scc-missed" />Missed</span>
+      </div>
+    </div>
+  );
+}
+
 function MiniRing({ pct, color, size = 26 }) {
   const r = (size - 5) / 2;
   const cx = size / 2;
@@ -140,6 +223,9 @@ export default function StatsScreen({ verses, progress, currentUser, users, stre
             </span>
             <span className="stats-row-label">Streak</span>
             <span className="stats-row-value">{streak} day{streak !== 1 ? 's' : ''}</span>
+            {streakData.freezes > 0 && (
+              <span className="streak-freeze-count">❄ {streakData.freezes}</span>
+            )}
             {(streakAtRisk || streakBroken) && (
               <span className={`streak-badge${streakBroken ? ' streak-badge-broken' : ''}`}>!</span>
             )}
@@ -153,8 +239,28 @@ export default function StatsScreen({ verses, progress, currentUser, users, stre
                 ? <p className="streak-detail-danger">You've missed {missed} of the last 10 days — try to practice daily.</p>
                 : missed >= 2
                 ? <p className="streak-detail-warn">You've missed {missed} of the last 10 days — keep it up!</p>
-                : <p>Your streak resets if you miss any single day of practice.</p>
+                : null
               }
+
+              <div className="streak-freeze-info">
+                <span className="streak-freeze-label">
+                  {streakData.freezes === 0
+                    ? 'No freezes — earn one every 6 consecutive days'
+                    : `${streakData.freezes} freeze${streakData.freezes !== 1 ? 's' : ''} available`}
+                </span>
+                {streak > 0 && (
+                  <span className="streak-freeze-next">
+                    {streakData.nextFreezeAt - streak === 0
+                      ? 'Freeze earned — practice today to collect it!'
+                      : `${streakData.nextFreezeAt - streak} day${(streakData.nextFreezeAt - streak) !== 1 ? 's' : ''} to next freeze`}
+                  </span>
+                )}
+              </div>
+
+              <StreakCalendar
+                history={streakData.history}
+                freezeHistory={streakData.freezeHistory}
+              />
             </div>
           )}
         </div>

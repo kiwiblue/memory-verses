@@ -391,6 +391,72 @@ body {
 .streak-detail-warn   { color: var(--color-warning-text); font-weight: 500; margin: 0 0 4px; }
 .streak-detail-danger { color: var(--color-danger-dark);   font-weight: 500; margin: 0 0 4px; }
 
+/* Freeze count chip on the streak row */
+.streak-freeze-count {
+  font-size: 11px; font-weight: 600; color: var(--color-info);
+  background: var(--color-info-bg); border-radius: 10px; padding: 1px 6px;
+}
+
+/* Freeze info in the expanded row */
+.streak-freeze-info {
+  display: flex; flex-direction: column; gap: 1px;
+  margin: 6px 0 8px; padding: 8px 10px;
+  background: var(--color-info-bg); border-radius: 6px;
+}
+.streak-freeze-label { font-size: 12px; color: var(--color-info); font-weight: 500; }
+.streak-freeze-next  { font-size: 11px; color: var(--color-text-muted); }
+
+/* ── Streak Calendar ──────────────────────────────────────────────── */
+.streak-cal { margin-top: 4px; }
+
+.streak-cal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.streak-cal-month { font-size: 13px; font-weight: 600; color: var(--color-text-primary); }
+.streak-cal-nav {
+  background: none; border: none; cursor: pointer;
+  font-size: 18px; line-height: 1; color: var(--color-text-muted);
+  padding: 2px 6px; border-radius: 4px;
+}
+.streak-cal-nav:disabled { color: var(--color-border); cursor: default; }
+.streak-cal-nav:not(:disabled):hover { background: var(--color-surface-sunken); }
+
+.streak-cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+}
+.streak-cal-label {
+  text-align: center; font-size: 9px; font-weight: 600; letter-spacing: .03em;
+  color: var(--color-text-faint); padding-bottom: 2px;
+}
+.streak-cal-empty { aspect-ratio: 1; }
+.streak-cal-cell {
+  aspect-ratio: 1; border-radius: 4px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0; line-height: 1;
+}
+.scc-day  { font-size: 9px;  font-weight: 500; line-height: 1.2; }
+.scc-icon { font-size: 8px;  line-height: 1; }
+
+/* States */
+.scc-practiced { background: var(--color-brand-subtle); color: var(--color-brand-dark); }
+.scc-frozen    { background: var(--color-info-bg);      color: var(--color-info); }
+.scc-missed    { background: var(--color-surface-sunken); color: var(--color-text-faint); }
+.scc-neutral   { color: var(--color-text-faint); }
+.scc-today     { outline: 2px solid var(--color-brand); outline-offset: -1px; border-radius: 4px; }
+
+/* Legend */
+.streak-cal-legend {
+  display: flex; gap: 12px; margin-top: 6px; flex-wrap: wrap;
+}
+.scl-item {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 10px; color: var(--color-text-muted);
+}
+.scl-dot {
+  width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0;
+}
+
 .main-fab {
   width: 44px; height: 44px; border-radius: 50%;
   background: var(--color-surface-sunken); border: 0.5px solid var(--color-border);
