@@ -3,7 +3,8 @@ import Icon from '../Icon.jsx';
 import { logEvent } from '../../data/telemetry.js';
 
 function parseTokens(text) {
-  return text.split(/\s+/).filter(Boolean).map(raw => {
+  return text.split(/\s+/).filter(Boolean).map(raw0 => {
+    const raw = raw0.replace(/^[*]+/, '');  // drop leading translator marks (e.g. NASB "*said")
     const m = raw.match(/^(.*?)([,;:.!?'"]+)?$/);
     return { raw, word: m?.[1] || raw, punct: m?.[2] || '' };
   });
