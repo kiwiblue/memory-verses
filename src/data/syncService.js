@@ -2,6 +2,7 @@ import { loadProgress } from './progress.js';
 import { loadVerseTranslations } from './users.js';
 import { loadCustomVerses } from './customVerses.js';
 import { loadHiddenVerseIds } from './hiddenVerses.js';
+import { loadStreak } from './streak.js';
 
 function authHeaders(token) {
   return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
@@ -15,6 +16,7 @@ export async function pushSync(token, users) {
     trans_json:   JSON.stringify(loadVerseTranslations(u.id)),
     custom_json:  JSON.stringify(loadCustomVerses(u.id)),
     hidden_json:  JSON.stringify([...loadHiddenVerseIds(u.id)]),
+    streak_json:  JSON.stringify(loadStreak(u.id)),
   }));
 
   const res = await fetch('/api/sync', {
@@ -49,6 +51,7 @@ export async function registerAccount(email, password, users) {
     trans_json:   JSON.stringify(loadVerseTranslations(u.id)),
     custom_json:  JSON.stringify(loadCustomVerses(u.id)),
     hidden_json:  JSON.stringify([...loadHiddenVerseIds(u.id)]),
+    streak_json:  JSON.stringify(loadStreak(u.id)),
   }));
   const res = await fetch('/api/auth/register', {
     method: 'POST',

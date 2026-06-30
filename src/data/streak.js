@@ -23,6 +23,36 @@ export function saveStreak(userId, streak) {
   localStorage.setItem(key(userId), JSON.stringify(streak));
 }
 
+// Merge two streak objects from different devices.
+// Takes the higher day count as authoritative, unions both history arrays,
+// and keeps the higher freeze count so neither device loses earned freezes.
+export function mergeStreaks(local, cloud) {
+  const localDays = local?.days || 0;
+  const cloudDays = cloud?.days || 0;
+
+  let winner, other;
+  if (cloudDays > localDays) { winner = cloud; other = local; }
+  else if (localDays > cloudDays) { winner = local; other = cloud; }
+  else {
+    // Same day count — prefer the more recently touched device
+    winner = (cloud?.lastDate || '') >= (local?.lastDate || '') ? cloud : local;
+    other  = winner === cloud ? local : cloud;
+  }
+
+  const history = [...new Set([...(local?.history || []), ...(cloud?.history || [])])].sort();
+  const freezeHistory = [...new Set([...(local?.freezeHistory || []), ...(cloud?.freezeHistory || [])])].sort();
+  const freezes = Math.max(local?.freezes || 0, cloud?.freezes || 0);
+
+  return {
+    days:          winner.days      || 0,
+    lastDate:      winner.lastDate  || null,
+    history,
+    freezes,
+    freezeHistory,
+    nextFreezeAt:  winner.nextFreezeAt || FREEZE_EVERY,
+  };
+}
+
 // Call this when the user completes at least one exercise in a session.
 // Returns the updated streak object (plus usedFreeze / awardedFreezes for UI feedback).
 export function touchStreak(userId) {

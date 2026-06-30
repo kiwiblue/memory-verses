@@ -30,11 +30,11 @@ export async function onRequestPost({ request, env }) {
     const now = Math.floor(Date.now() / 1000);
     const stmts = profiles.map(p =>
       env.DB.prepare(
-        `INSERT INTO cloud_profiles (id, account_id, profile_json, progress_json, trans_json, custom_json, hidden_json, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `INSERT INTO cloud_profiles (id, account_id, profile_json, progress_json, trans_json, custom_json, hidden_json, streak_json, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(id) DO UPDATE SET profile_json=excluded.profile_json, progress_json=excluded.progress_json,
            trans_json=excluded.trans_json, custom_json=excluded.custom_json, hidden_json=excluded.hidden_json,
-           updated_at=excluded.updated_at`
+           streak_json=excluded.streak_json, updated_at=excluded.updated_at`
       ).bind(
         p.id, accountId,
         p.profile_json || '{}',
@@ -42,6 +42,7 @@ export async function onRequestPost({ request, env }) {
         p.trans_json || '{}',
         p.custom_json || '[]',
         p.hidden_json || '[]',
+        p.streak_json || '{}',
         now
       )
     );

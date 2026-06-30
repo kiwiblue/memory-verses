@@ -34,7 +34,7 @@ import FillExercise from './components/exercises/FillExercise.jsx';
 import TypeExercise from './components/exercises/TypeExercise.jsx';
 import MatchExercise from './components/exercises/MatchExercise.jsx';
 import { isOnboarded, markOnboarded } from './data/onboarding.js';
-import { loadStreak, touchStreak } from './data/streak.js';
+import { loadStreak, saveStreak, touchStreak, mergeStreaks } from './data/streak.js';
 import { APP_VERSION } from './data/version.js';
 import { logEvent } from './data/telemetry.js';
 import StatsScreen from './components/StatsScreen.jsx';
@@ -293,6 +293,12 @@ export default function App() {
         try { saveVerseTranslations(p.id, JSON.parse(p.trans_json)); } catch {}
         try { saveCustomVerses(p.id, JSON.parse(p.custom_json)); } catch {}
         try { saveHiddenVerseIds(p.id, new Set(JSON.parse(p.hidden_json))); } catch {}
+        try {
+          const cloud = JSON.parse(p.streak_json || '{}');
+          const local = loadStreak(p.id);
+          const merged = mergeStreaks(local, cloud);
+          saveStreak(p.id, merged);
+        } catch {}
       });
       setUsers(cloudUsers);
       const restoredUser = cloudUsers.find(u => u.id === currentUser.id) || cloudUsers[0];
