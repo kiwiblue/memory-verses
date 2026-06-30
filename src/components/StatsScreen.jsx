@@ -1,7 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { loadStreak } from '../data/streak.js';
 import OverlayHeader from './OverlayHeader.jsx';
 import Icon from './Icon.jsx';
+
+const SKILL_FILL = { easy: 1 / 3, moderate: 2 / 3, hard: 1 };
 
 const OT_BOOKS = [
   { f: 'Genesis', a: 'Gen' }, { f: 'Exodus', a: 'Exo' }, { f: 'Leviticus', a: 'Lev' },
@@ -74,6 +76,9 @@ function MiniRing({ pct, color, size = 26 }) {
 export default function StatsScreen({ verses, progress, currentUser, users, streak, ranking, rankingCount, onClose, onHome }) {
   const streakData = loadStreak(currentUser.id);
   const rate = practiceRate(streakData.history);
+  const [expandedRow, setExpandedRow] = useState(null);
+
+  function toggleRow(id) { setExpandedRow(r => r === id ? null : id); }
 
   const activeVerses = useMemo(
     () => verses.filter(v => { const s = progress[v.id]?.status; return s === 'learning' || s === 'mastered'; }),
@@ -109,23 +114,41 @@ export default function StatsScreen({ verses, progress, currentUser, users, stre
         </div>
 
         {ranking != null && (
-          <div className="stats-row">
-            <span className="stats-row-icon"><Icon name="ranking" size={18} /></span>
-            <span className="stats-row-label">Ranking</span>
-            <span className="stats-row-value">#{ranking}{rankingCount > 1 ? ` of ${rankingCount}` : ''}</span>
+          <div className={`stats-row-group${expandedRow === 'ranking' ? ' stats-row-group-open' : ''}`}>
+            <div className="stats-row stats-row-expandable" onClick={() => toggleRow('ranking')}>
+              <span className="stats-row-icon"><Icon name="ranking" size={18} /></span>
+              <span className="stats-row-label">Ranking</span>
+              <span className="stats-row-value">#{ranking}{rankingCount > 1 ? ` of ${rankingCount}` : ''}</span>
+              <Icon name={expandedRow === 'ranking' ? 'up' : 'down'} size={14} />
+            </div>
+            {expandedRow === 'ranking' && (
+              <div className="stats-row-detail">Based on the number of mastered verses</div>
+            )}
           </div>
         )}
 
-        <div className="stats-row">
-          <span className="stats-row-icon"><Icon name="streak" size={18} /></span>
-          <span className="stats-row-label">Streak</span>
-          <span className="stats-row-value">{streak} day{streak !== 1 ? 's' : ''}</span>
+        <div className={`stats-row-group${expandedRow === 'streak' ? ' stats-row-group-open' : ''}`}>
+          <div className="stats-row stats-row-expandable" onClick={() => toggleRow('streak')}>
+            <span className="stats-row-icon"><Icon name="streak" size={18} /></span>
+            <span className="stats-row-label">Streak</span>
+            <span className="stats-row-value">{streak} day{streak !== 1 ? 's' : ''}</span>
+            <Icon name={expandedRow === 'streak' ? 'up' : 'down'} size={14} />
+          </div>
+          {expandedRow === 'streak' && (
+            <div className="stats-row-detail">Complete your exercises at least 7 out of the past 10 days to keep your streak.</div>
+          )}
         </div>
 
-        <div className="stats-row">
-          <span className="stats-row-icon"><Icon name="calendar" size={18} /></span>
-          <span className="stats-row-label">Practice Rate</span>
-          <span className="stats-row-value">{rate}/10 days</span>
+        <div className={`stats-row-group${expandedRow === 'rate' ? ' stats-row-group-open' : ''}`}>
+          <div className="stats-row stats-row-expandable" onClick={() => toggleRow('rate')}>
+            <span className="stats-row-icon"><Icon name="calendar" size={18} /></span>
+            <span className="stats-row-label">Practice Rate</span>
+            <span className="stats-row-value">{rate}/10 days</span>
+            <Icon name={expandedRow === 'rate' ? 'up' : 'down'} size={14} />
+          </div>
+          {expandedRow === 'rate' && (
+            <div className="stats-row-detail">This is how many days you've practiced these past 10 days.</div>
+          )}
         </div>
 
         <div className="stats-row">
@@ -186,13 +209,24 @@ export default function StatsScreen({ verses, progress, currentUser, users, stre
             const skillColor = skill === 'hard' ? 'var(--color-skill-hard)'
               : skill === 'moderate' ? 'var(--color-skill-moderate)'
               : 'var(--color-skill-easy)';
+            const masteryFill = SKILL_FILL[skill] ?? 1 / 3;
+            const daysSince = entry.last_seen ? Math.floor((now - entry.last_seen) / 86400000) : null;
+            const lastLabel = daysSince === null ? 'Never practiced'
+              : daysSince === 0 ? 'Last practiced today'
+              : `Last practiced ${daysSince} day${daysSince !== 1 ? 's' : ''} ago`;
             return (
               <div key={v.id} className="stats-verse-row">
-                <span className="stats-verse-ref">{v.reference}</span>
-                <span className={`stats-verse-badge stats-badge-${skill}`}>{skill}</span>
-                <div className="stats-verse-rings">
-                  <MiniRing pct={accuracyPct} color={skillColor} />
-                  <MiniRing pct={sessionPct} color="var(--color-info)" />
+                <div className="stats-verse-row-top">
+                  <span className="stats-verse-ref">{v.reference}</span>
+                  <span className={`stats-verse-badge stats-badge-${skill}`}>{skill}</span>
+                  <div className="stats-verse-rings">
+                    <MiniRing pct={accuracyPct} color={skillColor} />
+                    <MiniRing pct={sessionPct} color="var(--color-info)" />
+                    <MiniRing pct={masteryFill} color="var(--color-mastery)" />
+                  </div>
+                </div>
+                <div className="stats-verse-detail">
+                  Accuracy {Math.round(accuracyPct * 100)}% · {lastLabel} · Mastery {Math.round(masteryFill * 100)}%
                 </div>
               </div>
             );

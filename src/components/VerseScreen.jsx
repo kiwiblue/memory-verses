@@ -75,6 +75,8 @@ export default function VerseScreen({
   const skill = getSkillLevel(entry);
   const freshness = computeFreshness(entry);
   const masteryFill = SKILL_FILL[skill] ?? 1 / 3;
+  const scores = entry?.scores || [];
+  const accuracyFill = scores.length ? scores.reduce((s, x) => s + x, 0) / scores.length : 0;
 
   const statusLabel = { unseen: 'New verse', learning: 'Learning', mastered: 'Mastered' }[status] ?? 'New verse';
   const isActive = status === 'learning' || status === 'mastered';
@@ -100,6 +102,7 @@ export default function VerseScreen({
 
           <div className="vs-meta-row">
             <div className="vs-rings">
+              <Ring fill={accuracyFill} label="Accuracy" color="var(--color-info)" />
               <Ring fill={freshness} label="Fresh" color="var(--color-brand)" />
               <Ring fill={masteryFill} label="Mastery" color="var(--color-mastery)" />
             </div>

@@ -57,14 +57,15 @@ export default function FlipCard({ verse, version, defaultVersion, verseTranslat
 
   return (
     <div className="wrap" ref={wrapRef} style={{ minHeight: cardHeight }} onClick={handleClick}>
-      {starred && <span className="card-star" title="Starred"><Icon name="star" size={18} weight="fill" /></span>}
       <div className={`card${isFlipped ? ' flip' : ''}`} style={{ minHeight: cardHeight }}>
         <div className="face">
+          {starred && <span className="card-star" title="Starred"><Icon name="star" size={18} weight="fill" /></span>}
           <div className="lbl">{frontLabel}</div>
           <div className="ref">{verse.reference}</div>
           {showHint && <div className="hint">tap to reveal</div>}
         </div>
         <div className="face back" ref={backRef}>
+          {starred && <span className="card-star" title="Starred"><Icon name="star" size={18} weight="fill" /></span>}
           <div
             className={`badge${isOverride ? ' badge-override' : ''}`}
             onClick={handleBadgeClick}
