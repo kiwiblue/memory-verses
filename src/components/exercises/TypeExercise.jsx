@@ -10,6 +10,14 @@ function parseTokens(text) {
   });
 }
 
+// First typable letter of a word, skipping any leading punctuation/marks such as
+// opening quotes (“ ‘) — every translation except KJV quotes speech, so a blanked
+// word can begin with a quote. Falls back to the first char if none found.
+function firstTypable(word) {
+  const m = (word || '').match(/[a-zA-Z0-9]/);
+  return m ? m[0] : (word?.[0] || '');
+}
+
 function blankIndicesFor(tokens, difficulty) {
   if (difficulty === 'hard') return tokens.map((_, i) => i);
   if (difficulty === 'moderate') return tokens.map((_, i) => i);
@@ -50,7 +58,7 @@ function FirstLetterMode({ tokens, blankIndices, difficulty, onDowngrade, onComp
     e.preventDefault();
 
     const targetWord = tokens[blankIndices[activeBi]].word;
-    if (key.toLowerCase() === targetWord[0].toLowerCase()) {
+    if (key.toLowerCase() === firstTypable(targetWord).toLowerCase()) {
       const nr = { ...revealed, [blankIndices[activeBi]]: 'correct' };
       setRevealed(nr);
       setConsecutiveErrors(0);
@@ -121,7 +129,7 @@ function FirstLetterMode({ tokens, blankIndices, difficulty, onDowngrade, onComp
         <div className="type-ex-controls">
           <div className="type-ex-hint">
             {showLetterHint && targetWord
-              ? <>Type: <strong className="type-hint-letter">{targetWord[0].toUpperCase()}</strong></>
+              ? <>Type: <strong className="type-hint-letter">{firstTypable(targetWord).toUpperCase()}</strong></>
               : <span>Type the first letter of each hidden word</span>
             }
           </div>
