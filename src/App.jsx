@@ -798,8 +798,8 @@ export default function App() {
             navBack();
           }}
           initialSubscreen={profileInitSubscreen}
-          onOpenDeck={() => setShowDeckPanel(true)}
-          onOpenStats={() => setShowStats(true)}
+          onOpenDeck={() => { setProfileUser(null); setProfileInitSubscreen(null); setShowDeckPanel(true); }}
+          onOpenStats={() => { setProfileUser(null); setProfileInitSubscreen(null); setShowStats(true); }}
           onClose={navBack}
           onHome={goHome}
         />
