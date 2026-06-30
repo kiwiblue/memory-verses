@@ -206,9 +206,6 @@ export default function StatsScreen({ verses, progress, currentUser, users, stre
             const elapsedMs = now - (entry.last_seen || now);
             const sessionPct = Math.max(0, 1 - elapsedMs / intervalMs);
             const skill = entry.skill_level || 'easy';
-            const skillColor = skill === 'hard' ? 'var(--color-skill-hard)'
-              : skill === 'moderate' ? 'var(--color-skill-moderate)'
-              : 'var(--color-skill-easy)';
             const masteryFill = SKILL_FILL[skill] ?? 1 / 3;
             const daysSince = entry.last_seen ? Math.floor((now - entry.last_seen) / 86400000) : null;
             const lastLabel = daysSince === null ? 'Never practiced'
@@ -220,8 +217,8 @@ export default function StatsScreen({ verses, progress, currentUser, users, stre
                   <span className="stats-verse-ref">{v.reference}</span>
                   <span className={`stats-verse-badge stats-badge-${skill}`}>{skill}</span>
                   <div className="stats-verse-rings">
-                    <MiniRing pct={accuracyPct} color={skillColor} />
-                    <MiniRing pct={sessionPct} color="var(--color-info)" />
+                    <MiniRing pct={accuracyPct} color="var(--color-info)" />
+                    <MiniRing pct={sessionPct} color="var(--color-brand)" />
                     <MiniRing pct={masteryFill} color="var(--color-mastery)" />
                   </div>
                 </div>
