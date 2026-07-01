@@ -546,7 +546,7 @@ export default function OnboardingFlow({ currentUser, verseCache, onComplete, on
       colour={colour} setColour={setColour}
       pattern={pattern} setPattern={setPattern}
       reminders={reminders} setReminders={setReminders}
-      onComplete={finish}
+      onComplete={(arg) => { logEvent('onboarding_step_complete', { step: 3 }); finish(arg); }}
     />
   );
 }

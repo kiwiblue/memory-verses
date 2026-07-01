@@ -165,6 +165,21 @@ function Dashboard({ stats, onRefresh, refreshing }) {
           <Distribution title="Age bracket" data={u.by_bracket} />
           <Distribution title="Translation" data={u.by_translation} />
         </div>
+        {Array.isArray(u.registered_emails) && u.registered_emails.length > 0 && (
+          <div className="adm-emails">
+            <div className="adm-dist-title">Registered emails ({fmt(u.registered_emails.length)}) — truncated for privacy</div>
+            <div className="adm-email-list">
+              {u.registered_emails.map((r, i) => (
+                <div key={i} className="adm-email-row">
+                  <code className="adm-email-addr">{r.email}</code>
+                  <span className="adm-email-date">
+                    {r.created_at ? new Date(r.created_at * 1000).toLocaleDateString() : '—'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </Section>
 
       <Section title="Progress">

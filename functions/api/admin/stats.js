@@ -1,5 +1,18 @@
 import { json } from '../_helpers.js';
 
+// Truncate an email server-side so full addresses never leave the server —
+// keeps them private even if the admin page/token is compromised, while still
+// showing enough (first 3 chars + TLD) to tell testers from real users.
+// e.g. info@evangelism.com.au -> "inf•••@•••.au"
+function maskEmail(email) {
+  if (!email || typeof email !== 'string' || !email.includes('@')) return '—';
+  const [local, domain] = email.split('@');
+  const localMask = local.slice(0, 3) + '•••';
+  const dot = domain.lastIndexOf('.');
+  const tld = dot >= 0 ? domain.slice(dot) : '';
+  return `${localMask}@•••${tld}`;
+}
+
 function groupBy(rows) {
   const out = {};
   for (const row of rows ?? []) {
@@ -50,6 +63,7 @@ export async function onRequestGet({ request, env }) {
     activeWeek,
     activeMonth,
     activeYear,
+    emailRows,
   ] = await Promise.all([
     env.DB.batch([
       env.DB.prepare('SELECT COUNT(*) as count FROM accounts'),
@@ -73,6 +87,7 @@ export async function onRequestGet({ request, env }) {
     env.DB.prepare("SELECT COUNT(DISTINCT session_id) as c FROM events WHERE event_type='session_start' AND ts > ?").bind(cutoffs.week).first(),
     env.DB.prepare("SELECT COUNT(DISTINCT session_id) as c FROM events WHERE event_type='session_start' AND ts > ?").bind(cutoffs.month).first(),
     env.DB.prepare("SELECT COUNT(DISTINCT session_id) as c FROM events WHERE event_type='session_start' AND ts > ?").bind(cutoffs.year).first(),
+    env.DB.prepare('SELECT email, created_at FROM accounts ORDER BY created_at DESC LIMIT 200').all(),
   ]);
 
   // Destructure batch results
@@ -138,6 +153,10 @@ export async function onRequestGet({ request, env }) {
       by_translation:  groupBy(byTranslationResult.results),
       by_colour:       groupBy(byColourResult.results),
       by_pattern:      groupBy(byPatternResult.results),
+      registered_emails: (emailRows.results ?? []).map(r => ({
+        email: maskEmail(r.email),
+        created_at: r.created_at,
+      })),
     },
     progress: {
       total_learning:           totalLearning,
@@ -164,7 +183,8 @@ export async function onRequestGet({ request, env }) {
     feedback: {
       total:    feedbackCount?.c ?? 0,
       by_type:  groupBy(feedbackByType?.results),
-      recent:   feedbackRows?.results ?? [],
+      // Mask submitter emails server-side too (was exposing full addresses).
+      recent:   (feedbackRows?.results ?? []).map(r => ({ ...r, email: maskEmail(r.email) })),
     },
   });
 }
