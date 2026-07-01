@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { VERSES } from '../data/verses.js';
-import { PATTERNS, avatarStyle } from '../data/avatarStyle.js';
+import { PATTERNS, avatarStyle, DEFAULT_PATTERN_OPACITY, PATTERN_OPACITY_MIN, PATTERN_OPACITY_MAX } from '../data/avatarStyle.js';
 import { saveAuth } from '../data/auth.js';
 import { parseRef, toDisplayRef } from '../api/bibleRef.js';
 import { fetchTranslation, fetchKJV } from '../api/bible.js';
@@ -305,7 +305,7 @@ function VerseScreen({ selectedId, onSelect, onNext, translation, verseCache }) 
 
 // ── Screen 3: Personalise ───────────────────────────────────────────────────
 
-function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, setColour, pattern, setPattern, reminders, setReminders, onComplete }) {
+function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, setColour, pattern, setPattern, patternOpacity, setPatternOpacity, reminders, setReminders, onComplete }) {
   const [showAccount, setShowAccount] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -361,11 +361,22 @@ function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, s
             <div className="swatches ob-swatches">
               {PATTERNS.map(p => (
                 <div key={p.id} className={`swatch${pattern === p.id ? ' selected' : ''}`}
-                  style={avatarStyle(colour, p.id)} onClick={() => setPattern(p.id)} title={p.label} />
+                  style={avatarStyle(colour, p.id, patternOpacity)} onClick={() => setPattern(p.id)} title={p.label} />
               ))}
             </div>
+            <div className={`pm-field pm-fade-field${pattern === 'none' ? ' pm-fade-disabled' : ''}`}>
+              <label className="pm-label">Pattern fade</label>
+              <input
+                type="range"
+                className="pm-fade-slider"
+                min={PATTERN_OPACITY_MIN} max={PATTERN_OPACITY_MAX} step={0.01}
+                value={patternOpacity}
+                disabled={pattern === 'none'}
+                onChange={e => setPatternOpacity(parseFloat(e.target.value))}
+              />
+            </div>
           </div>
-          <div className="ob-avatar-preview ob-avatar-side" style={{ ...avatarStyle(colour, pattern) }}>
+          <div className="ob-avatar-preview ob-avatar-side" style={{ ...avatarStyle(colour, pattern, patternOpacity) }}>
             {(name || 'Y').charAt(0).toUpperCase()}
           </div>
         </div>
@@ -483,6 +494,7 @@ export default function OnboardingFlow({ currentUser, verseCache, onComplete, on
   const [bracket, setBracket] = useState(currentUser.bracket || 'adult');
   const [colour, setColour] = useState(currentUser.colour || PRESETS[0]);
   const [pattern, setPattern] = useState(currentUser.pattern || 'none');
+  const [patternOpacity, setPatternOpacity] = useState(currentUser.patternOpacity ?? DEFAULT_PATTERN_OPACITY);
   const [reminders, setReminders] = useState(() => {
     try { return localStorage.getItem(`mv-reminders-${currentUser.id}`) === 'true'; } catch { return false; }
   });
@@ -496,6 +508,7 @@ export default function OnboardingFlow({ currentUser, verseCache, onComplete, on
       bracket,
       colour,
       pattern,
+      patternOpacity,
       bracket_updated: Date.now(),
     };
     onComplete(updatedUser, selectedVerseId, auth || null, customVerse);
@@ -545,6 +558,7 @@ export default function OnboardingFlow({ currentUser, verseCache, onComplete, on
       bracket={bracket} setBracket={setBracket}
       colour={colour} setColour={setColour}
       pattern={pattern} setPattern={setPattern}
+      patternOpacity={patternOpacity} setPatternOpacity={setPatternOpacity}
       reminders={reminders} setReminders={setReminders}
       onComplete={(arg) => { logEvent('onboarding_step_complete', { step: 3 }); finish(arg); }}
     />

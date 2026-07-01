@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { saveUsers, saveCurrentUserId } from '../data/users.js';
 import AuthPanel from './AuthPanel.jsx';
-import { PATTERNS, avatarStyle } from '../data/avatarStyle.js';
+import { PATTERNS, avatarStyle, DEFAULT_PATTERN_OPACITY, PATTERN_OPACITY_MIN, PATTERN_OPACITY_MAX } from '../data/avatarStyle.js';
 import OverlayHeader from './OverlayHeader.jsx';
 
 const PRESETS = ['#3a8c5c','#2a6ab5','#9a3a3a','#7a5c9a','#9a6c10','#3a7a8c','#555555','#c0392b'];
@@ -19,13 +19,31 @@ const BRACKETS = [
   { value: 'adult', label: 'Adult' },
 ];
 
-function BigAvatar({ user, colour, pattern, size = 72 }) {
+function BigAvatar({ user, colour, pattern, patternOpacity, size = 72 }) {
   return (
     <div
       className="profile-avatar"
-      style={{ ...avatarStyle(colour, pattern), width: size, height: size, '--user-colour': colour }}
+      style={{ ...avatarStyle(colour, pattern, patternOpacity), width: size, height: size, '--user-colour': colour }}
     >
       {user.name.charAt(0).toUpperCase()}
+    </div>
+  );
+}
+
+// Fade slider for the pattern's opacity — only meaningful once a pattern
+// (other than Solid) is chosen.
+function PatternFadeSlider({ value, onChange, disabled }) {
+  return (
+    <div className={`pm-field pm-fade-field${disabled ? ' pm-fade-disabled' : ''}`}>
+      <label className="pm-label">Pattern fade</label>
+      <input
+        type="range"
+        className="pm-fade-slider"
+        min={PATTERN_OPACITY_MIN} max={PATTERN_OPACITY_MAX} step={0.01}
+        value={value}
+        disabled={disabled}
+        onChange={e => onChange(parseFloat(e.target.value))}
+      />
     </div>
   );
 }
@@ -37,6 +55,7 @@ function AddMemberForm({ users, onSave, onCancel }) {
   const [translation, setTranslation] = useState('kjv');
   const [colour, setColour] = useState(PRESETS[1]);
   const [pattern, setPattern] = useState('none');
+  const [patternOpacity, setPatternOpacity] = useState(DEFAULT_PATTERN_OPACITY);
   const [error, setError] = useState('');
 
   function handleSave() {
@@ -48,6 +67,7 @@ function AddMemberForm({ users, onSave, onCancel }) {
       bracket_updated: Date.now(),
       colour,
       pattern,
+      patternOpacity,
       translation,
     };
     const updated = [...users, newUser];
@@ -106,12 +126,13 @@ function AddMemberForm({ users, onSave, onCancel }) {
             <div className="swatches">
               {PATTERNS.map(p => (
                 <div key={p.id} className={`swatch${pattern === p.id ? ' selected' : ''}`}
-                  style={avatarStyle(colour, p.id)} onClick={() => setPattern(p.id)} title={p.label} />
+                  style={avatarStyle(colour, p.id, patternOpacity)} onClick={() => setPattern(p.id)} title={p.label} />
               ))}
             </div>
+            <PatternFadeSlider value={patternOpacity} onChange={setPatternOpacity} disabled={pattern === 'none'} />
           </div>
         </div>
-        <BigAvatar user={{ name: name || '?' }} colour={colour} pattern={pattern} size={84} />
+        <BigAvatar user={{ name: name || '?' }} colour={colour} pattern={pattern} patternOpacity={patternOpacity} size={84} />
       </div>
 
       <div className="pm-form-btns">
@@ -129,11 +150,12 @@ function EditForm({ user, onSave, onCancel }) {
   const [translation, setTranslation] = useState(user.translation || 'kjv');
   const [colour, setColour] = useState(user.colour || PRESETS[0]);
   const [pattern, setPattern] = useState(user.pattern || 'none');
+  const [patternOpacity, setPatternOpacity] = useState(user.patternOpacity ?? DEFAULT_PATTERN_OPACITY);
   const [nameError, setNameError] = useState('');
 
   function handleSave() {
     if (!name.trim()) { setNameError('Name is required.'); return; }
-    onSave({ name: name.trim(), bracket, translation, colour, pattern });
+    onSave({ name: name.trim(), bracket, translation, colour, pattern, patternOpacity });
   }
 
   return (
@@ -159,12 +181,13 @@ function EditForm({ user, onSave, onCancel }) {
             <div className="swatches">
               {PATTERNS.map(p => (
                 <div key={p.id} className={`swatch${pattern === p.id ? ' selected' : ''}`}
-                  style={avatarStyle(colour, p.id)} onClick={() => setPattern(p.id)} title={p.label} />
+                  style={avatarStyle(colour, p.id, patternOpacity)} onClick={() => setPattern(p.id)} title={p.label} />
               ))}
             </div>
+            <PatternFadeSlider value={patternOpacity} onChange={setPatternOpacity} disabled={pattern === 'none'} />
           </div>
         </div>
-        <BigAvatar user={{ ...user, name }} colour={colour} pattern={pattern} size={84} />
+        <BigAvatar user={{ ...user, name }} colour={colour} pattern={pattern} patternOpacity={patternOpacity} size={84} />
       </div>
 
       <div className="pm-field">
@@ -230,8 +253,8 @@ export default function ProfileModal({
     saveAppearance(colour, p);
   }
 
-  function handleEditSave({ name, bracket, translation, colour: newColour, pattern: newPattern }) {
-    const updated = { ...user, name, bracket, translation, colour: newColour, pattern: newPattern, bracket_updated: Date.now() };
+  function handleEditSave({ name, bracket, translation, colour: newColour, pattern: newPattern, patternOpacity: newPatternOpacity }) {
+    const updated = { ...user, name, bracket, translation, colour: newColour, pattern: newPattern, patternOpacity: newPatternOpacity, bracket_updated: Date.now() };
     const updatedUsers = users.map(u => u.id === user.id ? updated : u);
     saveUsers(updatedUsers);
     onSave(updated, updatedUsers);

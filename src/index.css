@@ -1180,6 +1180,14 @@ input[type="search"], input[type="number"], textarea, select {
   border: 2px solid transparent; transition: border-color .1s;
 }
 .swatch.selected { border-color: var(--color-text-primary); }
+
+.pm-fade-field { margin-top: 10px; margin-bottom: 0; }
+.pm-fade-field.pm-fade-disabled { opacity: .45; }
+.pm-fade-slider {
+  width: 100%; margin-top: 6px; accent-color: var(--color-brand);
+  height: 4px; cursor: pointer;
+}
+.pm-fade-slider:disabled { cursor: default; }
 .form-btns { display: flex; gap: 8px; }
 .form-btns .btn { padding: 8px; font-size: 12px; }
 

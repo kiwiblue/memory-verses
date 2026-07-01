@@ -6,7 +6,7 @@ function Avatar({ user, size = 32 }) {
   return (
     <div
       className="avatar"
-      style={{ ...avatarStyle(user.colour, user.pattern), width: size, height: size, '--user-colour': user.colour }}
+      style={{ ...avatarStyle(user.colour, user.pattern, user.patternOpacity), width: size, height: size, '--user-colour': user.colour }}
       title={user.name}
     >
       {user.name.charAt(0).toUpperCase()}
@@ -58,7 +58,7 @@ export default function UserPanel({ users, currentUser, onUserChange, onOpenProf
       {currentUser && (
         <div
           className="avatar"
-          style={{ ...avatarStyle(currentUser.colour, currentUser.pattern), '--user-colour': currentUser.colour }}
+          style={{ ...avatarStyle(currentUser.colour, currentUser.pattern, currentUser.patternOpacity), '--user-colour': currentUser.colour }}
           onClick={handleAvatarClick}
           title={currentUser.name}
         >

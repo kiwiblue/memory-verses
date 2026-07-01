@@ -35,7 +35,7 @@ export default function OverlayHeader({ onBack, user, onHome }) {
       ) : user ? (
         <div
           className="vs-header-avatar avatar"
-          style={{ ...avatarStyle(user.colour, user.pattern), '--user-colour': user.colour }}
+          style={{ ...avatarStyle(user.colour, user.pattern, user.patternOpacity), '--user-colour': user.colour }}
         >
           {user.name?.charAt(0).toUpperCase()}
         </div>

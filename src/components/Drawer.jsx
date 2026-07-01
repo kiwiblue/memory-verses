@@ -79,7 +79,7 @@ export default function Drawer({ open, onClose, theme, onToggleTheme, auth, curr
           {currentUser && (
             <div
               className="avatar drawer-avatar"
-              style={{ ...avatarStyle(currentUser.colour, currentUser.pattern), '--user-colour': currentUser.colour, width: 34, height: 34 }}
+              style={{ ...avatarStyle(currentUser.colour, currentUser.pattern, currentUser.patternOpacity), '--user-colour': currentUser.colour, width: 34, height: 34 }}
             >
               {currentUser.name?.charAt(0).toUpperCase()}
             </div>
