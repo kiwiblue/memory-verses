@@ -499,7 +499,13 @@ select {
 
 /* Flip card */
 .wrap { perspective: 1200px; width: 100%; min-height: 200px; margin-bottom: 1rem; cursor: pointer; position: relative; }
-.card-star { position: absolute; top: 14px; right: 16px; z-index: 2; color: var(--color-star); pointer-events: none; display: flex; }
+.card-star {
+  position: absolute; top: 14px; right: 16px; z-index: 2; color: var(--color-star);
+  pointer-events: none; display: flex;
+  /* Hide the front face's star when the card is flipped so only the back
+     face's star shows (otherwise both appear on the back). */
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+}
 .card {
   width: 100%; height: 100%; min-height: 200px; position: relative;
   transform-style: preserve-3d;
@@ -2130,6 +2136,21 @@ input[type="search"], input[type="number"], textarea, select {
 }
 .vs-freq-less:hover { background: var(--color-warning-bg); border-color: var(--color-warning); color: var(--color-warning-dark); }
 .vs-freq-more:hover { background: var(--color-brand-muted); border-color: var(--color-brand); color: var(--color-brand-dark); }
+
+/* Temporary skill-mode override */
+.vs-mode-override {
+  background: var(--color-surface-sunken); border-radius: 10px; padding: 10px 14px;
+}
+.vs-mode-label { display: block; font-size: 12px; color: var(--color-text-muted); margin-bottom: 8px; }
+.vs-mode-btns { display: flex; gap: 6px; }
+.vs-mode-btn {
+  flex: 1; padding: 8px 0; border-radius: 8px; font-size: 13px; font-weight: 600;
+  border: 1.5px solid var(--color-border); cursor: pointer;
+  background: var(--color-surface); color: var(--color-text-secondary);
+  transition: background .15s, border-color .15s, color .15s;
+}
+.vs-mode-btn:hover { border-color: var(--color-brand-accent); }
+.vs-mode-btn.on { background: var(--color-brand); border-color: var(--color-brand); color: #fff; }
 
 /* bottom actions */
 .vs-bottom-actions {

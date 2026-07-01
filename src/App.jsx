@@ -6,7 +6,7 @@ import { loadUsers, saveUsers, loadCurrentUserId, saveCurrentUserId, loadVerseTr
 import { loadAuth, saveAuth, clearAuth } from './data/auth.js';
 import { pushSync, pullSync, deleteCloudProfile } from './data/syncService.js';
 import { loadProgress, saveProgress, getEntry } from './data/progress.js';
-import { recordAttempt, startRevising, recordReviseAttempt, buildDailyQueue, progressStats, computeHintScore, computeNextSkillLevel, getSkillLevel } from './data/spacedRepetition.js';
+import { recordAttempt, startRevising, recordReviseAttempt, buildDailyQueue, progressStats, computeHintScore, computeNextSkillLevel, getSkillLevel, verseAgeDays } from './data/spacedRepetition.js';
 import { loadCustomVerses, addCustomVerse, removeCustomVerse, saveCustomVerses } from './data/customVerses.js';
 import { loadHiddenVerseIds, hideVerseId, restoreVerseId, restoreAllVerseIds, saveHiddenVerseIds } from './data/hiddenVerses.js';
 import { loadVerseCache, saveVerseCache, mergeVerseIntoCache } from './data/verseCache.js';
@@ -406,13 +406,18 @@ export default function App() {
     setProgress(prev => {
       const entry = getEntry(prev, exVerse.id);
       const hintScore = computeHintScore(result.hints || 0, result.errors || 0);
-      const daysSinceLast = entry?.last_seen ? (Date.now() - entry.last_seen) / 86_400_000 : Infinity;
-      const newLevel = computeNextSkillLevel(getSkillLevel(entry), hintScore, daysSinceLast, entry?.attempts || []);
+      const newLevel = computeNextSkillLevel(getSkillLevel(entry), {
+        hintScore,
+        ageDays: verseAgeDays(entry),
+        seenCount: entry?.seen_count || 0,
+        recentAttempts: entry?.attempts || [],
+        bracket: currentUser.bracket || 'adult',
+      });
       return { ...prev, [exVerse.id]: recordReviseAttempt(entry, newLevel, hintScore) };
     });
     handleTouchStreak();
     setExercise(null);
-  }, [handleTouchStreak]);
+  }, [handleTouchStreak, currentUser.bracket]);
 
   // Learn mode: record score (1=know it, 0=still learning) then advance queue
   const handleMark = useCallback((score) => {
@@ -909,14 +914,10 @@ export default function App() {
           onSelectWord={() => setExercise({ verse: verseScreenVerse, kind: 'select' })}
           onTypeVerse={() => setExercise({ verse: verseScreenVerse, kind: 'type' })}
           onMatchRef={() => setExercise({ verse: verseScreenVerse, kind: 'match' })}
-          onLessFrequency={() => handleLearnLater(verseScreenVerse)}
-          onMoreFrequency={() => {
+          onSetSkill={(v, level) => {
             setProgress(prev => ({
               ...prev,
-              [verseScreenVerse.id]: {
-                ...(prev[verseScreenVerse.id] || {}),
-                next_review: Date.now() - 1,
-              },
+              [v.id]: { ...(prev[v.id] || {}), status: 'learning', skill_level: level },
             }));
           }}
           starred={!!progress[verseScreenVerse.id]?.starred}

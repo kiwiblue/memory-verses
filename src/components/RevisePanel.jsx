@@ -8,6 +8,7 @@ import {
   getSkillLevel,
   computeHintScore,
   computeNextSkillLevel,
+  verseAgeDays,
 } from '../data/spacedRepetition.js';
 import Icon from './Icon.jsx';
 
@@ -80,7 +81,7 @@ function diffFor(skill) {
   return 'easy';
 }
 
-function ExerciseFlow({ queue, progress, version = 'kjv', verseTranslations = {}, sessionKey, onAdvance, onDone }) {
+function ExerciseFlow({ queue, progress, version = 'kjv', verseTranslations = {}, sessionKey, bracket = 'adult', onAdvance, onDone }) {
   const [queueIdx, setQueueIdx] = useState(0);
   const [stepIdx, setStepIdx]   = useState(0);
   const [accHints, setAccHints] = useState(0);
@@ -114,16 +115,14 @@ function ExerciseFlow({ queue, progress, version = 'kjv', verseTranslations = {}
 
     // All steps done for this verse — compute new skill level
     const entry = progress[verse.id];
-    const daysSinceLast = entry?.last_seen
-      ? (Date.now() - entry.last_seen) / DAY_MS
-      : Infinity;
     const hintScore  = computeHintScore(newHints, newErrors);
-    const newLevel   = computeNextSkillLevel(
-      getSkillLevel(entry),
+    const newLevel   = computeNextSkillLevel(getSkillLevel(entry), {
       hintScore,
-      daysSinceLast,
-      entry?.attempts || [],
-    );
+      ageDays: verseAgeDays(entry),
+      seenCount: entry?.seen_count || 0,
+      recentAttempts: entry?.attempts || [],
+      bracket,
+    });
 
     onAdvance(verse, newLevel, hintScore);
 
@@ -318,6 +317,7 @@ export default function RevisePanel({
           version={version}
           verseTranslations={verseTranslations}
           sessionKey={sessionKey}
+          bracket={currentUser?.bracket || 'adult'}
           onAdvance={onMark}
           onDone={(count) => { setCompletedCount(count); setPanelMode('done'); }}
         />

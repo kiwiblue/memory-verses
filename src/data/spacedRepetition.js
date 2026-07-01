@@ -54,34 +54,62 @@ export function computeHintScore(hints, errors) {
   return (hints || 0) + Math.floor((errors || 0) / SKILL_CONFIG.errorsPerHint);
 }
 
+// Per-bracket tuning: children advance slower and drop quicker; adults advance
+// faster and drop a little slower. Tune these to taste.
+export const BRACKET_TUNING = {
+  child: { moderateAfterSeen: 3, hardMatureDays: 30, hardPerfectRun: 4, demoteAt: { moderate: 1, hard: 0 } },
+  youth: { moderateAfterSeen: 2, hardMatureDays: 21, hardPerfectRun: 3, demoteAt: { moderate: 2, hard: 1 } },
+  adult: { moderateAfterSeen: 1, hardMatureDays: 14, hardPerfectRun: 3, demoteAt: { moderate: 3, hard: 1 } },
+};
+
+const LEVELS = ['easy', 'moderate', 'hard'];
+const rankOf   = (l) => Math.max(0, LEVELS.indexOf(l));
+const levelAt  = (r) => LEVELS[Math.max(0, Math.min(LEVELS.length - 1, r))];
+
+function tuningFor(bracket) { return BRACKET_TUNING[bracket] || BRACKET_TUNING.adult; }
+
+// How many days since the verse was first learned (its "maturity").
+export function verseAgeDays(entry, now = Date.now()) {
+  const start = entry?.learned_at || entry?.attempts?.[0]?.ts || entry?.last_seen || now;
+  return Math.max(0, (now - start) / DAY);
+}
+
+// The highest level a verse may currently *hold*, given maturity + recent history.
+// HARD only becomes stable after the verse is weeks old AND recent attempts are
+// all perfect — so a freshly-crammed verse that spikes to HARD decays back down.
+function stableCeiling(tuning, { ageDays, seenCount, recentAttempts }) {
+  const { perfectHintMax } = SKILL_CONFIG;
+  const run = recentAttempts.slice(-tuning.hardPerfectRun);
+  const sustainedPerfect =
+    run.length >= tuning.hardPerfectRun && run.every(a => (a.hintScore ?? 0) <= perfectHintMax);
+  if (ageDays >= tuning.hardMatureDays && sustainedPerfect) return 'hard';
+  if (seenCount >= tuning.moderateAfterSeen) return 'moderate';
+  return 'easy';
+}
+
 // Determine the new skill level after a revise attempt.
-// recentAttempts: array of { hintScore } objects from prior attempts (oldest first)
-export function computeNextSkillLevel(currentLevel, hintScore, daysSinceLast, recentAttempts) {
-  const { perfectHintMax, goodHintMax, gapDays, historyLookback } = SKILL_CONFIG;
+// opts: { hintScore, ageDays, seenCount, recentAttempts, bracket }
+export function computeNextSkillLevel(currentLevel, opts = {}) {
+  const {
+    hintScore = 0, ageDays = 0, seenCount = 0, recentAttempts = [], bracket = 'adult',
+  } = opts;
+  const tuning = tuningFor(bracket);
+  const { goodHintMax } = SKILL_CONFIG;
+  const cur = rankOf(currentLevel);
 
-  // History override: last N attempts all perfect → auto-promote
-  if (recentAttempts.length >= historyLookback) {
-    const recent = recentAttempts.slice(-historyLookback);
-    if (recent.every(a => (a.hintScore ?? 0) <= perfectHintMax)) {
-      return promoteLevel(currentLevel);
-    }
-  }
+  // 1) Struggle → drop a level quickly. The bar is stricter the higher the level
+  //    (a couple of hints on a HARD exercise drops you), and stricter for children.
+  const demoteAt = currentLevel === 'hard' ? tuning.demoteAt.hard
+                 : currentLevel === 'moderate' ? tuning.demoteAt.moderate
+                 : Infinity; // easy can't struggle-demote below easy
+  if (hintScore > demoteAt) return levelAt(cur - 1);
 
-  if (hintScore <= perfectHintMax) {
-    return promoteLevel(currentLevel);         // perfect → always promote
-  }
-
-  if (hintScore <= goodHintMax) {
-    return daysSinceLast >= gapDays
-      ? promoteLevel(currentLevel)             // remembered after a week → promote
-      : currentLevel;                          // good but too recent → stay
-  }
-
-  // Struggling (hintScore > goodHintMax)
-  if (daysSinceLast < 1 && currentLevel !== 'easy') {
-    return demoteLevel(currentLevel);          // same-day struggle → drop one level
-  }
-  return currentLevel;                         // struggling but not same-day → stay
+  // 2) Otherwise move toward the level this verse can actually sustain.
+  const ceiling = rankOf(stableCeiling(tuning, { ageDays, seenCount, recentAttempts }));
+  if (cur > ceiling) return levelAt(cur - 1);                 // above what maturity supports → decay one step
+  const recalledWell = hintScore <= goodHintMax;             // good or perfect
+  if (cur < ceiling && recalledWell) return levelAt(cur + 1); // earn one step up
+  return currentLevel;                                        // hold
 }
 
 // Read the stored skill level; falls back to 'easy' for legacy entries
@@ -100,6 +128,7 @@ export function startRevising(entry) {
     skill_level: 'easy',
     next_review: now,
     last_seen: now,
+    learned_at: entry?.learned_at || now, // verse maturity anchor (for skill stability)
   };
 }
 
@@ -120,6 +149,9 @@ export function recordReviseAttempt(entry, newSkillLevel, hintScore) {
     seen_count: (entry.seen_count || 0) + 1,
     last_seen: now,
     next_review: now + days * DAY,
+    // Backfill the maturity anchor for verses that predate learned_at, using the
+    // best available estimate so existing mature verses aren't treated as brand new.
+    learned_at: entry.learned_at || entry.attempts?.[0]?.ts || entry.last_seen || now,
     attempts,
     // Keep scores for backwards-compat with stats rings
     scores: [...(entry.scores || []), hintScore <= goodHintMax ? 1 : 0].slice(-10),

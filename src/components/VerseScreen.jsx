@@ -49,9 +49,8 @@ export default function VerseScreen({
   onTypeVerse,
   onSelectWord,
   onMatchRef,
-  // frequency
-  onLessFrequency,
-  onMoreFrequency,
+  // manual skill override
+  onSetSkill,
   // actions
   starred,
   onToggleStar,
@@ -150,11 +149,18 @@ export default function VerseScreen({
           <div className="vs-flex-grow" />
 
           {isActive && (
-            <div className="vs-frequency">
-              <span className="vs-frequency-label">Practice Frequency?</span>
-              <div className="vs-frequency-btns">
-                <button className="vs-freq-btn vs-freq-less" onClick={onLessFrequency}>less</button>
-                <button className="vs-freq-btn vs-freq-more" onClick={onMoreFrequency}>more</button>
+            <div className="vs-mode-override">
+              <span className="vs-mode-label">Temporary Mode Override</span>
+              <div className="vs-mode-btns">
+                {['easy', 'moderate', 'hard'].map(lvl => (
+                  <button
+                    key={lvl}
+                    className={`vs-mode-btn${skill === lvl ? ' on' : ''}`}
+                    onClick={() => onSetSkill?.(verse, lvl)}
+                  >
+                    {lvl.charAt(0).toUpperCase() + lvl.slice(1)}
+                  </button>
+                ))}
               </div>
             </div>
           )}
