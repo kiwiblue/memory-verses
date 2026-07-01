@@ -412,6 +412,7 @@ export default function App() {
         seenCount: entry?.seen_count || 0,
         recentAttempts: entry?.attempts || [],
         bracket: currentUser.bracket || 'adult',
+        manualOverride: !!entry?.manual_override,
       });
       return { ...prev, [exVerse.id]: recordReviseAttempt(entry, newLevel, hintScore) };
     });
@@ -917,7 +918,9 @@ export default function App() {
           onSetSkill={(v, level) => {
             setProgress(prev => ({
               ...prev,
-              [v.id]: { ...(prev[v.id] || {}), status: 'learning', skill_level: level },
+              // manual_override protects this level from being immediately auto-
+              // decayed by the maturity ceiling on the very next attempt.
+              [v.id]: { ...(prev[v.id] || {}), status: 'learning', skill_level: level, manual_override: true },
             }));
           }}
           starred={!!progress[verseScreenVerse.id]?.starred}

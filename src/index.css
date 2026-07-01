@@ -500,10 +500,12 @@ select {
 /* Flip card */
 .wrap { perspective: 1200px; width: 100%; min-height: 200px; margin-bottom: 1rem; cursor: pointer; position: relative; }
 .card-star {
-  position: absolute; top: 14px; right: 16px; z-index: 2; color: var(--color-star);
-  pointer-events: none; display: flex;
-  /* Hide the front face's star when the card is flipped so only the back
-     face's star shows (otherwise both appear on the back). */
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  z-index: 2; color: var(--color-star); pointer-events: none; display: flex;
+  /* Dead-centered: the flip's left-right mirroring is a no-op here, and if
+     iOS Safari's backface-visibility bug lets both faces' stars leak through
+     at once, they land exactly on top of each other — still reads as one
+     star either way, and it visually spins with the card. */
   backface-visibility: hidden; -webkit-backface-visibility: hidden;
 }
 .card {

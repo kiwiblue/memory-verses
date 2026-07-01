@@ -59,6 +59,10 @@ export default function FlipCard({ verse, version, defaultVersion, verseTranslat
     <div className="wrap" ref={wrapRef} style={{ minHeight: cardHeight }} onClick={handleClick}>
       <div className={`card${isFlipped ? ' flip' : ''}`} style={{ minHeight: cardHeight }}>
         <div className="face">
+          {/* Dead-centered so it survives the flip's left-right mirroring, and
+              if iOS Safari's backface-visibility quirk lets both faces' stars
+              leak through, they land exactly on top of each other — still
+              looks like one star, spinning with the card, either way. */}
           {starred && <span className="card-star" title="Starred"><Icon name="star" size={18} weight="fill" /></span>}
           <div className="lbl">{frontLabel}</div>
           <div className="ref">{verse.reference}</div>

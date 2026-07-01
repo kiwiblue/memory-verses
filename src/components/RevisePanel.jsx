@@ -122,6 +122,7 @@ function ExerciseFlow({ queue, progress, version = 'kjv', verseTranslations = {}
       seenCount: entry?.seen_count || 0,
       recentAttempts: entry?.attempts || [],
       bracket,
+      manualOverride: !!entry?.manual_override,
     });
 
     onAdvance(verse, newLevel, hintScore);

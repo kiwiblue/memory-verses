@@ -88,10 +88,16 @@ function stableCeiling(tuning, { ageDays, seenCount, recentAttempts }) {
 }
 
 // Determine the new skill level after a revise attempt.
-// opts: { hintScore, ageDays, seenCount, recentAttempts, bracket }
+// opts: { hintScore, ageDays, seenCount, recentAttempts, bracket, manualOverride }
+// manualOverride: true for exactly the first attempt after the user manually set
+// the level via the Verse Screen's "Temporary Mode Override" — without this, a
+// manual jump to HARD would get immediately overruled by the maturity ceiling
+// below (the verse's real age/history hasn't caught up yet). Struggling still
+// demotes normally either way; only the maturity-based auto-decay is skipped.
 export function computeNextSkillLevel(currentLevel, opts = {}) {
   const {
     hintScore = 0, ageDays = 0, seenCount = 0, recentAttempts = [], bracket = 'adult',
+    manualOverride = false,
   } = opts;
   const tuning = tuningFor(bracket);
   const { goodHintMax } = SKILL_CONFIG;
@@ -106,10 +112,10 @@ export function computeNextSkillLevel(currentLevel, opts = {}) {
 
   // 2) Otherwise move toward the level this verse can actually sustain.
   const ceiling = rankOf(stableCeiling(tuning, { ageDays, seenCount, recentAttempts }));
-  if (cur > ceiling) return levelAt(cur - 1);                 // above what maturity supports → decay one step
-  const recalledWell = hintScore <= goodHintMax;             // good or perfect
-  if (cur < ceiling && recalledWell) return levelAt(cur + 1); // earn one step up
-  return currentLevel;                                        // hold
+  if (cur > ceiling && !manualOverride) return levelAt(cur - 1); // above what maturity supports → decay one step
+  const recalledWell = hintScore <= goodHintMax;                // good or perfect
+  if (cur < ceiling && recalledWell) return levelAt(cur + 1);    // earn one step up
+  return currentLevel;                                           // hold
 }
 
 // Read the stored skill level; falls back to 'easy' for legacy entries
@@ -153,6 +159,9 @@ export function recordReviseAttempt(entry, newSkillLevel, hintScore) {
     // best available estimate so existing mature verses aren't treated as brand new.
     learned_at: entry.learned_at || entry.attempts?.[0]?.ts || entry.last_seen || now,
     attempts,
+    // The manual-override grace period only protects the one attempt right
+    // after it's set; clear it now so the algorithm fully resumes from here.
+    manual_override: false,
     // Keep scores for backwards-compat with stats rings
     scores: [...(entry.scores || []), hintScore <= goodHintMax ? 1 : 0].slice(-10),
   };
