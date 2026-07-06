@@ -3,8 +3,8 @@ self.addEventListener('push', event => {
   const title = data.title || 'Memory.bible';
   const options = {
     body: data.body || 'Time to revise your verses.',
-    icon: '/favicon.svg',
-    badge: '/favicon.svg',
+    icon: '/icons/icon-192.png',
+    badge: '/icons/favicon-48.png',
     data: { url: data.url || '/' },
   };
   event.waitUntil(self.registration.showNotification(title, options));
