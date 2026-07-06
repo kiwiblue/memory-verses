@@ -33,13 +33,14 @@ const SECTIONS = [
   {
     heading: 'App Support',
     items: [
+      { id: 'install-app', label: 'Add to Home Screen', mobileOnly: true },
       { id: 'feedback',    label: 'App Feedback' },
       { id: 'theme',       label: null }, // dynamic: Light / Dark mode
     ],
   },
 ];
 
-export default function Drawer({ open, onClose, theme, onToggleTheme, auth, currentUser, onAction }) {
+export default function Drawer({ open, onClose, theme, onToggleTheme, auth, currentUser, showInstall, onAction }) {
   // Close on Escape
   useEffect(() => {
     if (!open) return;
@@ -90,7 +91,7 @@ export default function Drawer({ open, onClose, theme, onToggleTheme, auth, curr
           {SECTIONS.map(section => (
             <div key={section.heading} className="drawer-section">
               <div className="drawer-section-heading">{section.heading}</div>
-              {section.items.map(item => (
+              {section.items.filter(item => !item.mobileOnly || showInstall).map(item => (
                 <button
                   key={item.id}
                   className={`drawer-link${item.soon ? ' soon' : ''}`}

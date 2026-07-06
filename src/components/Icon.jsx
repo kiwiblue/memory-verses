@@ -8,6 +8,7 @@ import {
   CaretLeft, CaretRight, CaretUp, CaretDown,
   X, Check, Star, DotsSixVertical, Plus, Question,
   Fire, Trophy, BookOpen, CalendarCheck, Confetti, Moon, Sun,
+  Export, DeviceMobile,
 } from '@phosphor-icons/react';
 
 const ICONS = {
@@ -29,6 +30,8 @@ const ICONS = {
   celebrate: Confetti,
   moon:      Moon,
   sun:       Sun,
+  'ios-share': Export,
+  install:   DeviceMobile,
 };
 
 export default function Icon({ name, size = 20, weight = 'fill', className, ...rest }) {

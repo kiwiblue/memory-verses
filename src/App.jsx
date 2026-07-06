@@ -42,6 +42,8 @@ import AddVerseFlow from './components/AddVerseFlow.jsx';
 import AdminPanel from './components/AdminPanel.jsx';
 import FeedbackModal from './components/FeedbackModal.jsx';
 import InfoModal from './components/InfoModal.jsx';
+import InstallAppModal from './components/InstallAppModal.jsx';
+import { detectPlatform, isStandalone } from './data/platform.js';
 import OverlayHeader from './components/OverlayHeader.jsx';
 import Icon from './components/Icon.jsx';
 import StyleGuide from './components/StyleGuide.jsx';
@@ -104,7 +106,9 @@ export default function App() {
   const [userPanelOpen, setUserPanelOpen] = useState(false);
   const [auth, setAuth]               = useState(loadAuth);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [infoModal, setInfoModal] = useState(null); // 'about' | 'support'
+  const [infoModal, setInfoModal] = useState(null); // 'about' | 'support' | 'install-app'
+  const [installPrompt, setInstallPrompt] = useState(null); // captured beforeinstallprompt event
+  const [appInstalled, setAppInstalled] = useState(isStandalone);
   const [syncStatus, setSyncStatus]   = useState(null); // null | 'syncing' | 'synced' | 'error'
   const [lastSynced, setLastSynced]   = useState(null);
   const syncTimer = useRef(null);
@@ -171,6 +175,27 @@ export default function App() {
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', theme === 'dark' ? '#111110' : '#dddbd6');
   }, [theme]);
+
+  // Capture the native "install this app" prompt (Chrome/Edge, desktop & Android)
+  // so the drawer's "Add to Home Screen" can trigger it directly on tap instead
+  // of just showing instructions. Must preventDefault immediately or the event
+  // is lost. iOS/Safari never fires this — those get manual steps instead.
+  useEffect(() => {
+    function onBeforeInstallPrompt(e) {
+      e.preventDefault();
+      setInstallPrompt(e);
+    }
+    function onAppInstalled() {
+      setAppInstalled(true);
+      setInstallPrompt(null);
+    }
+    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt);
+    window.addEventListener('appinstalled', onAppInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', onAppInstalled);
+    };
+  }, []);
 
   const [showBracketReminder, setShowBracketReminder] = useState(() => {
     const u = initUser();
@@ -244,6 +269,9 @@ export default function App() {
   const verseScreenVerseLive = useMemo(() => liveVerse(verseScreenVerse), [liveVerse, verseScreenVerse]);
   const learnRevealVerseLive = useMemo(() => liveVerse(learnRevealVerse), [liveVerse, learnRevealVerse]);
   const exerciseVerseLive    = useMemo(() => liveVerse(exercise?.verse),  [liveVerse, exercise]);
+
+  // "Add to Home Screen" drawer link — mobile only, hidden once installed.
+  const showInstall = useMemo(() => detectPlatform().mobile && !appInstalled, [appInstalled]);
 
   const stats = useMemo(() =>
     progressStats(allVerses, progress, currentUser.bracket || 'adult'),
@@ -392,6 +420,7 @@ export default function App() {
     else if (id === 'exercise-settings') { setInfoModal('exercise-settings'); }
     else if (id === 'flip-reverse')      { setInfoModal('flip-reverse'); }
     else if (id === 'documentation')     { setInfoModal('documentation'); }
+    else if (id === 'install-app')       { setInfoModal('install-app'); }
   }, [currentUser, handleModeChange, auth, handleAuthChange]);
 
   const handleTouchStreak = useCallback(() => {
@@ -611,6 +640,19 @@ export default function App() {
     const toHide = new Set(VERSES.map(v => v.id).filter(id => id !== keepId));
     saveHiddenVerseIds(updatedUser.id, toHide);
     setHiddenIds(toHide);
+
+    // Auto-start the chosen verse so it's immediately ready to practice —
+    // no separate "add" step needed in My Deck. Mirrors the deck's own
+    // "+ / learn today" action (handleLearnNow) for a brand-new verse, which
+    // also makes it count toward today's exercises right away, so the home
+    // screen's primary button reads "Today's Exercises (1 verse)" instead of
+    // a discouraging disabled "No exercises due today" on a fresh account.
+    if (keepId != null) {
+      setProgress(prev => ({
+        ...prev,
+        [keepId]: { ...(prev[keepId] || {}), status: 'learning', next_review: Date.now() - 1 },
+      }));
+    }
 
     // Save auth if account was created during onboarding
     if (auth?.token) {
@@ -976,6 +1018,7 @@ export default function App() {
         onToggleTheme={() => setTheme(t => t === 'light' ? 'dark' : 'light')}
         auth={auth}
         currentUser={currentUser}
+        showInstall={showInstall}
         onAction={handleDrawerAction}
       />
 
@@ -1101,7 +1144,13 @@ export default function App() {
         </div>
       </footer>
       {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
-      {infoModal && <InfoModal kind={infoModal} onClose={() => setInfoModal(null)} />}
+      {infoModal === 'install-app' ? (
+        <InstallAppModal
+          deferredPrompt={installPrompt}
+          onClose={() => setInfoModal(null)}
+          onInstalled={() => setAppInstalled(true)}
+        />
+      ) : infoModal && <InfoModal kind={infoModal} onClose={() => setInfoModal(null)} />}
       </div>{/* end content-sheet */}
       </div>{/* end scene */}
     </UserSwitcherContext.Provider>

@@ -1,0 +1,35 @@
+{
+  "name": "Memory.bible",
+  "short_name": "Memory.bible",
+  "description": "Hide God's Word in your heart, one verse at a time.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#dddbd6",
+  "theme_color": "#dddbd6",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

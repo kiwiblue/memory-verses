@@ -1,8 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { saveUsers, saveCurrentUserId } from '../data/users.js';
 import AuthPanel from './AuthPanel.jsx';
 import { PATTERNS, avatarStyle, DEFAULT_PATTERN_OPACITY, PATTERN_OPACITY_MIN, PATTERN_OPACITY_MAX } from '../data/avatarStyle.js';
+import {
+  isPushSupported, getSubscriptionState, subscribePush, unsubscribePush,
+  updateReminderHour, sendTestNotification, DEFAULT_REMINDER_HOUR,
+} from '../data/pushNotifications.js';
 import OverlayHeader from './OverlayHeader.jsx';
+
+function formatHour(h) {
+  const period = h < 12 ? 'AM' : 'PM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:00 ${period}`;
+}
 
 const PRESETS = ['#3a8c5c','#2a6ab5','#9a3a3a','#7a5c9a','#9a6c10','#3a7a8c','#555555','#c0392b'];
 const TRANSLATIONS = [
@@ -261,12 +271,48 @@ export default function ProfileModal({
     setSubscreen(null);
   }
 
-  const reminders = user.reminders || { daily: true, streak: false };
-  function saveReminders(next) {
-    const updated = { ...user, reminders: { ...reminders, ...next } };
+  // Push reminders require a signed-in account (subscriptions are stored
+  // server-side against the account, not the local profile).
+  const reminderHour = user.reminderHour ?? DEFAULT_REMINDER_HOUR;
+  const [pushState, setPushState] = useState('loading'); // loading | unsupported | unsubscribed | subscribed | denied
+  const [pushBusy, setPushBusy]   = useState(false);
+  const [testState, setTestState] = useState('idle'); // idle | sending | sent | error
+
+  useEffect(() => { getSubscriptionState().then(setPushState); }, []);
+
+  async function handleTogglePush() {
+    setPushBusy(true);
+    try {
+      if (pushState === 'subscribed') {
+        await unsubscribePush(auth.token);
+        setPushState('unsubscribed');
+      } else {
+        await subscribePush(auth.token, reminderHour);
+        setPushState('subscribed');
+      }
+    } catch {
+      setPushState(await getSubscriptionState());
+    }
+    setPushBusy(false);
+  }
+
+  async function handleHourChange(hour) {
+    const updated = { ...user, reminderHour: hour };
     const updatedUsers = users.map(u => u.id === user.id ? updated : u);
     saveUsers(updatedUsers);
     onSave(updated, updatedUsers);
+    if (pushState === 'subscribed') await updateReminderHour(auth.token, hour);
+  }
+
+  async function handleTestSend() {
+    setTestState('sending');
+    try {
+      await sendTestNotification(auth.token);
+      setTestState('sent');
+    } catch {
+      setTestState('error');
+    }
+    setTimeout(() => setTestState('idle'), 3000);
   }
 
   function handleDeleteConfirm() {
@@ -345,20 +391,49 @@ export default function ProfileModal({
           {/* ── Reminders ──────────────────────────────────────────────── */}
           <div className="pm-card">
             <div className="pm-card-title">Reminders</div>
-            <div className="push-toggle-row">
-              <span className="push-toggle-label">Daily Memory Reminder</span>
-              <button
-                className={`push-toggle-btn${reminders.daily ? ' on' : ''}`}
-                onClick={() => saveReminders({ daily: !reminders.daily })}
-              >{reminders.daily ? 'On' : 'Off'}</button>
-            </div>
-            <div className="push-toggle-row">
-              <span className="push-toggle-label">Danger of losing streak</span>
-              <button
-                className={`push-toggle-btn${reminders.streak ? ' on' : ''}`}
-                onClick={() => saveReminders({ streak: !reminders.streak })}
-              >{reminders.streak ? 'On' : 'Off'}</button>
-            </div>
+            {!auth?.token ? (
+              <p className="pm-hint">Sign in to enable push reminders.</p>
+            ) : pushState === 'unsupported' ? (
+              <p className="pm-hint">Push notifications aren't supported on this browser/device.</p>
+            ) : pushState === 'denied' ? (
+              <p className="pm-hint">Notifications are blocked for this site. Enable them in your browser/system settings to turn reminders on.</p>
+            ) : (
+              <>
+                <div className="push-toggle-row">
+                  <span className="push-toggle-label">Daily Memory Reminder</span>
+                  <button
+                    className={`push-toggle-btn${pushState === 'subscribed' ? ' on' : ''}`}
+                    disabled={pushBusy || pushState === 'loading'}
+                    onClick={handleTogglePush}
+                  >{pushState === 'subscribed' ? 'On' : 'Off'}</button>
+                </div>
+                {pushState === 'subscribed' && (
+                  <>
+                    <div className="push-toggle-row">
+                      <span className="push-toggle-label">Reminder time</span>
+                      <select
+                        className="pm-fade-field"
+                        value={reminderHour}
+                        onChange={(e) => handleHourChange(Number(e.target.value))}
+                      >
+                        {Array.from({ length: 24 }, (_, h) => (
+                          <option key={h} value={h}>{formatHour(h)}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="push-toggle-row">
+                      <button className="pm-link-btn" disabled={testState === 'sending'} onClick={handleTestSend}>
+                        {testState === 'sending' ? 'Sending…' : testState === 'sent' ? 'Sent!' : testState === 'error' ? 'Failed — try again' : 'Send test notification'}
+                      </button>
+                    </div>
+                  </>
+                )}
+                <div className="push-toggle-row">
+                  <span className="push-toggle-label">Danger of losing streak (coming soon)</span>
+                  <button className="push-toggle-btn" disabled>Off</button>
+                </div>
+              </>
+            )}
           </div>
 
           {/* ── Cloud backup ───────────────────────────────────────────── */}

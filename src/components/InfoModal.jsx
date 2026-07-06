@@ -13,6 +13,16 @@ const CONTENT = {
           bite-sized practice — a digital companion to the physical verse-memory
           card deck.</p>
         <p>Built to make Scripture memory simple for the whole family, at every age.</p>
+        <p>Purchase physical memory cards from Living Waters Down Under.{' '}
+          <a href="https://www.livingwaters.com.au/p/bible-verse-memory-cards/" target="_blank" rel="noopener noreferrer">
+            Click here
+          </a>.
+        </p>
+        <p>To support the up-keep and development of this app, consider donating to the developer.{' '}
+          <a href="https://buymeacoffee.com/chrissandford" target="_blank" rel="noopener noreferrer">
+            Donate here
+          </a>.
+        </p>
         <p className="info-modal-meta">Version {APP_VERSION}</p>
       </>
     ),
@@ -22,7 +32,7 @@ const CONTENT = {
     body: (
       <>
         <p>Need a hand or found something not working? We'd love to help.</p>
-        <p>Email us at <a href="mailto:info@evangelism.com.au">info@evangelism.com.au</a> and
+        <p>Email us at <a href="mailto:help@memory.bible">help@memory.bible</a> and
           we'll get back to you.</p>
         <p>You can also send us feedback directly from the menu.</p>
       </>
