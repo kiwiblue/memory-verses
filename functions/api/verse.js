@@ -1,3 +1,48 @@
+import { parseRef, toOSIS } from '../../src/api/bibleRef.js';
+
+// api.bible-backed translations — mirrors src/api/bible.js's API_BIBLE_IDS.
+const API_BIBLE_IDS = {
+  niv:  '78a9f6124f344018-01',
+  nkjv: '63097d2a0a2f7db3-01',
+  nasb: 'b8ee27bcd1cae43a-01',
+};
+const EXTERNAL_TRANSLATIONS = new Set(['esv', 'niv', 'nkjv', 'nasb']);
+
+function stripHtml(str) {
+  return str.replace(/<[^>]*>/g, '').replace(/¶\s*/g, '').replace(/\s+/g, ' ').trim();
+}
+
+// ESV and api.bible calls happen server-side so the API keys never ship in
+// the client bundle. `ref` here is already the canonical display reference
+// (e.g. "Ephesians 4:9-10") produced client-side by toDisplayRef.
+async function fetchExternal(ref, translation, env) {
+  if (translation === 'esv') {
+    const token = env.ESV_TOKEN;
+    if (!token) return null;
+    const url = `https://api.esv.org/v3/passage/text/?q=${encodeURIComponent(ref)}&include-headings=false&include-section-headings=false&include-footnotes=false&include-verse-numbers=false&include-short-copyright=false&include-passage-references=false`;
+    const res = await fetch(url, { headers: { Authorization: `Token ${token}` } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const passages = data.passages;
+    if (!passages || passages.length === 0) return null;
+    return passages[0].trim().replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim() || null;
+  }
+
+  const bibleId = API_BIBLE_IDS[translation];
+  const key = env.API_BIBLE_KEY;
+  if (!bibleId || !key) return null;
+  const parsed = parseRef(ref);
+  const osisId = toOSIS(parsed);
+  if (!osisId) return null;
+  const url = `https://api.scripture.api.bible/v1/bibles/${bibleId}/passages/${osisId}?content-type=text&include-notes=false&include-titles=false&include-chapter-numbers=false&include-verse-numbers=false`;
+  const res = await fetch(url, { headers: { 'api-key': key } });
+  if (!res.ok) return null;
+  const data = await res.json();
+  const content = data?.data?.content;
+  if (!content) return null;
+  return stripHtml(content).trim() || null;
+}
+
 // Normalise common book name variants to match D1 storage.
 // D1 stores numbered books with Roman-numeral prefixes ("I John", "II
 // Corinthians") and Revelation as "Revelation of John", so map the app's
@@ -36,6 +81,16 @@ export async function onRequestGet({ request, env }) {
 
   if (!rawRef) {
     return new Response(JSON.stringify({ error: 'Missing ref parameter' }), { status: 400, headers: CORS });
+  }
+
+  if (translation && EXTERNAL_TRANSLATIONS.has(translation)) {
+    try {
+      const text = await fetchExternal(rawRef, translation, env);
+      if (!text) return new Response(JSON.stringify({ error: 'Verse not found' }), { status: 404, headers: CORS });
+      return new Response(JSON.stringify({ reference: rawRef, translation, text }), { headers: CORS });
+    } catch {
+      return new Response(JSON.stringify({ error: 'Upstream error' }), { status: 502, headers: CORS });
+    }
   }
 
   const ref = normaliseBook(rawRef);
