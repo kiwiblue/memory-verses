@@ -1,4 +1,5 @@
 import { APP_VERSION } from '../data/version.js';
+import { COMMIT_COUNT } from '../data/commitCount.js';
 import Icon from './Icon.jsx';
 
 // Simple informational modal for the drawer's "About" and "Support" items.
@@ -18,12 +19,15 @@ const CONTENT = {
             Click here
           </a>.
         </p>
-        <p>To support the up-keep and development of this app, consider donating to the developer.{' '}
+        <p>To support the upkeep and development of this app, consider donating to the developer.{' '}
           <a href="https://buymeacoffee.com/chrissandford" target="_blank" rel="noopener noreferrer">
             Donate here
           </a>.
         </p>
-        <p className="info-modal-meta">Version {APP_VERSION}</p>
+        <p className="info-modal-meta">
+          Version {APP_VERSION}
+          {COMMIT_COUNT != null && ` — has been updated ${COMMIT_COUNT.toLocaleString()} times`}
+        </p>
       </>
     ),
   },
