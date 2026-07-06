@@ -18,9 +18,11 @@ function stripHtml(str) {
 async function fetchExternal(ref, translation, env) {
   if (translation === 'esv') {
     const token = env.ESV_TOKEN;
+    console.log('DEBUG esv token present:', !!token, 'len', token?.length);
     if (!token) return null;
     const url = `https://api.esv.org/v3/passage/text/?q=${encodeURIComponent(ref)}&include-headings=false&include-section-headings=false&include-footnotes=false&include-verse-numbers=false&include-short-copyright=false&include-passage-references=false`;
     const res = await fetch(url, { headers: { Authorization: `Token ${token}` } });
+    console.log('DEBUG esv fetch status:', res.status);
     if (!res.ok) return null;
     const data = await res.json();
     const passages = data.passages;
