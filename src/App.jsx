@@ -13,6 +13,7 @@ import { loadVerseCache, saveVerseCache, mergeVerseIntoCache } from './data/vers
 import { fetchTranslation } from './api/bible.js';
 import { appendReviseLog } from './data/reviseLog.js';
 import { loadVerseOrder, saveVerseOrder } from './data/verseOrder.js';
+import { markSyncPending, isSyncPending, clearSyncPending } from './data/syncMeta.js';
 
 import FlipCard from './components/FlipCard.jsx';
 import Drawer from './components/Drawer.jsx';
@@ -333,6 +334,25 @@ export default function App() {
     pullSync(auth.token).then(data => {
       const cloudUsers = (data.profiles || []).map(p => JSON.parse(p.profile_json));
       if (cloudUsers.length === 0) return;
+
+      // If this device has edits that never got pushed (e.g. the app was closed
+      // before the debounced sync fired), the cloud copy is stale — overwriting
+      // local would silently lose that work. In that case keep local data,
+      // still merge streaks (a safe union that can't lose days), and re-upload
+      // local as the source of truth. Cross-device merge of the other blobs is
+      // intentionally left for the common (clean) path below.
+      if (isSyncPending()) {
+        data.profiles.forEach(p => {
+          try {
+            const cloud = JSON.parse(p.streak_json || '{}');
+            const local = loadStreak(p.id);
+            saveStreak(p.id, mergeStreaks(local, cloud));
+          } catch {}
+        });
+        pushSync(auth.token, users).then(() => clearSyncPending()).catch(() => {});
+        return;
+      }
+
       saveUsers(cloudUsers);
       saveCurrentUserId(cloudUsers[0].id);
       data.profiles.forEach(p => {
@@ -340,6 +360,7 @@ export default function App() {
         try { saveVerseTranslations(p.id, JSON.parse(p.trans_json)); } catch {}
         try { saveCustomVerses(p.id, JSON.parse(p.custom_json)); } catch {}
         try { saveHiddenVerseIds(p.id, new Set(JSON.parse(p.hidden_json))); } catch {}
+        try { saveVerseOrder(p.id, JSON.parse(p.order_json || '[]')); } catch {}
         try {
           const cloud = JSON.parse(p.streak_json || '{}');
           const local = loadStreak(p.id);
@@ -395,11 +416,15 @@ export default function App() {
   // Debounced cloud sync — fires 10s after any progress change, if signed in
   const scheduleSync = useCallback((currentAuth, currentUsers) => {
     if (!currentAuth?.token) return;
+    // Mark that local has edits not yet confirmed in the cloud, so a startup
+    // pull before this push lands won't overwrite them (see the pull effect).
+    markSyncPending();
     clearTimeout(syncTimer.current);
     syncTimer.current = setTimeout(async () => {
       setSyncStatus('syncing');
       try {
         await pushSync(currentAuth.token, currentUsers);
+        clearSyncPending();
         setSyncStatus('synced');
         setLastSynced(Date.now());
       } catch {
@@ -570,7 +595,8 @@ export default function App() {
   const handleReorderDeck = useCallback((orderedIds) => {
     setVerseOrder(orderedIds);
     saveVerseOrder(currentUser.id, orderedIds);
-  }, [currentUser.id]);
+    scheduleSync(auth, users);
+  }, [currentUser.id, auth, users, scheduleSync]);
 
   const handleRemoveVerseById = useCallback((verse) => {
     if (verse.custom) {
@@ -735,7 +761,8 @@ export default function App() {
       saveHiddenVerseIds(uid, hiddenIds);
       saveVerseOrder(uid, verseOrder);
     });
-  }, [customVerses, hiddenIds, verseOrder]);
+    scheduleSync(auth, users);
+  }, [customVerses, hiddenIds, verseOrder, auth, users, scheduleSync]);
 
   // Keyboard shortcuts — only active in learn mode on the home screen with no
   // overlay open, so they never mutate the hidden learn queue from another screen.

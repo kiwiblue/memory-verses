@@ -13,18 +13,30 @@ export async function onRequestPost({ request, env }) {
     .bind(email.trim().toLowerCase()).first();
   if (!account) return json({ error: 'Invalid or expired code.' }, 400);
 
+  const MAX_ATTEMPTS = 5;
+
   const reset = await env.DB.prepare(
-    'SELECT token FROM password_resets WHERE token = ? AND account_id = ? AND expires_at > ? AND used = 0'
-  ).bind(code.trim(), account.id, now).first();
+    'SELECT token, attempts FROM password_resets WHERE account_id = ? AND expires_at > ? AND used = 0'
+  ).bind(account.id, now).first();
 
   if (!reset) return json({ error: 'Invalid or expired code.' }, 400);
+
+  if (reset.attempts >= MAX_ATTEMPTS) {
+    await env.DB.prepare('UPDATE password_resets SET used = 1 WHERE token = ?').bind(reset.token).run();
+    return json({ error: 'Too many attempts. Please request a new code.' }, 429);
+  }
+
+  if (code.trim() !== reset.token) {
+    await env.DB.prepare('UPDATE password_resets SET attempts = attempts + 1 WHERE token = ?').bind(reset.token).run();
+    return json({ error: 'Invalid or expired code.' }, 400);
+  }
 
   // Mark used and update password
   const newSalt = crypto.randomUUID().replace(/-/g, '');
   const newHash = await hashPassword(newPassword, newSalt);
 
   await env.DB.batch([
-    env.DB.prepare('UPDATE password_resets SET used = 1 WHERE token = ?').bind(code.trim()),
+    env.DB.prepare('UPDATE password_resets SET used = 1 WHERE token = ?').bind(reset.token),
     env.DB.prepare('UPDATE accounts SET password_hash = ?, salt = ? WHERE id = ?')
       .bind(newHash, newSalt, account.id),
     // Invalidate all sessions so old password can't be reused

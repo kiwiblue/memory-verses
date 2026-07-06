@@ -27,7 +27,7 @@ export async function onRequestPost({ request, env }) {
 
   // Return all cloud profiles for this account
   const rows = await env.DB.prepare(
-    'SELECT id, profile_json, progress_json, trans_json, custom_json, hidden_json, streak_json, updated_at FROM cloud_profiles WHERE account_id = ?'
+    'SELECT id, profile_json, progress_json, trans_json, custom_json, hidden_json, streak_json, order_json, updated_at FROM cloud_profiles WHERE account_id = ?'
   ).bind(account.id).all();
 
   const profiles = (rows.results || []).map(r => ({
@@ -38,6 +38,7 @@ export async function onRequestPost({ request, env }) {
     custom_json: r.custom_json,
     hidden_json: r.hidden_json,
     streak_json: r.streak_json || '{}',
+    order_json: r.order_json || '[]',
     updated_at: r.updated_at,
   }));
 

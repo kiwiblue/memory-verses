@@ -16,8 +16,8 @@ export async function onRequestPost({ request, env }) {
   await env.DB.prepare('UPDATE password_resets SET used = 1 WHERE account_id = ? AND used = 0')
     .bind(account.id).run();
 
-  // Generate a 6-digit code
-  const code = String(Math.floor(100000 + Math.random() * 900000));
+  // Generate a cryptographically secure 6-digit code
+  const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, '0');
   const expiresAt = Math.floor(Date.now() / 1000) + 60 * 60; // 1 hour
 
   await env.DB.prepare(

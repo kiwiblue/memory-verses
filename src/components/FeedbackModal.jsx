@@ -21,8 +21,11 @@ export default function FeedbackModal({ onClose }) {
       const auth = loadAuth();
       const res = await fetch('/api/feedback', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ account_id: auth?.accountId, type, message: message.trim() }),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + auth?.token,
+        },
+        body: JSON.stringify({ type, message: message.trim() }),
       });
       setStatus(res.ok ? 'done' : 'error');
     } catch {

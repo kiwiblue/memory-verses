@@ -7,6 +7,8 @@ import { saveVerseTranslations } from '../data/users.js';
 import { saveCustomVerses } from '../data/customVerses.js';
 import { saveHiddenVerseIds } from '../data/hiddenVerses.js';
 import { loadStreak, saveStreak, mergeStreaks } from '../data/streak.js';
+import { saveVerseOrder } from '../data/verseOrder.js';
+import { clearSyncPending } from '../data/syncMeta.js';
 
 function timeSince(ts) {
   if (!ts) return null;
@@ -85,12 +87,16 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
         try { saveVerseTranslations(p.id, JSON.parse(p.trans_json)); } catch {}
         try { saveCustomVerses(p.id, JSON.parse(p.custom_json)); } catch {}
         try { saveHiddenVerseIds(p.id, new Set(JSON.parse(p.hidden_json))); } catch {}
+        try { saveVerseOrder(p.id, JSON.parse(p.order_json || '[]')); } catch {}
         try {
           const cloud = JSON.parse(p.streak_json || '{}');
           const local = loadStreak(p.id);
           saveStreak(p.id, mergeStreaks(local, cloud));
         } catch {}
       });
+      // Logging in deliberately adopts the account's cloud data, so any prior
+      // local "unsynced edits" marker no longer applies.
+      clearSyncPending();
       onUsersChange(cloudUsers, cloudUsers[0]);
       onAuthChange(data);
       reset();
