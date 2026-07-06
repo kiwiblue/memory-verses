@@ -6,6 +6,7 @@ import { saveProgress } from '../data/progress.js';
 import { saveVerseTranslations } from '../data/users.js';
 import { saveCustomVerses } from '../data/customVerses.js';
 import { saveHiddenVerseIds } from '../data/hiddenVerses.js';
+import { loadStreak, saveStreak, mergeStreaks } from '../data/streak.js';
 
 function timeSince(ts) {
   if (!ts) return null;
@@ -84,6 +85,11 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
         try { saveVerseTranslations(p.id, JSON.parse(p.trans_json)); } catch {}
         try { saveCustomVerses(p.id, JSON.parse(p.custom_json)); } catch {}
         try { saveHiddenVerseIds(p.id, new Set(JSON.parse(p.hidden_json))); } catch {}
+        try {
+          const cloud = JSON.parse(p.streak_json || '{}');
+          const local = loadStreak(p.id);
+          saveStreak(p.id, mergeStreaks(local, cloud));
+        } catch {}
       });
       onUsersChange(cloudUsers, cloudUsers[0]);
       onAuthChange(data);
