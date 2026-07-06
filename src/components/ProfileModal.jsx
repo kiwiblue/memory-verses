@@ -7,6 +7,7 @@ import {
   updateReminderHour, sendTestNotification, DEFAULT_REMINDER_HOUR,
 } from '../data/pushNotifications.js';
 import OverlayHeader from './OverlayHeader.jsx';
+import { APP_VERSION } from '../data/version.js';
 
 function formatHour(h) {
   const period = h < 12 ? 'AM' : 'PM';
@@ -234,6 +235,7 @@ function EditForm({ user, onSave, onCancel }) {
 // ── Main User Profile screen [8] ──────────────────────────────────────────────
 export default function ProfileModal({
   user, users, stats, ranking, rankingCount, auth, syncStatus, lastSynced,
+  updateAvailable, onRefreshApp,
   initialSubscreen = null,
   onSave, onDelete, onClose, onHome, onOpenDeck, onOpenStats, onAuthChange, onUsersChange, onAddUser,
 }) {
@@ -357,6 +359,12 @@ export default function ProfileModal({
             {auth?.email && (
               <div className="pm-info-row"><span className="pm-info-key">Account:</span><span className="pm-info-val pm-info-email">{auth.email}</span></div>
             )}
+            <div className={`pm-update-row${updateAvailable ? ' pm-update-available' : ''}`}>
+              <span className="pm-update-text">
+                {updateAvailable ? 'Update available — refresh to get the latest version.' : `Version ${APP_VERSION}`}
+              </span>
+              <button className="pm-link-btn" onClick={onRefreshApp}>Refresh</button>
+            </div>
           </div>
 
           {/* ── Add family members ─────────────────────────────────────── */}

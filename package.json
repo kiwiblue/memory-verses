@@ -6,8 +6,10 @@
   "version": "0.5.84",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/write-version.mjs",
     "dev": "vite",
     "dev:api": "wrangler pages dev dist --d1 DB=3df1d236-58e2-49bb-9f99-920a13027f4e --port 8788",
+    "prebuild": "node scripts/write-version.mjs",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

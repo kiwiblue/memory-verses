@@ -36,6 +36,7 @@ import MatchExercise from './components/exercises/MatchExercise.jsx';
 import { isOnboarded, markOnboarded } from './data/onboarding.js';
 import { loadStreak, saveStreak, touchStreak, mergeStreaks } from './data/streak.js';
 import { APP_VERSION } from './data/version.js';
+import { isUpdateAvailable, hardReload } from './data/updateCheck.js';
 import { logEvent } from './data/telemetry.js';
 import StatsScreen from './components/StatsScreen.jsx';
 import AddVerseFlow from './components/AddVerseFlow.jsx';
@@ -109,6 +110,7 @@ export default function App() {
   const [infoModal, setInfoModal] = useState(null); // 'about' | 'support' | 'install-app'
   const [installPrompt, setInstallPrompt] = useState(null); // captured beforeinstallprompt event
   const [appInstalled, setAppInstalled] = useState(isStandalone);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
   const [syncStatus, setSyncStatus]   = useState(null); // null | 'syncing' | 'synced' | 'error'
   const [lastSynced, setLastSynced]   = useState(null);
   const syncTimer = useRef(null);
@@ -307,6 +309,23 @@ export default function App() {
     if (!onboarded) return;
     logEvent('session_start', { bracket: currentUser.bracket || 'adult', registered: !!auth?.token });
   }, [onboarded]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Check for a newer deployed build — installed PWAs have no browser chrome
+  // to hard-refresh from, so a stale install can otherwise sit indefinitely.
+  // Checks on load, whenever the app is brought back to the foreground
+  // (the realistic "reopened the home-screen icon" moment), and periodically
+  // while left open.
+  useEffect(() => {
+    const check = () => isUpdateAvailable().then(setUpdateAvailable);
+    check();
+    const onVisible = () => { if (document.visibilityState === 'visible') check(); };
+    document.addEventListener('visibilitychange', onVisible);
+    const interval = setInterval(check, 15 * 60 * 1000);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      clearInterval(interval);
+    };
+  }, []);
 
   // Pull cloud profiles on startup so devices stay in sync
   useEffect(() => {
@@ -831,6 +850,8 @@ export default function App() {
           auth={auth}
           syncStatus={syncStatus}
           lastSynced={lastSynced}
+          updateAvailable={updateAvailable}
+          onRefreshApp={hardReload}
           initialSubscreen={profileInitSubscreen}
           onAuthChange={handleAuthChange}
           onAddUser={(newUser, updatedUsers) => {
