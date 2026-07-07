@@ -461,13 +461,13 @@ body {
 
 .main-fab {
   width: 44px; height: 44px; border-radius: 50%;
-  background: var(--color-surface-sunken); border: 0.5px solid var(--color-border);
-  color: var(--color-text-secondary); font-size: 24px; line-height: 1;
+  background: var(--color-brand); border: 0.5px solid var(--color-brand);
+  color: var(--color-text-inverse); font-size: 24px; line-height: 1;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; transition: background var(--transition-fast), color var(--transition-fast);
   box-shadow: var(--shadow-sm);
 }
-.main-fab:hover { background: var(--color-brand); color: var(--color-text-inverse); border-color: var(--color-brand); }
+.main-fab:hover { background: var(--color-brand-dark); border-color: var(--color-brand-dark); }
 
 .ttl { display: flex; align-items: baseline; gap: 0; line-height: 1; }
 .ttl-memory {
