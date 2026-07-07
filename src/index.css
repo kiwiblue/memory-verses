@@ -1155,6 +1155,18 @@ input[type="search"], input[type="number"], textarea, select {
 .push-toggle-btn.on { background: var(--color-brand); border-color: var(--color-brand); color: var(--color-surface); }
 .push-toggle-btn:disabled { opacity: .5; cursor: default; }
 
+.pm-segmented {
+  display: flex; border: 0.5px solid var(--color-border-strong); border-radius: 20px;
+  padding: 2px; background: var(--color-surface-sunken);
+}
+.pm-segmented-btn {
+  padding: 4px 14px; border-radius: 18px; border: none; background: none;
+  color: var(--color-text-muted); font-size: 12px; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.pm-segmented-btn.active { background: var(--color-brand); color: var(--color-surface); }
+.pm-segmented-btn:disabled { opacity: .5; cursor: default; }
+
 .profile-delete-section { padding: 28px 16px 0; }
 
 /* Tighter tab font inside the profile modal bracket selector */

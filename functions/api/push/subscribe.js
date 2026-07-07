@@ -11,15 +11,23 @@ export async function onRequestPost({ request, env }) {
   const hour = Number.isInteger(reminderHour) && reminderHour >= 0 && reminderHour <= 23 ? reminderHour : 8;
   const tz = typeof timeZone === 'string' && timeZone ? timeZone : 'UTC';
 
-  await env.DB.prepare(`
-    INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth, reminder_hour, timezone)
-    VALUES (?, ?, ?, ?, ?, ?)
-    ON CONFLICT(endpoint) DO UPDATE SET
-      user_id = excluded.user_id,
-      reminder_hour = excluded.reminder_hour,
-      timezone = excluded.timezone,
-      last_sent_date = NULL
-  `).bind(accountId, endpoint, keys.p256dh, keys.auth, hour, tz).run();
+  await env.DB.batch([
+    env.DB.prepare(`
+      INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth, reminder_hour, timezone)
+      VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT(endpoint) DO UPDATE SET
+        user_id = excluded.user_id,
+        reminder_hour = excluded.reminder_hour,
+        timezone = excluded.timezone,
+        last_sent_date = NULL
+    `).bind(accountId, endpoint, keys.p256dh, keys.auth, hour, tz),
+    // `accounts` is the source of truth the reminders-worker cron reads from
+    // (it decides push vs. email per-account) — subscribing to push always
+    // selects the push channel.
+    env.DB.prepare(
+      'UPDATE accounts SET reminder_channel = ?, reminder_hour = ?, reminder_timezone = ?, reminder_last_sent_date = NULL WHERE id = ?'
+    ).bind('push', hour, tz, accountId),
+  ]);
 
   return json({ ok: true });
 }
@@ -35,9 +43,14 @@ export async function onRequestPatch({ request, env }) {
     return json({ error: 'Invalid hour' }, 400);
   }
 
-  await env.DB.prepare(
-    'UPDATE push_subscriptions SET reminder_hour = ?, last_sent_date = NULL WHERE user_id = ?'
-  ).bind(reminderHour, accountId).run();
+  await env.DB.batch([
+    env.DB.prepare(
+      'UPDATE push_subscriptions SET reminder_hour = ?, last_sent_date = NULL WHERE user_id = ?'
+    ).bind(reminderHour, accountId),
+    env.DB.prepare(
+      'UPDATE accounts SET reminder_hour = ?, reminder_last_sent_date = NULL WHERE id = ?'
+    ).bind(reminderHour, accountId),
+  ]);
 
   return json({ ok: true });
 }

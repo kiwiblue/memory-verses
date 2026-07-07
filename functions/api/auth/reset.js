@@ -1,4 +1,4 @@
-import { hashPassword, json } from '../_helpers.js';
+import { hashPassword, json, checkRateLimit, clientIp } from '../_helpers.js';
 
 export async function onRequestPost({ request, env }) {
   let body;
@@ -7,6 +7,9 @@ export async function onRequestPost({ request, env }) {
   const { email, code, newPassword } = body;
   if (!email || !code || !newPassword) return json({ error: 'All fields are required.' }, 400);
   if (newPassword.length < 8) return json({ error: 'Password must be at least 8 characters.' }, 400);
+
+  const allowed = await checkRateLimit(env, `reset:${clientIp(request)}`, 15, 300);
+  if (!allowed) return json({ error: 'Too many attempts. Please try again in a minute.' }, 429);
 
   const now = Math.floor(Date.now() / 1000);
   const account = await env.DB.prepare('SELECT id, salt FROM accounts WHERE email = ?')

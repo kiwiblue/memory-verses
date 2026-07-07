@@ -26,3 +26,43 @@ export function json(data, status = 200) {
     headers: { 'Content-Type': 'application/json' },
   });
 }
+
+// Simple fixed-window rate limiter backed by D1. Returns true if the request
+// is allowed (and records it), false if the caller should be rejected with
+// 429. `key` should already include the route name and identifying value
+// (e.g. IP) so different endpoints/limits don't collide.
+//
+// Tradeoff: if the D1 call itself throws (outage/hiccup), we fail OPEN
+// (allow the request) rather than locking every user out of auth for a
+// hobby app. The deliberate `row.count >= limit` rejection is a normal
+// return value, not an exception, so it is never caught/bypassed by this.
+export async function checkRateLimit(env, key, limit, windowSeconds) {
+  const now = Math.floor(Date.now() / 1000);
+  try {
+    const row = await env.DB.prepare(
+      'SELECT count, window_start FROM rate_limits WHERE rl_key = ?'
+    ).bind(key).first();
+
+    if (!row || now - row.window_start >= windowSeconds) {
+      // New window (first request, or previous window expired)
+      await env.DB.prepare(
+        'INSERT INTO rate_limits (rl_key, count, window_start) VALUES (?, 1, ?) ' +
+        'ON CONFLICT(rl_key) DO UPDATE SET count = 1, window_start = excluded.window_start'
+      ).bind(key, now).run();
+      return true;
+    }
+
+    if (row.count >= limit) return false;
+
+    await env.DB.prepare('UPDATE rate_limits SET count = count + 1 WHERE rl_key = ?').bind(key).run();
+    return true;
+  } catch {
+    // D1 hiccup: fail open rather than locking everyone out of auth.
+    return true;
+  }
+}
+
+// Extracts the caller's IP the way Cloudflare provides it.
+export function clientIp(request) {
+  return request.headers.get('CF-Connecting-IP') || 'unknown';
+}

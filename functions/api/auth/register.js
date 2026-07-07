@@ -1,4 +1,4 @@
-import { hashPassword, json } from '../_helpers.js';
+import { hashPassword, json, checkRateLimit, clientIp } from '../_helpers.js';
 
 export async function onRequestPost({ request, env }) {
   let body;
@@ -13,6 +13,9 @@ export async function onRequestPost({ request, env }) {
   if (!password || password.length < 8) {
     return json({ error: 'Password must be at least 8 characters.' }, 400);
   }
+
+  const allowed = await checkRateLimit(env, `register:${clientIp(request)}`, 5, 300);
+  if (!allowed) return json({ error: 'Too many attempts. Please try again in a minute.' }, 429);
 
   const existing = await env.DB.prepare('SELECT id FROM accounts WHERE email = ?').bind(email).first();
   if (existing) return json({ error: 'An account with that email already exists.' }, 409);

@@ -1,4 +1,4 @@
-import { json } from '../_helpers.js';
+import { json, checkRateLimit, clientIp } from '../_helpers.js';
 
 export async function onRequestPost({ request, env }) {
   let body;
@@ -6,6 +6,9 @@ export async function onRequestPost({ request, env }) {
 
   const email = (body.email || '').trim().toLowerCase();
   if (!email) return json({ error: 'Email is required.' }, 400);
+
+  const allowed = await checkRateLimit(env, `forgot:${clientIp(request)}`, 5, 300);
+  if (!allowed) return json({ error: 'Too many attempts. Please try again in a minute.' }, 429);
 
   const account = await env.DB.prepare('SELECT id FROM accounts WHERE email = ?').bind(email).first();
 

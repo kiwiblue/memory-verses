@@ -14,6 +14,7 @@ import { fetchTranslation } from './api/bible.js';
 import { appendReviseLog } from './data/reviseLog.js';
 import { loadVerseOrder, saveVerseOrder } from './data/verseOrder.js';
 import { markSyncPending, isSyncPending, clearSyncPending } from './data/syncMeta.js';
+import { mergeProgress, mergeCustomVerses, mergeHiddenIds, mergeTranslations } from './data/syncMerge.js';
 
 import FlipCard from './components/FlipCard.jsx';
 import Drawer from './components/Drawer.jsx';
@@ -335,18 +336,46 @@ export default function App() {
       const cloudUsers = (data.profiles || []).map(p => JSON.parse(p.profile_json));
       if (cloudUsers.length === 0) return;
 
-      // If this device has edits that never got pushed (e.g. the app was closed
-      // before the debounced sync fired), the cloud copy is stale — overwriting
-      // local would silently lose that work. In that case keep local data,
-      // still merge streaks (a safe union that can't lose days), and re-upload
-      // local as the source of truth. Cross-device merge of the other blobs is
-      // intentionally left for the common (clean) path below.
+      // Both branches below now merge per-field instead of one side winning
+      // wholesale — see syncMerge.js for the strategy per field. Streak has
+      // its own merge in streak.js. After merging and saving locally, the
+      // reconciled result is pushed back to the cloud so both devices
+      // converge on the same data instead of just avoiding local data loss.
+      //
+      // If this device has edits that never got pushed (e.g. the app was
+      // closed before the debounced sync fired), the cloud copy may be
+      // stale for fields where a blind overwrite would lose that work —
+      // hence merging (not overwriting) rather than trusting either side
+      // outright. verseOrder is the one exception: there's no reliable way
+      // to merge an ordered list, so local wins here and cloud wins in the
+      // clean branch below (safe either way since the pending flag already
+      // protects any local-only unsynced order changes from being clobbered).
       if (isSyncPending()) {
         data.profiles.forEach(p => {
           try {
             const cloud = JSON.parse(p.streak_json || '{}');
             const local = loadStreak(p.id);
             saveStreak(p.id, mergeStreaks(local, cloud));
+          } catch {}
+          try {
+            const localProgress = loadProgress(p.id);
+            const cloudProgress = JSON.parse(p.progress_json || '{}');
+            saveProgress(p.id, mergeProgress(localProgress, cloudProgress));
+          } catch {}
+          try {
+            const localCustom = loadCustomVerses(p.id);
+            const cloudCustom = JSON.parse(p.custom_json || '[]');
+            saveCustomVerses(p.id, mergeCustomVerses(localCustom, cloudCustom));
+          } catch {}
+          try {
+            const localHidden = loadHiddenVerseIds(p.id);
+            const cloudHidden = new Set(JSON.parse(p.hidden_json || '[]'));
+            saveHiddenVerseIds(p.id, mergeHiddenIds(localHidden, cloudHidden));
+          } catch {}
+          try {
+            const localTrans = loadVerseTranslations(p.id);
+            const cloudTrans = JSON.parse(p.trans_json || '{}');
+            saveVerseTranslations(p.id, mergeTranslations(localTrans, cloudTrans, true));
           } catch {}
         });
         pushSync(auth.token, users).then(() => clearSyncPending()).catch(() => {});
@@ -356,10 +385,26 @@ export default function App() {
       saveUsers(cloudUsers);
       saveCurrentUserId(cloudUsers[0].id);
       data.profiles.forEach(p => {
-        try { saveProgress(p.id, JSON.parse(p.progress_json)); } catch {}
-        try { saveVerseTranslations(p.id, JSON.parse(p.trans_json)); } catch {}
-        try { saveCustomVerses(p.id, JSON.parse(p.custom_json)); } catch {}
-        try { saveHiddenVerseIds(p.id, new Set(JSON.parse(p.hidden_json))); } catch {}
+        try {
+          const localProgress = loadProgress(p.id);
+          const cloudProgress = JSON.parse(p.progress_json || '{}');
+          saveProgress(p.id, mergeProgress(localProgress, cloudProgress));
+        } catch {}
+        try {
+          const localTrans = loadVerseTranslations(p.id);
+          const cloudTrans = JSON.parse(p.trans_json || '{}');
+          saveVerseTranslations(p.id, mergeTranslations(localTrans, cloudTrans, false));
+        } catch {}
+        try {
+          const localCustom = loadCustomVerses(p.id);
+          const cloudCustom = JSON.parse(p.custom_json || '[]');
+          saveCustomVerses(p.id, mergeCustomVerses(localCustom, cloudCustom));
+        } catch {}
+        try {
+          const localHidden = loadHiddenVerseIds(p.id);
+          const cloudHidden = new Set(JSON.parse(p.hidden_json || '[]'));
+          saveHiddenVerseIds(p.id, mergeHiddenIds(localHidden, cloudHidden));
+        } catch {}
         try { saveVerseOrder(p.id, JSON.parse(p.order_json || '[]')); } catch {}
         try {
           const cloud = JSON.parse(p.streak_json || '{}');
@@ -371,6 +416,7 @@ export default function App() {
       setUsers(cloudUsers);
       const restoredUser = cloudUsers.find(u => u.id === currentUser.id) || cloudUsers[0];
       handleUserChange(restoredUser);
+      pushSync(auth.token, users).then(() => clearSyncPending()).catch(() => {});
     }).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

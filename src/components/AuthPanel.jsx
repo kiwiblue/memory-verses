@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { registerAccount, loginAccount, logoutAccount } from '../data/syncService.js';
 import { saveAuth, clearAuth } from '../data/auth.js';
 import { saveUsers, saveCurrentUserId } from '../data/users.js';
-import { saveProgress } from '../data/progress.js';
-import { saveVerseTranslations } from '../data/users.js';
-import { saveCustomVerses } from '../data/customVerses.js';
-import { saveHiddenVerseIds } from '../data/hiddenVerses.js';
+import { saveProgress, loadProgress } from '../data/progress.js';
+import { saveVerseTranslations, loadVerseTranslations } from '../data/users.js';
+import { saveCustomVerses, loadCustomVerses } from '../data/customVerses.js';
+import { saveHiddenVerseIds, loadHiddenVerseIds } from '../data/hiddenVerses.js';
 import { loadStreak, saveStreak, mergeStreaks } from '../data/streak.js';
 import { saveVerseOrder } from '../data/verseOrder.js';
 import { clearSyncPending } from '../data/syncMeta.js';
+import { mergeProgress, mergeCustomVerses, mergeHiddenIds, mergeTranslations } from '../data/syncMerge.js';
 
 function timeSince(ts) {
   if (!ts) return null;
@@ -83,10 +84,29 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
       saveUsers(cloudUsers);
       saveCurrentUserId(cloudUsers[0]?.id);
       (data.profiles || []).forEach(p => {
-        try { saveProgress(p.id, JSON.parse(p.progress_json)); } catch {}
-        try { saveVerseTranslations(p.id, JSON.parse(p.trans_json)); } catch {}
-        try { saveCustomVerses(p.id, JSON.parse(p.custom_json)); } catch {}
-        try { saveHiddenVerseIds(p.id, new Set(JSON.parse(p.hidden_json))); } catch {}
+        // Login is an explicit account switch (not an "already synced" state
+        // like the startup pull), so it always merges as if cloud is
+        // preferred — same per-field strategies as the clean startup path.
+        try {
+          const localProgress = loadProgress(p.id);
+          const cloudProgress = JSON.parse(p.progress_json || '{}');
+          saveProgress(p.id, mergeProgress(localProgress, cloudProgress));
+        } catch {}
+        try {
+          const localTrans = loadVerseTranslations(p.id);
+          const cloudTrans = JSON.parse(p.trans_json || '{}');
+          saveVerseTranslations(p.id, mergeTranslations(localTrans, cloudTrans, false));
+        } catch {}
+        try {
+          const localCustom = loadCustomVerses(p.id);
+          const cloudCustom = JSON.parse(p.custom_json || '[]');
+          saveCustomVerses(p.id, mergeCustomVerses(localCustom, cloudCustom));
+        } catch {}
+        try {
+          const localHidden = loadHiddenVerseIds(p.id);
+          const cloudHidden = new Set(JSON.parse(p.hidden_json || '[]'));
+          saveHiddenVerseIds(p.id, mergeHiddenIds(localHidden, cloudHidden));
+        } catch {}
         try { saveVerseOrder(p.id, JSON.parse(p.order_json || '[]')); } catch {}
         try {
           const cloud = JSON.parse(p.streak_json || '{}');

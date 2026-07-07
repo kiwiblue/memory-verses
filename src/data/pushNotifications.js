@@ -74,6 +74,26 @@ export async function unsubscribePush(token) {
   await sub.unsubscribe();
 }
 
+// Reminder channel/hour/timezone live on the account (not per push
+// subscription) so email reminders — which have no "device" — can share the
+// same preference the Settings UI shows.
+export async function getReminderPrefs(token) {
+  const res = await fetch('/api/reminders/prefs', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return null;
+  return res.json(); // { channel, hour, timezone }
+}
+
+export async function setReminderChannel(token, channel, hour) {
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  await fetch('/api/reminders/prefs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ channel, hour, timezone }),
+  });
+}
+
 // Standalone Worker that actually sends the daily reminder (Pages projects
 // can't run Cron Triggers) — also exposes this on-demand test route so a
 // subscription can be verified immediately instead of waiting for the

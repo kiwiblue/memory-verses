@@ -5,6 +5,7 @@ import { PATTERNS, avatarStyle, DEFAULT_PATTERN_OPACITY, PATTERN_OPACITY_MIN, PA
 import {
   isPushSupported, getSubscriptionState, subscribePush, unsubscribePush,
   updateReminderHour, sendTestNotification, DEFAULT_REMINDER_HOUR,
+  getReminderPrefs, setReminderChannel,
 } from '../data/pushNotifications.js';
 import OverlayHeader from './OverlayHeader.jsx';
 import { APP_VERSION } from '../data/version.js';
@@ -273,14 +274,23 @@ export default function ProfileModal({
     setSubscreen(null);
   }
 
-  // Push reminders require a signed-in account (subscriptions are stored
-  // server-side against the account, not the local profile).
+  // Reminders require a signed-in account — both push subscriptions and the
+  // channel/hour/timezone preference are stored server-side against the
+  // account, not the local profile.
   const reminderHour = user.reminderHour ?? DEFAULT_REMINDER_HOUR;
   const [pushState, setPushState] = useState('loading'); // loading | unsupported | unsubscribed | subscribed | denied
   const [pushBusy, setPushBusy]   = useState(false);
   const [testState, setTestState] = useState('idle'); // idle | sending | sent | error
+  const [channel, setChannel]     = useState(null); // null (loading) | 'push' | 'email'
+  const [channelBusy, setChannelBusy] = useState(false);
 
   useEffect(() => { getSubscriptionState().then(setPushState); }, []);
+  useEffect(() => {
+    if (!auth?.token) return;
+    getReminderPrefs(auth.token).then(prefs => {
+      if (prefs) setChannel(prefs.channel);
+    });
+  }, [auth?.token]);
 
   async function handleTogglePush() {
     setPushBusy(true);
@@ -291,6 +301,7 @@ export default function ProfileModal({
       } else {
         await subscribePush(auth.token, reminderHour);
         setPushState('subscribed');
+        setChannel('push');
       }
     } catch {
       setPushState(await getSubscriptionState());
@@ -303,7 +314,29 @@ export default function ProfileModal({
     const updatedUsers = users.map(u => u.id === user.id ? updated : u);
     saveUsers(updatedUsers);
     onSave(updated, updatedUsers);
-    if (pushState === 'subscribed') await updateReminderHour(auth.token, hour);
+    if (channel === 'email') await setReminderChannel(auth.token, 'email', hour);
+    else if (pushState === 'subscribed') await updateReminderHour(auth.token, hour);
+  }
+
+  async function handleChannelChange(newChannel) {
+    if (newChannel === channel) return;
+    setChannelBusy(true);
+    try {
+      if (newChannel === 'email') {
+        await setReminderChannel(auth.token, 'email', reminderHour);
+        setChannel('email');
+      } else {
+        // Switching to push always (re-)runs the subscribe flow — it also
+        // marks the account's channel as 'push' server-side, and a fresh
+        // permission grant may be needed if this device was never subscribed.
+        await subscribePush(auth.token, reminderHour);
+        setPushState('subscribed');
+        setChannel('push');
+      }
+    } catch {
+      // Permission denied or subscribe failed — leave channel as it was.
+    }
+    setChannelBusy(false);
   }
 
   async function handleTestSend() {
@@ -400,23 +433,70 @@ export default function ProfileModal({
           <div className="pm-card">
             <div className="pm-card-title">Reminders</div>
             {!auth?.token ? (
-              <p className="pm-hint">Sign in to enable push reminders.</p>
-            ) : pushState === 'unsupported' ? (
-              <p className="pm-hint">Push notifications aren't supported on this browser/device.</p>
-            ) : pushState === 'denied' ? (
-              <p className="pm-hint">Notifications are blocked for this site. Enable them in your browser/system settings to turn reminders on.</p>
+              <p className="pm-hint">Sign in to enable daily reminders.</p>
+            ) : channel === null ? (
+              <p className="pm-hint">Loading…</p>
             ) : (
               <>
                 <div className="push-toggle-row">
-                  <span className="push-toggle-label">Daily Memory Reminder</span>
-                  <button
-                    className={`push-toggle-btn${pushState === 'subscribed' ? ' on' : ''}`}
-                    disabled={pushBusy || pushState === 'loading'}
-                    onClick={handleTogglePush}
-                  >{pushState === 'subscribed' ? 'On' : 'Off'}</button>
+                  <span className="push-toggle-label">Remind me via</span>
+                  <div className="pm-segmented">
+                    <button
+                      className={`pm-segmented-btn${channel === 'push' ? ' active' : ''}`}
+                      disabled={channelBusy}
+                      onClick={() => handleChannelChange('push')}
+                    >Mobile</button>
+                    <button
+                      className={`pm-segmented-btn${channel === 'email' ? ' active' : ''}`}
+                      disabled={channelBusy}
+                      onClick={() => handleChannelChange('email')}
+                    >Email</button>
+                  </div>
                 </div>
-                {pushState === 'subscribed' && (
+
+                {channel === 'push' && (
+                  pushState === 'unsupported' ? (
+                    <p className="pm-hint">Push notifications aren't supported on this browser/device — try Email instead, or add this app to your home screen first.</p>
+                  ) : pushState === 'denied' ? (
+                    <p className="pm-hint">Notifications are blocked for this site. Enable them in your browser/system settings to turn reminders on.</p>
+                  ) : (
+                    <>
+                      <div className="push-toggle-row">
+                        <span className="push-toggle-label">Daily Memory Reminder</span>
+                        <button
+                          className={`push-toggle-btn${pushState === 'subscribed' ? ' on' : ''}`}
+                          disabled={pushBusy || pushState === 'loading'}
+                          onClick={handleTogglePush}
+                        >{pushState === 'subscribed' ? 'On' : 'Off'}</button>
+                      </div>
+                      {pushState === 'subscribed' && (
+                        <>
+                          <div className="push-toggle-row">
+                            <span className="push-toggle-label">Reminder time</span>
+                            <select
+                              className="pm-fade-field"
+                              value={reminderHour}
+                              onChange={(e) => handleHourChange(Number(e.target.value))}
+                            >
+                              {Array.from({ length: 24 }, (_, h) => (
+                                <option key={h} value={h}>{formatHour(h)}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="push-toggle-row">
+                            <button className="pm-link-btn" disabled={testState === 'sending'} onClick={handleTestSend}>
+                              {testState === 'sending' ? 'Sending…' : testState === 'sent' ? 'Sent!' : testState === 'error' ? 'Failed — try again' : 'Send test notification'}
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )
+                )}
+
+                {channel === 'email' && (
                   <>
+                    <p className="pm-hint">Daily reminder emails will be sent to {auth.email}.</p>
                     <div className="push-toggle-row">
                       <span className="push-toggle-label">Reminder time</span>
                       <select
@@ -431,11 +511,12 @@ export default function ProfileModal({
                     </div>
                     <div className="push-toggle-row">
                       <button className="pm-link-btn" disabled={testState === 'sending'} onClick={handleTestSend}>
-                        {testState === 'sending' ? 'Sending…' : testState === 'sent' ? 'Sent!' : testState === 'error' ? 'Failed — try again' : 'Send test notification'}
+                        {testState === 'sending' ? 'Sending…' : testState === 'sent' ? 'Sent!' : testState === 'error' ? 'Failed — try again' : 'Send test email'}
                       </button>
                     </div>
                   </>
                 )}
+
                 <div className="push-toggle-row">
                   <span className="push-toggle-label">Danger of losing streak (coming soon)</span>
                   <button className="push-toggle-btn" disabled>Off</button>
