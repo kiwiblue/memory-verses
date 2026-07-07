@@ -433,6 +433,24 @@ export default function App() {
     }, 10_000);
   }, []);
 
+  // Safety-net sync: most actions already schedule a sync via the progress-
+  // change effect, but not every local mutation does (streak touches on an
+  // already-learning verse are one example, fixed separately — this covers
+  // any other gap the same way). Re-push periodically and whenever the app
+  // returns to the foreground, so nothing sits unsynced for long even if a
+  // future change misses the scheduleSync call it should have made.
+  useEffect(() => {
+    if (!auth?.token) return;
+    const sync = () => scheduleSync(auth, users);
+    const onVisible = () => { if (document.visibilityState === 'visible') sync(); };
+    document.addEventListener('visibilitychange', onVisible);
+    const interval = setInterval(sync, 10 * 60 * 1000);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      clearInterval(interval);
+    };
+  }, [auth, users, scheduleSync]);
+
   const handleAuthChange = useCallback((newAuth) => {
     setAuth(newAuth);
     if (newAuth.token) saveAuth(newAuth);
@@ -471,7 +489,12 @@ export default function App() {
     const updated = touchStreak(currentUser.id);
     setStreak(updated.days);
     setStreakData(updated);
-  }, [currentUser.id]);
+    // Streak-only changes (e.g. re-revealing an already-learning verse) don't
+    // always also change `progress`, so they can't rely on the progress-change
+    // effect to schedule a sync — without this, a streak could tick up locally
+    // for days without ever reaching the cloud.
+    scheduleSync(auth, users);
+  }, [currentUser.id, auth, users, scheduleSync]);
 
   // Centralized exercise completion — records a revise attempt with the correct
   // next skill level + hint score, then closes the exercise overlay.
