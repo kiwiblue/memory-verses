@@ -132,7 +132,7 @@
   --color-mastery:        #e8a747;
   --color-star:           #e6c452;
   --color-star-bg:        rgba(230,196,82,.12);
-  --color-learn-today-bg: rgba(95,104,223,.16);
+  --color-learn-today-bg: #262b45;   /* solid tint, not translucent — a low-alpha overlay barely lifted off the dark card and read as sunken/recessed rather than highlighted */
 
   /* Surfaces — stepped so each layer is clearly distinct */
   --color-bg:             #16181c;   /* page background — warm dark */
