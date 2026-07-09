@@ -5,32 +5,32 @@
 :root {
 
   /* Brand ─────────────────────────────────────────────────────────────── */
-  --color-brand:          #1c9d5e;   /* primary green */
-  --color-brand-dark:     #17864f;   /* hover / pressed */
-  --color-brand-muted:    #eafaf1;   /* very light green background */
-  --color-brand-subtle:   #dcf5e8;   /* pill / badge background */
-  --color-brand-accent:   #a7e3c4;   /* border accents */
+  --color-brand:          #c96844;   /* primary green */
+  --color-brand-dark:     #ad5433;   /* hover / pressed */
+  --color-brand-muted:    #fbefe8;   /* very light green background */
+  --color-brand-subtle:   #f6e3d8;   /* pill / badge background */
+  --color-brand-accent:   #eec4ad;   /* border accents */
 
   /* Status — Success ──────────────────────────────────────────────────── */
-  --color-success:        #1c9d5e;
-  --color-success-bg:     #dcf5e8;
+  --color-success:        #c96844;
+  --color-success-bg:     #f6e3d8;
 
   /* Status — Warning ──────────────────────────────────────────────────── */
-  --color-warning:        #e08600;
-  --color-warning-dark:   #b45309;
-  --color-warning-text:   #b45309;
-  --color-warning-bg:     #fff4e5;
+  --color-warning:        #d98a2b;
+  --color-warning-dark:   #b06e1c;
+  --color-warning-text:   #a5661a;
+  --color-warning-bg:     #fdf1dd;
 
   /* Status — Danger ───────────────────────────────────────────────────── */
-  --color-danger:         #e5484d;
-  --color-danger-dark:    #c0322f;
-  --color-danger-bg:      #fdecec;
-  --color-danger-muted:   #f3b5b3;
-  --color-danger-accent:  #cf3a37;
+  --color-danger:         #d6533f;
+  --color-danger-dark:    #b23c2c;
+  --color-danger-bg:      #fbe8e3;
+  --color-danger-muted:   #f0b8ab;
+  --color-danger-accent:  #c34530;
 
   /* Status — Info ─────────────────────────────────────────────────────── */
-  --color-info:           #2f6fed;
-  --color-info-bg:        #e9f0fe;
+  --color-info:           #3f72a4;
+  --color-info-bg:        #e9f1f8;
 
   /* Skill levels (rings, badges) — easy=struggling, hard=mastered ─────── */
   --color-skill-easy:         var(--color-danger);
@@ -42,30 +42,30 @@
   --color-skill-hard-bg:      var(--color-brand-subtle);
 
   /* Accents ───────────────────────────────────────────────────────────── */
-  --color-mastery:            #f59e0b;   /* mastery ring amber */
-  --color-star:               #eab308;   /* starred / favourite */
-  --color-star-bg:            #fef9e7;   /* starred button background */
-  --color-learn-today-bg:     #d6f5e3;   /* "learn today" pill */
+  --color-mastery:            #e0913f;   /* mastery ring amber */
+  --color-star:               #e6b02f;   /* starred / favourite */
+  --color-star-bg:            #fdf3d9;   /* starred button background */
+  --color-learn-today-bg:     #f6e3d8;   /* "learn today" pill */
 
   /* Surfaces ──────────────────────────────────────────────────────────── */
-  --color-header-bg:      #e8eaee;   /* darker zone behind header / status bar */
-  --color-bg:             #f5f6f8;   /* content sheet background */
-  --color-surface:        #ffffff;   /* card, modal, panel */
-  --color-surface-sunken: #eceef2;   /* inputs, tab bars, sunken areas */
-  --color-surface-hover:  #f0f2f5;   /* generic hover state */
-  --color-overlay:        rgba(17,24,39,0.45); /* modal scrim */
+  --color-header-bg:      #ece3d6;   /* darker zone behind header / status bar */
+  --color-bg:             #f7f1e8;   /* content sheet background */
+  --color-surface:        #fffdf9;   /* card, modal, panel */
+  --color-surface-sunken: #f0e8db;   /* inputs, tab bars, sunken areas */
+  --color-surface-hover:  #f4ece0;   /* generic hover state */
+  --color-overlay:        rgba(58,42,32,0.45); /* modal scrim */
 
   /* Text ──────────────────────────────────────────────────────────────── */
-  --color-text-primary:   #16181d;
-  --color-text-secondary: #4b5563;
-  --color-text-muted:     #868c96;
-  --color-text-faint:     #b0b6be;
-  --color-text-inverse:   #ffffff;   /* white text on dark/coloured backgrounds */
+  --color-text-primary:   #2e2621;
+  --color-text-secondary: #6b5d52;
+  --color-text-muted:     #9c8d80;
+  --color-text-faint:     #c2b5a6;
+  --color-text-inverse:   #fffdf9;   /* white text on dark/coloured backgrounds */
 
   /* Borders ───────────────────────────────────────────────────────────── */
-  --color-border:         #e4e7eb;
-  --color-border-strong:  #d0d5db;
-  --color-border-subtle:  #eef0f3;
+  --color-border:         #e7ddd0;
+  --color-border-strong:  #d6c9b8;
+  --color-border-subtle:  #f0e8dc;
 
   /* Typography ────────────────────────────────────────────────────────── */
   --font-sans:            system-ui, -apple-system, sans-serif;
@@ -80,10 +80,10 @@
   --font-size-3xl:        26px;
 
   /* Border radius ─────────────────────────────────────────────────────── */
-  --radius-sm:            6px;
-  --radius-md:            8px;
-  --radius-lg:            12px;
-  --radius-xl:            20px;
+  --radius-sm:            8px;
+  --radius-md:            10px;
+  --radius-lg:            14px;
+  --radius-xl:            22px;
   --radius-full:          99px;
 
   /* Shadows ───────────────────────────────────────────────────────────── */
@@ -101,57 +101,57 @@
 [data-theme="dark"] {
 
   /* Brand */
-  --color-brand:          #34c77e;
-  --color-brand-dark:     #4cd68f;
-  --color-brand-muted:    #10241a;
-  --color-brand-subtle:   #14301f;
-  --color-brand-accent:   #1f5236;
+  --color-brand:          #e0805a;
+  --color-brand-dark:     #eb9873;
+  --color-brand-muted:    #2c1c14;
+  --color-brand-subtle:   #38241a;
+  --color-brand-accent:   #5c3a28;
 
   /* Status — Success */
-  --color-success:        #34c77e;
-  --color-success-bg:     #14301f;
+  --color-success:        #e0805a;
+  --color-success-bg:     #38241a;
 
   /* Status — Warning */
-  --color-warning:        #f0a83a;
-  --color-warning-dark:   #e0982f;
-  --color-warning-text:   #e6b055;
-  --color-warning-bg:     #2a1e08;
+  --color-warning:        #eda748;
+  --color-warning-dark:   #d8963a;
+  --color-warning-text:   #e8b063;
+  --color-warning-bg:     #2f2109;
 
   /* Status — Danger */
-  --color-danger:         #f26a6a;
-  --color-danger-dark:    #d95555;
-  --color-danger-bg:      #2a1211;
-  --color-danger-muted:   #4a2222;
-  --color-danger-accent:  #e35555;
+  --color-danger:         #ec7a63;
+  --color-danger-dark:    #d95f48;
+  --color-danger-bg:      #2e1712;
+  --color-danger-muted:   #4d2820;
+  --color-danger-accent:  #e06a52;
 
   /* Status — Info */
-  --color-info:           #5fa0f0;
-  --color-info-bg:        #101d2e;
+  --color-info:           #6f9fca;
+  --color-info-bg:        #14202b;
 
   /* Accents */
-  --color-mastery:        #f0a83a;
-  --color-star:           #e6c53f;
-  --color-star-bg:        rgba(230,197,63,.12);
-  --color-learn-today-bg: rgba(52,199,126,.18);
+  --color-mastery:        #eda748;
+  --color-star:           #e8c452;
+  --color-star-bg:        rgba(232,196,82,.12);
+  --color-learn-today-bg: rgba(224,128,90,.16);
 
   /* Surfaces — stepped so each layer is clearly distinct */
-  --color-bg:             #14161a;   /* page background — warm dark */
-  --color-surface:        #1e2127;   /* cards, panels — noticeably raised */
-  --color-surface-sunken: #0f1114;   /* inputs, tab bar trough — sunken below bg */
-  --color-surface-hover:  #262a31;   /* hover state — above surface */
-  --color-overlay:        rgba(0,0,0,0.65);
+  --color-bg:             #1e1815;   /* page background — warm dark */
+  --color-surface:        #2a221d;   /* cards, panels — noticeably raised */
+  --color-surface-sunken: #161210;   /* inputs, tab bar trough — sunken below bg */
+  --color-surface-hover:  #342a24;   /* hover state — above surface */
+  --color-overlay:        rgba(0,0,0,0.66);
 
   /* Text */
-  --color-text-primary:   #e7e9ee;
-  --color-text-secondary: #a2a8b3;
-  --color-text-muted:     #6f7680;
-  --color-text-faint:     #4a4f58;
-  --color-text-inverse:   #14161a;
+  --color-text-primary:   #f0e9e0;
+  --color-text-secondary: #b3a599;
+  --color-text-muted:     #7d7168;
+  --color-text-faint:     #524941;
+  --color-text-inverse:   #1e1815;
 
   /* Borders — visible but not distracting */
-  --color-border:         #2b2f37;
-  --color-border-strong:  #3a3f49;
-  --color-border-subtle:  #21242a;
+  --color-border:         #38302a;
+  --color-border-strong:  #4a4038;
+  --color-border-subtle:  #2a231e;
 
   /* Shadows */
   --shadow-sm:            0 1px 3px rgba(0,0,0,.35);
@@ -159,7 +159,7 @@
   --shadow-lg:            0 8px 32px rgba(0,0,0,.55);
 
   /* Header zone */
-  --color-header-bg:      #0d0f12;
+  --color-header-bg:      #14100e;
 }
 
 /* Dark mode: give pill stats and tab trough a visible border so they read against the bg */
