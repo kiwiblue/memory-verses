@@ -682,7 +682,7 @@ select {
 .deck-search-form { display: flex; gap: 6px; }
 .deck-search-input {
   flex: 1; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 8px;
-  font-size: 14px; outline: none;
+  font-size: 14px; outline: none; background: var(--color-surface); color: var(--color-text-primary);
 }
 .deck-search-input:focus { border-color: var(--color-brand); }
 .deck-search-btn {
@@ -1455,7 +1455,8 @@ input[type="search"], input[type="number"], textarea, select {
 .ob-swatches { margin-bottom: 4px; }
 .ob-input {
   width: 100%; padding: 11px 12px; border: 1px solid var(--color-border); border-radius: 8px;
-  font-size: 15px; background: var(--color-bg); outline: none; margin-bottom: 4px;
+  font-size: 15px; background: var(--color-bg); color: var(--color-text-primary);
+  outline: none; margin-bottom: 4px;
 }
 .ob-input:focus { border-color: var(--color-brand); }
 .ob-age-group { display: flex; gap: 8px; margin-bottom: 4px; }
@@ -1699,6 +1700,7 @@ input[type="search"], input[type="number"], textarea, select {
   width: 130px; flex-shrink: 0; padding: 10px 12px;
   border: 1.5px solid var(--color-border); border-radius: 10px;
   font-size: 16px; outline: none; transition: border-color .15s;
+  background: var(--color-surface); color: var(--color-text-primary);
 }
 .match-type-input:focus { border-color: var(--color-brand); }
 .match-type-row { display: flex; flex-direction: column; gap: 6px; }
@@ -1813,6 +1815,7 @@ input[type="search"], input[type="number"], textarea, select {
 .adm-gate-input {
   padding: 10px 14px; border: 1.5px solid var(--color-border); border-radius: 10px;
   font-size: 15px; outline: none; transition: border-color .15s;
+  background: var(--color-surface); color: var(--color-text-primary);
 }
 .adm-gate-input:focus { border-color: var(--color-brand); }
 .adm-gate-err { font-size: 13px; color: var(--color-danger-dark); }
@@ -1836,7 +1839,7 @@ input[type="search"], input[type="number"], textarea, select {
 .adm-dash-ts { font-size: 12px; color: var(--color-text-muted); }
 .adm-refresh-btn {
   padding: 6px 14px; border-radius: 8px; border: 1.5px solid var(--color-border);
-  background: var(--color-surface); font-size: 13px; cursor: pointer; transition: border-color .15s;
+  background: var(--color-surface); color: var(--color-text-primary); font-size: 13px; cursor: pointer; transition: border-color .15s;
 }
 .adm-refresh-btn:hover { border-color: var(--color-brand); }
 .adm-refresh-btn:disabled { opacity: .5; cursor: default; }
@@ -1959,6 +1962,7 @@ input[type="search"], input[type="number"], textarea, select {
   padding: 10px 12px; border: 1.5px solid var(--color-border); border-radius: 10px;
   font-size: 14px; font-family: inherit; resize: vertical; outline: none;
   transition: border-color .15s; line-height: 1.5;
+  background: var(--color-surface); color: var(--color-text-primary);
 }
 .feedback-textarea:focus { border-color: var(--color-brand); }
 
@@ -2008,7 +2012,8 @@ input[type="search"], input[type="number"], textarea, select {
 }
 .revise-nav-btn {
   width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--color-border);
-  background: var(--color-surface); font-size: 16px; cursor: pointer; display: flex;
+  background: var(--color-surface); color: var(--color-text-primary);
+  font-size: 16px; cursor: pointer; display: flex;
   align-items: center; justify-content: center; transition: border-color .15s;
 }
 .revise-nav-btn:disabled { opacity: .3; cursor: default; }
