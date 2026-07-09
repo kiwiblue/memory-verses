@@ -2344,7 +2344,7 @@ input[type="search"], input[type="number"], textarea, select {
   display: flex; align-items: center; justify-content: center;
   transition: background .15s, opacity .15s; background: none; line-height: 1;
 }
-.dp-btn-info  { color: var(--color-info); }
+.dp-btn-info  { color: var(--color-info); border: none; }
 .dp-btn-info:hover  { background: var(--color-info-bg); }
 .dp-btn-add   { color: var(--color-brand); }
 .dp-btn-add:hover   { background: var(--color-brand-muted); }

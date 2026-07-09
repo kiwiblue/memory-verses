@@ -38,7 +38,7 @@ function VerseRow({ verse, preferredVersion, allVerses, addedIds, onAdd, onLearn
         <span className="av-badge-added">Added</span>
       ) : (
         <div className="av-verse-btns">
-          <button className="av-plus-btn" onClick={() => onAdd(verse)} title="Add to deck"><Icon name="add" size={16} /></button>
+          <button className="av-plus-btn" onClick={() => onAdd(verse)} title="Add to deck"><Icon name="add" size={22} weight="regular" /></button>
           {onLearn && (
             <button className="av-learn-row-btn" onClick={() => onLearn(verse)}>Learn</button>
           )}
