@@ -5,32 +5,32 @@
 :root {
 
   /* Brand ─────────────────────────────────────────────────────────────── */
-  --color-brand:          #c96844;   /* primary green */
-  --color-brand-dark:     #ad5433;   /* hover / pressed */
-  --color-brand-muted:    #fbefe8;   /* very light green background */
-  --color-brand-subtle:   #f6e3d8;   /* pill / badge background */
-  --color-brand-accent:   #eec4ad;   /* border accents */
+  --color-brand:          #4f5bd5;   /* primary green */
+  --color-brand-dark:     #3f49b8;   /* hover / pressed */
+  --color-brand-muted:    #eef0fc;   /* very light green background */
+  --color-brand-subtle:   #e2e5fa;   /* pill / badge background */
+  --color-brand-accent:   #c2c8f2;   /* border accents */
 
   /* Status — Success ──────────────────────────────────────────────────── */
-  --color-success:        #c96844;
-  --color-success-bg:     #f6e3d8;
+  --color-success:        #4f5bd5;
+  --color-success-bg:     #e2e5fa;
 
   /* Status — Warning ──────────────────────────────────────────────────── */
   --color-warning:        #d98a2b;
   --color-warning-dark:   #b06e1c;
-  --color-warning-text:   #a5661a;
+  --color-warning-text:   #9a6410;
   --color-warning-bg:     #fdf1dd;
 
   /* Status — Danger ───────────────────────────────────────────────────── */
-  --color-danger:         #d6533f;
-  --color-danger-dark:    #b23c2c;
-  --color-danger-bg:      #fbe8e3;
-  --color-danger-muted:   #f0b8ab;
-  --color-danger-accent:  #c34530;
+  --color-danger:         #dc4b47;
+  --color-danger-dark:    #b5352f;
+  --color-danger-bg:      #fdeceb;
+  --color-danger-muted:   #f2b3b0;
+  --color-danger-accent:  #c53f38;
 
   /* Status — Info ─────────────────────────────────────────────────────── */
-  --color-info:           #3f72a4;
-  --color-info-bg:        #e9f1f8;
+  --color-info:           #0f8a90;
+  --color-info-bg:        #e3f4f5;
 
   /* Skill levels (rings, badges) — easy=struggling, hard=mastered ─────── */
   --color-skill-easy:         var(--color-danger);
@@ -45,27 +45,27 @@
   --color-mastery:            #e0913f;   /* mastery ring amber */
   --color-star:               #e6b02f;   /* starred / favourite */
   --color-star-bg:            #fdf3d9;   /* starred button background */
-  --color-learn-today-bg:     #f6e3d8;   /* "learn today" pill */
+  --color-learn-today-bg:     #e2e5fa;   /* "learn today" pill */
 
   /* Surfaces ──────────────────────────────────────────────────────────── */
-  --color-header-bg:      #ece3d6;   /* darker zone behind header / status bar */
-  --color-bg:             #f7f1e8;   /* content sheet background */
-  --color-surface:        #fffdf9;   /* card, modal, panel */
-  --color-surface-sunken: #f0e8db;   /* inputs, tab bars, sunken areas */
-  --color-surface-hover:  #f4ece0;   /* generic hover state */
-  --color-overlay:        rgba(58,42,32,0.45); /* modal scrim */
+  --color-header-bg:      #e8eaee;   /* darker zone behind header / status bar */
+  --color-bg:             #f4f5f7;   /* content sheet background */
+  --color-surface:        #ffffff;   /* card, modal, panel */
+  --color-surface-sunken: #eceef2;   /* inputs, tab bars, sunken areas */
+  --color-surface-hover:  #f0f2f5;   /* generic hover state */
+  --color-overlay:        rgba(17,19,24,0.45); /* modal scrim */
 
   /* Text ──────────────────────────────────────────────────────────────── */
-  --color-text-primary:   #2e2621;
-  --color-text-secondary: #6b5d52;
-  --color-text-muted:     #9c8d80;
-  --color-text-faint:     #c2b5a6;
-  --color-text-inverse:   #fffdf9;   /* white text on dark/coloured backgrounds */
+  --color-text-primary:   #1c1e22;
+  --color-text-secondary: #565a63;
+  --color-text-muted:     #888d97;
+  --color-text-faint:     #b4b9c2;
+  --color-text-inverse:   #ffffff;   /* white text on dark/coloured backgrounds */
 
   /* Borders ───────────────────────────────────────────────────────────── */
-  --color-border:         #e7ddd0;
-  --color-border-strong:  #d6c9b8;
-  --color-border-subtle:  #f0e8dc;
+  --color-border:         #e4e6ea;
+  --color-border-strong:  #d0d4da;
+  --color-border-subtle:  #eef0f3;
 
   /* Typography ────────────────────────────────────────────────────────── */
   --font-sans:            system-ui, -apple-system, sans-serif;
@@ -101,57 +101,57 @@
 [data-theme="dark"] {
 
   /* Brand */
-  --color-brand:          #e0805a;
-  --color-brand-dark:     #eb9873;
-  --color-brand-muted:    #2c1c14;
-  --color-brand-subtle:   #38241a;
-  --color-brand-accent:   #5c3a28;
+  --color-brand:          #5f68df;
+  --color-brand-dark:     #7079e6;
+  --color-brand-muted:    #1a1c2e;
+  --color-brand-subtle:   #22253a;
+  --color-brand-accent:   #363b5c;
 
   /* Status — Success */
-  --color-success:        #e0805a;
-  --color-success-bg:     #38241a;
+  --color-success:        #5f68df;
+  --color-success-bg:     #22253a;
 
   /* Status — Warning */
-  --color-warning:        #eda748;
-  --color-warning-dark:   #d8963a;
-  --color-warning-text:   #e8b063;
-  --color-warning-bg:     #2f2109;
+  --color-warning:        #e8a747;
+  --color-warning-dark:   #d5963a;
+  --color-warning-text:   #e6b063;
+  --color-warning-bg:     #2b2109;
 
   /* Status — Danger */
-  --color-danger:         #ec7a63;
-  --color-danger-dark:    #d95f48;
-  --color-danger-bg:      #2e1712;
-  --color-danger-muted:   #4d2820;
-  --color-danger-accent:  #e06a52;
+  --color-danger:         #ec6f6b;
+  --color-danger-dark:    #d85853;
+  --color-danger-bg:      #2c1413;
+  --color-danger-muted:   #4a2422;
+  --color-danger-accent:  #e05e58;
 
   /* Status — Info */
-  --color-info:           #6f9fca;
-  --color-info-bg:        #14202b;
+  --color-info:           #3bb4bb;
+  --color-info-bg:        #0c2427;
 
   /* Accents */
-  --color-mastery:        #eda748;
-  --color-star:           #e8c452;
-  --color-star-bg:        rgba(232,196,82,.12);
-  --color-learn-today-bg: rgba(224,128,90,.16);
+  --color-mastery:        #e8a747;
+  --color-star:           #e6c452;
+  --color-star-bg:        rgba(230,196,82,.12);
+  --color-learn-today-bg: rgba(95,104,223,.16);
 
   /* Surfaces — stepped so each layer is clearly distinct */
-  --color-bg:             #1e1815;   /* page background — warm dark */
-  --color-surface:        #2a221d;   /* cards, panels — noticeably raised */
-  --color-surface-sunken: #161210;   /* inputs, tab bar trough — sunken below bg */
-  --color-surface-hover:  #342a24;   /* hover state — above surface */
+  --color-bg:             #16181c;   /* page background — warm dark */
+  --color-surface:        #1e2125;   /* cards, panels — noticeably raised */
+  --color-surface-sunken: #101215;   /* inputs, tab bar trough — sunken below bg */
+  --color-surface-hover:  #282c31;   /* hover state — above surface */
   --color-overlay:        rgba(0,0,0,0.66);
 
   /* Text */
-  --color-text-primary:   #f0e9e0;
-  --color-text-secondary: #b3a599;
-  --color-text-muted:     #7d7168;
-  --color-text-faint:     #524941;
-  --color-text-inverse:   #1e1815;
+  --color-text-primary:   #e8eaed;
+  --color-text-secondary: #a2a7b0;
+  --color-text-muted:     #71767f;
+  --color-text-faint:     #4a4e56;
+  --color-text-inverse:   #ffffff;
 
   /* Borders — visible but not distracting */
-  --color-border:         #38302a;
-  --color-border-strong:  #4a4038;
-  --color-border-subtle:  #2a231e;
+  --color-border:         #2c2f35;
+  --color-border-strong:  #3c4048;
+  --color-border-subtle:  #22252a;
 
   /* Shadows */
   --shadow-sm:            0 1px 3px rgba(0,0,0,.35);
@@ -159,7 +159,7 @@
   --shadow-lg:            0 8px 32px rgba(0,0,0,.55);
 
   /* Header zone */
-  --color-header-bg:      #14100e;
+  --color-header-bg:      #101216;
 }
 
 /* Dark mode: give pill stats and tab trough a visible border so they read against the bg */
@@ -2426,6 +2426,7 @@ input[type="search"], input[type="number"], textarea, select {
 .se-option {
   padding: 10px 20px; border-radius: 20px; font-size: 15px; font-weight: 500;
   background: var(--color-surface); border: 1.5px solid var(--color-border);
+  color: var(--color-text-primary);
   cursor: pointer; transition: background .15s, border-color .15s, transform .1s;
 }
 .se-option:hover { background: var(--color-brand-muted); border-color: var(--color-brand); }
