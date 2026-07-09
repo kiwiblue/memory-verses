@@ -825,7 +825,7 @@ input[type=text] {
   cursor: pointer; flex-shrink: 0; user-select: none;
   transition: opacity .15s;
   /* Outer ring matches user colour, inner gap is surface white */
-  box-shadow: 0 0 0 2.5px var(--color-bg), 0 0 0 4.5px var(--user-colour, #3a8c5c);
+  box-shadow: 0 0 0 2.5px var(--color-bg), 0 0 0 4.5px var(--user-colour, #2f868d);
 }
 .avatar:hover { opacity: .85; }
 

@@ -66,7 +66,7 @@ function ensureDefaultUser(users) {
     name: 'Guest',
     bracket: 'adult',
     bracket_updated: Date.now(),
-    colour: '#3a8c5c',
+    colour: '#2f868d',
     translation: 'kjv',
   };
   saveUsers([guest]);

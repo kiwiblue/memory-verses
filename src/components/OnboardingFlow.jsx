@@ -21,7 +21,7 @@ const TRANSLATIONS = [
   { value: 'nasb', abbr: 'NASB', name: 'New American Standard Bible' },
 ];
 
-const PRESETS = ['#3a8c5c','#2a6ab5','#9a3a3a','#7a5c9a','#9a6c10','#3a7a8c','#555555','#c0392b'];
+const PRESETS = ['#2f868d','#2a6ab5','#9a3a3a','#7a5c9a','#9a6c10','#3a7a8c','#555555','#c0392b'];
 
 const AGE_GROUPS = [
   { value: 'child', label: 'Child', sub: 'under 10' },
