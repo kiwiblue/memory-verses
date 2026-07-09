@@ -1433,23 +1433,6 @@ input[type="search"], input[type="number"], textarea, select {
   align-self: center; margin-bottom: 20px;
 }
 .ob-avatar-side { flex-shrink: 0; margin-bottom: 0; align-self: center; }
-.ob-reminder-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 0; margin-bottom: 4px;
-}
-.ob-reminder-label { font-size: 15px; color: var(--color-text-primary); }
-.ob-toggle {
-  position: relative; width: 48px; height: 28px; border-radius: 14px;
-  background: var(--color-border); border: none; cursor: pointer;
-  transition: background .2s; flex-shrink: 0;
-}
-.ob-toggle::after {
-  content: ''; position: absolute; top: 3px; left: 3px;
-  width: 22px; height: 22px; border-radius: 50%; background: #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s;
-}
-.ob-toggle-on { background: var(--color-brand); }
-.ob-toggle-on::after { transform: translateX(20px); }
 .ob-field-label { font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase;
   letter-spacing: .05em; margin-bottom: 8px; margin-top: 16px; display: block; }
 .ob-swatches { margin-bottom: 4px; }

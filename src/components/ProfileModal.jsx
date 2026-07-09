@@ -16,7 +16,10 @@ function formatHour(h) {
   return `${h12}:00 ${period}`;
 }
 
-const PRESETS = ['#2f868d','#2a6ab5','#9a3a3a','#7a5c9a','#9a6c10','#3a7a8c','#555555','#c0392b'];
+// Curated avatar palette — harmonises with the neutral + indigo theme, spans
+// warm/cool evenly, and every colour is deep enough for white initials to stay
+// readable (all ≥3.9:1 contrast with white). Teal (index 0) is the default.
+const PRESETS = ['#2f868d','#3d6fc0','#5b57c4','#9450a6','#bb4a68','#bc5f3a','#3f8f5f','#5a6675'];
 const TRANSLATIONS = [
   { value: 'kjv',  label: 'KJV' },
   { value: 'bsb',  label: 'BSB' },

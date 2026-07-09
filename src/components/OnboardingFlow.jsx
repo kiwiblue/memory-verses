@@ -21,7 +21,10 @@ const TRANSLATIONS = [
   { value: 'nasb', abbr: 'NASB', name: 'New American Standard Bible' },
 ];
 
-const PRESETS = ['#2f868d','#2a6ab5','#9a3a3a','#7a5c9a','#9a6c10','#3a7a8c','#555555','#c0392b'];
+// Curated avatar palette — harmonises with the neutral + indigo theme, spans
+// warm/cool evenly, and every colour is deep enough for white initials to stay
+// readable (all ≥3.9:1 contrast with white). Teal (index 0) is the default.
+const PRESETS = ['#2f868d','#3d6fc0','#5b57c4','#9450a6','#bb4a68','#bc5f3a','#3f8f5f','#5a6675'];
 
 const AGE_GROUPS = [
   { value: 'child', label: 'Child', sub: 'under 10' },
@@ -305,7 +308,7 @@ function VerseScreen({ selectedId, onSelect, onNext, translation, verseCache }) 
 
 // ── Screen 3: Personalise ───────────────────────────────────────────────────
 
-function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, setColour, pattern, setPattern, patternOpacity, setPatternOpacity, reminders, setReminders, onComplete }) {
+function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, setColour, pattern, setPattern, patternOpacity, setPatternOpacity, onComplete }) {
   const [showAccount, setShowAccount] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -399,17 +402,6 @@ function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, s
           ))}
         </div>
 
-        {/* Reminders */}
-        <label className="ob-field-label">Reminders</label>
-        <div className="ob-reminder-row">
-          <span className="ob-reminder-label">Daily Memory Reminder</span>
-          <button
-            className={`ob-toggle${reminders ? ' ob-toggle-on' : ''}`}
-            onClick={() => setReminders(r => !r)}
-            aria-label={reminders ? 'Turn off reminders' : 'Turn on reminders'}
-          />
-        </div>
-
         {/* Optional account */}
         <div className="ob-account-section">
           {!showAccount ? (
@@ -495,12 +487,8 @@ export default function OnboardingFlow({ currentUser, verseCache, onComplete, on
   const [colour, setColour] = useState(currentUser.colour || PRESETS[0]);
   const [pattern, setPattern] = useState(currentUser.pattern || 'none');
   const [patternOpacity, setPatternOpacity] = useState(currentUser.patternOpacity ?? DEFAULT_PATTERN_OPACITY);
-  const [reminders, setReminders] = useState(() => {
-    try { return localStorage.getItem(`mv-reminders-${currentUser.id}`) === 'true'; } catch { return false; }
-  });
 
   function finish({ auth }) {
-    try { localStorage.setItem(`mv-reminders-${currentUser.id}`, reminders ? 'true' : 'false'); } catch {}
     const updatedUser = {
       ...currentUser,
       name: name.trim() || 'Guest',
@@ -559,7 +547,6 @@ export default function OnboardingFlow({ currentUser, verseCache, onComplete, on
       colour={colour} setColour={setColour}
       pattern={pattern} setPattern={setPattern}
       patternOpacity={patternOpacity} setPatternOpacity={setPatternOpacity}
-      reminders={reminders} setReminders={setReminders}
       onComplete={(arg) => { logEvent('onboarding_step_complete', { step: 3 }); finish(arg); }}
     />
   );
