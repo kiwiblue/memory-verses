@@ -2391,11 +2391,12 @@ input[type="search"], input[type="number"], textarea, select {
 }
 .se-word { color: var(--color-text-primary); }
 .se-blank {
-  display: inline-block; min-width: 3em; height: 1.4em;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 3em; height: 1.4em; line-height: 1;
   background: var(--color-surface-sunken); border-radius: 4px;
   vertical-align: middle; margin: 0 2px;
   border-bottom: 2px solid var(--color-brand-accent);
-  text-align: center; font-size: 14px; color: var(--color-text-muted);
+  font-size: 14px; color: var(--color-text-muted);
 }
 .se-blank-active {
   background: var(--color-brand-muted);
