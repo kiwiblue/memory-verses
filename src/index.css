@@ -5,32 +5,32 @@
 :root {
 
   /* Brand ─────────────────────────────────────────────────────────────── */
-  --color-brand:          #3a8c5c;   /* primary green */
-  --color-brand-dark:     #2d7a52;   /* hover / pressed */
-  --color-brand-muted:    #f0f9f4;   /* very light green background */
-  --color-brand-subtle:   #e6f4ec;   /* pill / badge background */
-  --color-brand-accent:   #b6d9c7;   /* border accents */
+  --color-brand:          #1c9d5e;   /* primary green */
+  --color-brand-dark:     #17864f;   /* hover / pressed */
+  --color-brand-muted:    #eafaf1;   /* very light green background */
+  --color-brand-subtle:   #dcf5e8;   /* pill / badge background */
+  --color-brand-accent:   #a7e3c4;   /* border accents */
 
   /* Status — Success ──────────────────────────────────────────────────── */
-  --color-success:        #3a8c5c;
-  --color-success-bg:     #e6f4ec;
+  --color-success:        #1c9d5e;
+  --color-success-bg:     #dcf5e8;
 
   /* Status — Warning ──────────────────────────────────────────────────── */
-  --color-warning:        #e67e00;
-  --color-warning-dark:   #b06000;
-  --color-warning-text:   #9a6c10;
-  --color-warning-bg:     #fef6e4;
+  --color-warning:        #e08600;
+  --color-warning-dark:   #b45309;
+  --color-warning-text:   #b45309;
+  --color-warning-bg:     #fff4e5;
 
   /* Status — Danger ───────────────────────────────────────────────────── */
-  --color-danger:         #e53935;
-  --color-danger-dark:    #b71c1c;
-  --color-danger-bg:      #fdecea;
-  --color-danger-muted:   #f5b8b0;
-  --color-danger-accent:  #c0392b;
+  --color-danger:         #e5484d;
+  --color-danger-dark:    #c0322f;
+  --color-danger-bg:      #fdecec;
+  --color-danger-muted:   #f3b5b3;
+  --color-danger-accent:  #cf3a37;
 
   /* Status — Info ─────────────────────────────────────────────────────── */
-  --color-info:           #2a6ab5;
-  --color-info-bg:        #e8f0fb;
+  --color-info:           #2f6fed;
+  --color-info-bg:        #e9f0fe;
 
   /* Skill levels (rings, badges) — easy=struggling, hard=mastered ─────── */
   --color-skill-easy:         var(--color-danger);
@@ -43,29 +43,29 @@
 
   /* Accents ───────────────────────────────────────────────────────────── */
   --color-mastery:            #f59e0b;   /* mastery ring amber */
-  --color-star:               #e3c200;   /* starred / favourite */
-  --color-star-bg:            #fffae6;   /* starred button background */
-  --color-learn-today-bg:     #d1fae5;   /* "learn today" pill */
+  --color-star:               #eab308;   /* starred / favourite */
+  --color-star-bg:            #fef9e7;   /* starred button background */
+  --color-learn-today-bg:     #d6f5e3;   /* "learn today" pill */
 
   /* Surfaces ──────────────────────────────────────────────────────────── */
-  --color-header-bg:      #dddbd6;   /* darker zone behind header / status bar */
-  --color-bg:             #f9f9f8;   /* content sheet background */
+  --color-header-bg:      #e8eaee;   /* darker zone behind header / status bar */
+  --color-bg:             #f5f6f8;   /* content sheet background */
   --color-surface:        #ffffff;   /* card, modal, panel */
-  --color-surface-sunken: #f1f0eb;   /* inputs, tab bars, sunken areas */
-  --color-surface-hover:  #f5f5f0;   /* generic hover state */
-  --color-overlay:        rgba(0,0,0,0.4); /* modal scrim */
+  --color-surface-sunken: #eceef2;   /* inputs, tab bars, sunken areas */
+  --color-surface-hover:  #f0f2f5;   /* generic hover state */
+  --color-overlay:        rgba(17,24,39,0.45); /* modal scrim */
 
   /* Text ──────────────────────────────────────────────────────────────── */
-  --color-text-primary:   #1a1a18;
-  --color-text-secondary: #555555;
-  --color-text-muted:     #888888;
-  --color-text-faint:     #aaaaaa;
+  --color-text-primary:   #16181d;
+  --color-text-secondary: #4b5563;
+  --color-text-muted:     #868c96;
+  --color-text-faint:     #b0b6be;
   --color-text-inverse:   #ffffff;   /* white text on dark/coloured backgrounds */
 
   /* Borders ───────────────────────────────────────────────────────────── */
-  --color-border:         #dddddd;
-  --color-border-strong:  #cccccc;
-  --color-border-subtle:  #e8e8e8;
+  --color-border:         #e4e7eb;
+  --color-border-strong:  #d0d5db;
+  --color-border-subtle:  #eef0f3;
 
   /* Typography ────────────────────────────────────────────────────────── */
   --font-sans:            system-ui, -apple-system, sans-serif;
@@ -101,57 +101,57 @@
 [data-theme="dark"] {
 
   /* Brand */
-  --color-brand:          #52c27e;
-  --color-brand-dark:     #72d898;
-  --color-brand-muted:    #0d2219;
-  --color-brand-subtle:   #132b1e;
-  --color-brand-accent:   #1e4832;
+  --color-brand:          #34c77e;
+  --color-brand-dark:     #4cd68f;
+  --color-brand-muted:    #10241a;
+  --color-brand-subtle:   #14301f;
+  --color-brand-accent:   #1f5236;
 
   /* Status — Success */
-  --color-success:        #52c27e;
-  --color-success-bg:     #132b1e;
+  --color-success:        #34c77e;
+  --color-success-bg:     #14301f;
 
   /* Status — Warning */
-  --color-warning:        #f0a030;
-  --color-warning-dark:   #e08820;
-  --color-warning-text:   #d4902a;
-  --color-warning-bg:     #281c06;
+  --color-warning:        #f0a83a;
+  --color-warning-dark:   #e0982f;
+  --color-warning-text:   #e6b055;
+  --color-warning-bg:     #2a1e08;
 
   /* Status — Danger */
-  --color-danger:         #f07070;
+  --color-danger:         #f26a6a;
   --color-danger-dark:    #d95555;
-  --color-danger-bg:      #28100e;
-  --color-danger-muted:   #4a2020;
-  --color-danger-accent:  #e05252;
+  --color-danger-bg:      #2a1211;
+  --color-danger-muted:   #4a2222;
+  --color-danger-accent:  #e35555;
 
   /* Status — Info */
-  --color-info:           #6aaae0;
-  --color-info-bg:        #0c1c2e;
+  --color-info:           #5fa0f0;
+  --color-info-bg:        #101d2e;
 
   /* Accents */
-  --color-mastery:        #f0a030;
-  --color-star:           #e3c200;
-  --color-star-bg:        rgba(227,194,0,.12);
-  --color-learn-today-bg: rgba(16,185,129,.18);
+  --color-mastery:        #f0a83a;
+  --color-star:           #e6c53f;
+  --color-star-bg:        rgba(230,197,63,.12);
+  --color-learn-today-bg: rgba(52,199,126,.18);
 
   /* Surfaces — stepped so each layer is clearly distinct */
-  --color-bg:             #1a1a17;   /* page background — warm dark */
-  --color-surface:        #28281f;   /* cards, panels — noticeably raised */
-  --color-surface-sunken: #131311;   /* inputs, tab bar trough — sunken below bg */
-  --color-surface-hover:  #32322a;   /* hover state — above surface */
+  --color-bg:             #14161a;   /* page background — warm dark */
+  --color-surface:        #1e2127;   /* cards, panels — noticeably raised */
+  --color-surface-sunken: #0f1114;   /* inputs, tab bar trough — sunken below bg */
+  --color-surface-hover:  #262a31;   /* hover state — above surface */
   --color-overlay:        rgba(0,0,0,0.65);
 
   /* Text */
-  --color-text-primary:   #eeeee8;
-  --color-text-secondary: #a8a89e;
-  --color-text-muted:     #787870;
-  --color-text-faint:     #484840;
-  --color-text-inverse:   #1a1a17;
+  --color-text-primary:   #e7e9ee;
+  --color-text-secondary: #a2a8b3;
+  --color-text-muted:     #6f7680;
+  --color-text-faint:     #4a4f58;
+  --color-text-inverse:   #14161a;
 
   /* Borders — visible but not distracting */
-  --color-border:         #363630;
-  --color-border-strong:  #484840;
-  --color-border-subtle:  #262620;
+  --color-border:         #2b2f37;
+  --color-border-strong:  #3a3f49;
+  --color-border-subtle:  #21242a;
 
   /* Shadows */
   --shadow-sm:            0 1px 3px rgba(0,0,0,.35);
@@ -159,7 +159,7 @@
   --shadow-lg:            0 8px 32px rgba(0,0,0,.55);
 
   /* Header zone */
-  --color-header-bg:      #111110;
+  --color-header-bg:      #0d0f12;
 }
 
 /* Dark mode: give pill stats and tab trough a visible border so they read against the bg */
@@ -2126,7 +2126,7 @@ input[type="search"], input[type="number"], textarea, select {
 }
 .vs-status-unseen   { background: var(--color-surface-sunken); color: var(--color-text-muted); }
 .vs-status-learning { background: var(--color-brand-subtle);   color: var(--color-brand-dark); }
-.vs-status-mastered { background: #fef3c7; color: #92400e; }
+.vs-status-mastered { background: var(--color-warning-bg); color: var(--color-warning-text); }
 
 /* reference row */
 .vs-ref-row {
@@ -2239,7 +2239,7 @@ input[type="search"], input[type="number"], textarea, select {
 .deck-badge2 {
   font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 500; flex-shrink: 0;
 }
-.deck-badge-easy  { background: #e0f2fe; color: #0369a1; }
+.deck-badge-easy  { background: var(--color-info-bg); color: var(--color-info); }
 .deck-badge-mod   { background: var(--color-warning-bg); color: var(--color-warning-text); }
 .deck-badge-hard  { background: var(--color-brand-subtle); color: var(--color-brand-dark); font-weight: 600; }
 
@@ -2250,7 +2250,7 @@ input[type="search"], input[type="number"], textarea, select {
   color: var(--color-text-muted);
 }
 .deck-info-btn:hover  { background: var(--color-brand-muted); color: var(--color-brand); }
-.deck-learn-btn2:hover { background: #d1fae5; color: var(--color-brand-dark); }
+.deck-learn-btn2:hover { background: var(--color-brand-muted); color: var(--color-brand-dark); }
 .deck-delete-btn { color: var(--color-text-faint); }
 .deck-delete-btn:hover, .deck-delete-btn.active { background: var(--color-danger-bg); color: var(--color-danger); }
 
