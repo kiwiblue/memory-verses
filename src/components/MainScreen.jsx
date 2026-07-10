@@ -141,32 +141,43 @@ export default function MainScreen({
 
       {/* ── Primary actions ──────────────────────────────────────────────── */}
       <div className="main-actions">
-        <button
-          className="ob-btn-primary main-btn-exercises"
-          onClick={onTodayExercises}
-          disabled={todayCount === 0}
-        >
-          {todayCount > 0
-            ? `Today's Exercises  (${todayCount} verse${todayCount !== 1 ? 's' : ''})`
-            : 'No exercises due today'}
-        </button>
-
-        {todayCount === 0 && activeVerses.length > 0 && (
-          <button
-            className="main-btn-practice-anyway"
-            onClick={onPracticeAnyway}
-          >
-            Practice exercises anyway
+        {isPreview ? (
+          /* Nothing in progress yet (fresh account, or every verse still
+             unseen) — promote the guided learn flow to the primary action
+             instead of showing a disabled "No exercises due today". */
+          <button className="ob-btn-primary main-btn-exercises" onClick={onLearnNext}>
+            Learn your first verse →
           </button>
-        )}
+        ) : (
+          <>
+            <button
+              className="ob-btn-primary main-btn-exercises"
+              onClick={onTodayExercises}
+              disabled={todayCount === 0}
+            >
+              {todayCount > 0
+                ? `Today's Exercises  (${todayCount} verse${todayCount !== 1 ? 's' : ''})`
+                : 'No exercises due today'}
+            </button>
 
-        <button
-          className="main-btn-learn"
-          onClick={onLearnNext}
-          disabled={!nextUnseen}
-        >
-          {nextUnseen ? 'Learn next verse' : 'All verses in progress'}
-        </button>
+            {todayCount === 0 && activeVerses.length > 0 && (
+              <button
+                className="main-btn-practice-anyway"
+                onClick={onPracticeAnyway}
+              >
+                Practice exercises anyway
+              </button>
+            )}
+
+            <button
+              className="main-btn-learn"
+              onClick={onLearnNext}
+              disabled={!nextUnseen}
+            >
+              {nextUnseen ? 'Learn next verse' : 'All verses in progress'}
+            </button>
+          </>
+        )}
       </div>
 
       {/* ── Bottom row: streak + FAB ─────────────────────────────────────── */}

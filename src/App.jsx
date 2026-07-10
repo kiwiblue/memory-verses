@@ -755,18 +755,14 @@ export default function App() {
     saveHiddenVerseIds(updatedUser.id, toHide);
     setHiddenIds(toHide);
 
-    // Auto-start the chosen verse so it's immediately ready to practice —
-    // no separate "add" step needed in My Deck. Mirrors the deck's own
-    // "+ / learn today" action (handleLearnNow) for a brand-new verse, which
-    // also makes it count toward today's exercises right away, so the home
-    // screen's primary button reads "Today's Exercises (1 verse)" instead of
-    // a discouraging disabled "No exercises due today" on a fresh account.
-    if (keepId != null) {
-      setProgress(prev => ({
-        ...prev,
-        [keepId]: { ...(prev[keepId] || {}), status: 'learning', next_review: Date.now() - 1 },
-      }));
-    }
+    // The chosen verse is deliberately left UNSEEN (not auto-started): as the
+    // only visible verse and first in verseOrder it becomes `nextUnseen`, so
+    // the home screen shows it as a "Next verse to learn" preview with a
+    // "Learn your first verse" primary button. That routes brand-new users
+    // through the guided LearnRevealScreen first; completing it starts the
+    // verse (startRevising) and only then do exercises come due. Previously
+    // it was auto-marked learning/due, which dropped users straight into
+    // "Today's Exercises" cold, skipping the learn step entirely.
 
     // Save auth if account was created during onboarding
     if (auth?.token) {
