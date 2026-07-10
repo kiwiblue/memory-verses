@@ -1,4 +1,4 @@
-import { hashPassword, requireAuth, json } from '../_helpers.js';
+import { hashPassword, hashToken, requireAuth, json } from '../_helpers.js';
 
 export async function onRequestPost({ request, env }) {
   const accountId = await requireAuth(request, env);
@@ -43,8 +43,11 @@ export async function onRequestPost({ request, env }) {
     const newHash = await hashPassword(newPassword, newSalt);
     await env.DB.prepare('UPDATE accounts SET password_hash = ?, salt = ? WHERE id = ?')
       .bind(newHash, newSalt, accountId).run();
-    await env.DB.prepare('DELETE FROM sessions WHERE account_id = ? AND token != ?')
-      .bind(accountId, token).run();
+    // Revoke every other session (a stolen token stops working after a password
+    // change) but keep the caller's own. Tokens are stored hashed; exclude both
+    // the hashed and a legacy plaintext form of the current token.
+    await env.DB.prepare('DELETE FROM sessions WHERE account_id = ? AND token != ? AND token != ?')
+      .bind(accountId, await hashToken(token), token).run();
     return json({ ok: true });
   }
 

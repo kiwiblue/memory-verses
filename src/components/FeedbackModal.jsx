@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { loadAuth } from '../data/auth.js';
 import Icon from './Icon.jsx';
+import { useModalA11y } from '../hooks/useModalA11y.js';
 
 const TYPES = [
   { value: 'bug',     label: 'Bug report' },
@@ -12,6 +13,7 @@ export default function FeedbackModal({ onClose }) {
   const [type, setType]       = useState('general');
   const [message, setMessage] = useState('');
   const [status, setStatus]   = useState('idle'); // idle | sending | done | error
+  const modalRef = useModalA11y(onClose);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -35,7 +37,7 @@ export default function FeedbackModal({ onClose }) {
 
   return (
     <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal-box feedback-modal">
+      <div className="modal-box feedback-modal" ref={modalRef} role="dialog" aria-modal="true" aria-label="Send feedback">
         <button className="modal-close-btn" onClick={onClose} aria-label="Close"><Icon name="close" size={16} /></button>
 
         {status === 'done' ? (

@@ -34,6 +34,24 @@ export async function subscribePush(token, reminderHour = DEFAULT_REMINDER_HOUR)
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') throw new Error('Permission denied');
 
+  // Drop any existing subscription first. If it was created under a previous
+  // VAPID key (e.g. after a key rotation) it's dead — the push service rejects
+  // sends to it with 403/400 and it never self-heals — and on iOS/Safari
+  // calling subscribe() with a different applicationServerKey while one exists
+  // throws InvalidStateError. Clearing it guarantees the new subscription is
+  // bound to the current key. Also tell the server to drop the stale row.
+  const existing = await reg.pushManager.getSubscription();
+  if (existing) {
+    try {
+      await fetch('/api/push/subscribe', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ endpoint: existing.endpoint }),
+      });
+    } catch {}
+    try { await existing.unsubscribe(); } catch {}
+  }
+
   const sub = await reg.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),

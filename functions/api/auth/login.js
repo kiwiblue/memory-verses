@@ -1,4 +1,4 @@
-import { hashPassword, json, checkRateLimit, clientIp } from '../_helpers.js';
+import { hashPassword, hashToken, json, checkRateLimit, clientIp } from '../_helpers.js';
 
 export async function onRequestPost({ request, env }) {
   let body;
@@ -21,12 +21,13 @@ export async function onRequestPost({ request, env }) {
   const hash = await hashPassword(password, account.salt);
   if (hash !== account.password_hash) return json({ error: 'Incorrect email or password.' }, 401);
 
-  // Create new session
+  // Create new session — store only the hash; the raw token is returned to the
+  // client and never persisted.
   const token = crypto.randomUUID();
   const expiresAt = Math.floor(Date.now() / 1000) + 90 * 24 * 60 * 60;
   await env.DB.prepare(
     'INSERT INTO sessions (token, account_id, expires_at) VALUES (?, ?, ?)'
-  ).bind(token, account.id, expiresAt).run();
+  ).bind(await hashToken(token), account.id, expiresAt).run();
 
   // Return all cloud profiles for this account
   const rows = await env.DB.prepare(

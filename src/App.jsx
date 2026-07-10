@@ -44,6 +44,7 @@ import StatsScreen from './components/StatsScreen.jsx';
 import AddVerseFlow from './components/AddVerseFlow.jsx';
 import AdminPanel from './components/AdminPanel.jsx';
 import FeedbackModal from './components/FeedbackModal.jsx';
+import OfflineBanner from './components/OfflineBanner.jsx';
 import InfoModal from './components/InfoModal.jsx';
 import InstallAppModal from './components/InstallAppModal.jsx';
 import { detectPlatform, isStandalone } from './data/platform.js';
@@ -931,6 +932,7 @@ export default function App() {
       onUserChange: handleUserChange,
       onOpenProfile: (u) => { setProfileUser(u); setProfileInitSubscreen(null); },
     }}>
+      <OfflineBanner version={version} />
       {showDeckPanel && (
         <VerseDeckPanel
           verses={allVerses}

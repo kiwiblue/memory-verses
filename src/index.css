@@ -180,6 +180,14 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+.offline-banner {
+  position: sticky; top: 0; z-index: 400;
+  background: var(--color-warning-bg); color: var(--color-warning-text);
+  font-size: 12.5px; line-height: 1.4; text-align: center;
+  padding: 7px 14px; border-bottom: 0.5px solid var(--color-border);
+}
+.offline-banner strong { font-weight: 700; }
+
 html {
   overflow-x: hidden;
   overscroll-behavior: none;

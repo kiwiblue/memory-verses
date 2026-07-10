@@ -1,4 +1,4 @@
-import { json, checkRateLimit, clientIp } from '../_helpers.js';
+import { json, hashToken, checkRateLimit, clientIp } from '../_helpers.js';
 
 export async function onRequestPost({ request, env }) {
   let body;
@@ -23,9 +23,11 @@ export async function onRequestPost({ request, env }) {
   const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, '0');
   const expiresAt = Math.floor(Date.now() / 1000) + 60 * 60; // 1 hour
 
+  // Store the code hashed (the plaintext is only emailed to the user), so a
+  // leaked password_resets table can't be used to complete a reset.
   await env.DB.prepare(
     'INSERT INTO password_resets (token, account_id, expires_at) VALUES (?, ?, ?)'
-  ).bind(code, account.id, expiresAt).run();
+  ).bind(await hashToken(code), account.id, expiresAt).run();
 
   // Send via Resend if configured
   if (env.RESEND_API_KEY) {

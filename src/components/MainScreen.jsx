@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import FlipCard from './FlipCard.jsx';
 import Icon from './Icon.jsx';
+import { todayStr as todayDateStr, yesterdayStr as yesterdayDateStr } from '../data/streak.js';
 
 // Sort active verses by next_review ascending (most overdue first)
 function sortedActiveVerses(verses, progress) {
@@ -15,9 +16,6 @@ function sortedActiveVerses(verses, progress) {
       return na - nb;
     });
 }
-
-function todayDateStr() { return new Date().toISOString().slice(0, 10); }
-function yesterdayDateStr() { return new Date(Date.now() - 86400000).toISOString().slice(0, 10); }
 
 export default function MainScreen({
   verses,

@@ -28,6 +28,7 @@ function DeckRow({ verse, i, progress, queueIds, upNextIdx, dragging,
   const [swipeDx, setSwipeDx] = useState(0);
   const swipe = useRef(null);
   const rowRef = useRef(null);
+  const suppressClickUntil = useRef(0);
   const status = progress[verse.id]?.status || 'unseen';
 
   // Swipe a row left to delete it straight away (mobile).
@@ -39,18 +40,29 @@ function DeckRow({ verse, i, progress, queueIds, upNextIdx, dragging,
     if (!swipe.current) return;
     const dx = e.touches[0].clientX - swipe.current.x;
     const dy = e.touches[0].clientY - swipe.current.y;
-    if (swipe.current.locked === null && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
-      swipe.current.locked = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+    if (swipe.current.locked === null && (Math.abs(dx) > 16 || Math.abs(dy) > 16)) {
+      swipe.current.locked = Math.abs(dx) > Math.abs(dy) * 1.5 ? 'h' : 'v';
     }
     if (swipe.current.locked === 'h' && dx < 0) setSwipeDx(Math.max(dx, -140));
   }
   function onRowTouchEnd() {
-    if (swipe.current?.locked === 'h' && swipeDx <= -90) {
+    const wasHorizontal = swipe.current?.locked === 'h';
+    if (wasHorizontal && Math.abs(swipeDx) > 8) {
+      suppressClickUntil.current = Date.now() + 500;
+    }
+    if (wasHorizontal && swipeDx <= -100) {
       onRemoveVerse(verse); // row unmounts
     } else {
       setSwipeDx(0);
     }
     swipe.current = null;
+  }
+  function onRowMainClickCapture(e) {
+    if (Date.now() < suppressClickUntil.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      suppressClickUntil.current = 0;
+    }
   }
   const isActive = status === 'learning' || status === 'mastered';
   const inQueue  = queueIds.has(String(verse.id));
@@ -84,6 +96,7 @@ function DeckRow({ verse, i, progress, queueIds, upNextIdx, dragging,
       <div
         className="dp-row-main"
         style={{ transform: `translateX(${swipeDx}px)`, transition: swipeDx === 0 ? 'transform .2s' : 'none' }}
+        onClickCapture={onRowMainClickCapture}
       >
         <span
           className="dp-drag"

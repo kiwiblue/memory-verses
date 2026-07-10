@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { loadStreak } from '../data/streak.js';
+import { loadStreak, logicalDateStr } from '../data/streak.js';
 import OverlayHeader from './OverlayHeader.jsx';
 import Icon from './Icon.jsx';
 
@@ -45,13 +45,9 @@ function bookOf(reference) {
 
 function practiceRate(history) {
   if (!history?.length) return 0;
-  const now = new Date();
   let count = 0;
   for (let i = 0; i < 10; i++) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    const ds = d.toISOString().slice(0, 10);
-    if (history.includes(ds)) count++;
+    if (history.includes(logicalDateStr(Date.now() - i * DAY_MS))) count++;
   }
   return count;
 }
@@ -64,10 +60,10 @@ function StreakCalendar({ history, freezeHistory }) {
   const [viewYear,  setViewYear]  = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth()); // 0-indexed
 
-  const todayStr = now.toISOString().slice(0, 10);
+  const todayStr = logicalDateStr();
   const curYear  = now.getFullYear();
   const curMonth = now.getMonth();
-  const minDate  = new Date(Date.now() - 365 * DAY_MS).toISOString().slice(0, 10);
+  const minDate  = logicalDateStr(Date.now() - 365 * DAY_MS);
 
   const historySet = new Set(history || []);
   const freezeSet  = new Set(freezeHistory || []);
@@ -159,8 +155,8 @@ function MiniRing({ pct, color, size = 26 }) {
 export default function StatsScreen({ verses, progress, currentUser, users, streak, ranking, rankingCount, onClose, onHome }) {
   const streakData = loadStreak(currentUser.id);
   const rate = practiceRate(streakData.history);
-  const today = new Date().toISOString().slice(0, 10);
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const today = logicalDateStr();
+  const yesterday = logicalDateStr(Date.now() - 86400000);
   const practicedToday = streakData.history?.includes(today);
   const isNewUser = !streakData.history?.length;
   const streakAtRisk = !practicedToday && streakData.lastDate === yesterday && streak > 0;

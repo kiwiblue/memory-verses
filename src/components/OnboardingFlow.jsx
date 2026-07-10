@@ -452,9 +452,9 @@ function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, s
                 <span className="ob-account-title">Create a free account</span>
                 <button className="ob-link ob-account-skip" onClick={() => setShowAccount(false)}>Maybe later</button>
               </div>
-              <input className="ob-input" type="email" placeholder="Email address"
+              <input className="ob-input" type="email" placeholder="Email address" autoComplete="email"
                 value={email} onChange={e => setEmail(e.target.value)} autoCapitalize="none" />
-              <input className="ob-input" type="password" placeholder="Password"
+              <input className="ob-input" type="password" placeholder="Password" autoComplete="new-password"
                 value={password} onChange={e => setPassword(e.target.value)} />
               {accountError && <div className="ob-account-error">{accountError}</div>}
             </div>

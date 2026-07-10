@@ -4,6 +4,8 @@
 // philosophy spectrum (NASB → ESV → NKJV → NIV → CSB → NLT → MSG), with
 // KJV/BSB placed per Bible Gateway's versions-guide classification.
 
+import { useModalA11y } from '../hooks/useModalA11y.js';
+
 // The app's six translations, staggered across two chip rows so the labels
 // never collide at phone widths.
 const SPECTRUM_ROW_A = [
@@ -53,12 +55,13 @@ const COMPARISONS = [
 ];
 
 export default function TranslationGuide({ onClose }) {
+  const modalRef = useModalA11y(onClose);
   return (
-    <div className="tg-screen">
+    <div className="tg-screen" ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="tg-title">
       <div className="tg-content">
         <div className="tg-header">
           <button className="tg-back" onClick={onClose} aria-label="Back">‹</button>
-          <span className="tg-title">Choosing a translation</span>
+          <span className="tg-title" id="tg-title">Choosing a translation</span>
         </div>
 
         <p className="tg-intro">

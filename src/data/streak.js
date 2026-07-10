@@ -2,9 +2,24 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const HISTORY_DAYS = 365; // keep 1 year for calendar
 const FREEZE_EVERY = 6;   // earn 1 freeze every N consecutive days
 
-function todayStr() {
-  return new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+// A "day" runs 4am → 4am in the user's LOCAL timezone, not UTC. Two reasons:
+// (1) plain toISOString() is UTC, so evening practice in e.g. Australia landed
+//     on the wrong calendar day and could double-count or shift the streak;
+// (2) the 4am cutoff means a late-night session (say 1–2am) still counts
+//     toward the day that just ended, so staying up late to do it doesn't
+//     break the streak.
+const DAY_CUTOFF_HOURS = 4;
+
+// Logical local calendar date (YYYY-MM-DD) for a given instant. en-CA gives
+// ISO-style YYYY-MM-DD in the runtime's local timezone.
+export function logicalDateStr(ms = Date.now()) {
+  return new Date(ms - DAY_CUTOFF_HOURS * 60 * 60 * 1000).toLocaleDateString('en-CA');
 }
+
+// Exposed so UI ("practiced today?", streak-at-risk, calendar) uses the exact
+// same day boundary as the streak engine.
+export function todayStr() { return logicalDateStr(); }
+export function yesterdayStr() { return logicalDateStr(Date.now() - DAY_MS); }
 
 function key(userId) {
   return `mv-streak-${userId}`;
@@ -61,8 +76,8 @@ export function touchStreak(userId) {
 
   if (current.lastDate === today) return current; // already touched today
 
-  const yesterday = new Date(Date.now() - DAY_MS).toISOString().slice(0, 10);
-  const dayBefore  = new Date(Date.now() - 2 * DAY_MS).toISOString().slice(0, 10);
+  const yesterday = logicalDateStr(Date.now() - DAY_MS);
+  const dayBefore  = logicalDateStr(Date.now() - 2 * DAY_MS);
 
   // Consecutive if practiced yesterday, or exactly 1 day missed + freeze available
   let isConsecutive = current.lastDate === yesterday;
@@ -72,7 +87,7 @@ export function touchStreak(userId) {
     usedFreeze = true;
   }
 
-  const cutoff = new Date(Date.now() - HISTORY_DAYS * DAY_MS).toISOString().slice(0, 10);
+  const cutoff = logicalDateStr(Date.now() - HISTORY_DAYS * DAY_MS);
 
   const history = [...(current.history || []).filter(d => d >= cutoff)];
   if (!history.includes(today)) history.push(today);

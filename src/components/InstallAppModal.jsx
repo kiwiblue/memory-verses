@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Icon from './Icon.jsx';
 import { detectPlatform } from '../data/platform.js';
+import { useModalA11y } from '../hooks/useModalA11y.js';
 
 // "Add to Home Screen" — instructions are OS/browser-specific since the
 // actual steps (and whether a real one-tap install exists at all) differ:
@@ -11,6 +12,7 @@ export default function InstallAppModal({ onClose, deferredPrompt, onInstalled }
   const { os, browser } = detectPlatform();
   const [installing, setInstalling] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const modalRef = useModalA11y(onClose);
 
   async function handleInstallClick() {
     if (!deferredPrompt) { onClose(); return; }
@@ -54,9 +56,9 @@ export default function InstallAppModal({ onClose, deferredPrompt, onInstalled }
 
   return (
     <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal-box info-modal">
+      <div className="modal-box info-modal" ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="install-app-modal-title">
         <button className="modal-close-btn" onClick={onClose} aria-label="Close"><Icon name="close" size={16} /></button>
-        <h2 className="info-modal-title">Add to Home Screen</h2>
+        <h2 className="info-modal-title" id="install-app-modal-title">Add to Home Screen</h2>
         <div className="info-modal-body">
           {canOneTapInstall ? (
             <p>Install Memory.bible for quick access, right from your home screen — no App Store needed.</p>

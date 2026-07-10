@@ -178,9 +178,9 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
     if (view === 'update-email') return (
       <div className="auth-panel">
         <div className="auth-form-title">Change email</div>
-        <input className="auth-input" type="password" placeholder="Current password"
+        <input className="auth-input" type="password" placeholder="Current password" autoComplete="current-password"
           value={password} onChange={e => setPassword(e.target.value)} disabled={busy} />
-        <input className="auth-input" type="email" placeholder="New email address"
+        <input className="auth-input" type="email" placeholder="New email address" autoComplete="email"
           value={newVal} onChange={e => setNewVal(e.target.value)} disabled={busy} />
         {error && <div className="auth-error">{error}</div>}
         {success && <div className="auth-success">{success}</div>}
@@ -196,11 +196,11 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
     if (view === 'update-password') return (
       <div className="auth-panel">
         <div className="auth-form-title">Change password</div>
-        <input className="auth-input" type="password" placeholder="Current password"
+        <input className="auth-input" type="password" placeholder="Current password" autoComplete="current-password"
           value={password} onChange={e => setPassword(e.target.value)} disabled={busy} />
-        <input className="auth-input" type="password" placeholder="New password (8+ characters)"
+        <input className="auth-input" type="password" placeholder="New password (8+ characters)" autoComplete="new-password"
           value={newVal} onChange={e => setNewVal(e.target.value)} disabled={busy} />
-        <input className="auth-input" type="password" placeholder="Confirm new password"
+        <input className="auth-input" type="password" placeholder="Confirm new password" autoComplete="new-password"
           value={newVal2} onChange={e => setNewVal2(e.target.value)} disabled={busy} />
         {error && <div className="auth-error">{error}</div>}
         {success && <div className="auth-success">{success}</div>}
@@ -242,11 +242,11 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
   if (view === 'register') return (
     <div className="auth-panel">
       <div className="auth-form-title">Create an account</div>
-      <input className="auth-input" type="email" placeholder="Email address"
+      <input className="auth-input" type="email" placeholder="Email address" autoComplete="email"
         value={email} onChange={e => setEmail(e.target.value)} disabled={busy} />
-      <input className="auth-input" type="password" placeholder="Password (8+ characters)"
+      <input className="auth-input" type="password" placeholder="Password (8+ characters)" autoComplete="new-password"
         value={password} onChange={e => setPassword(e.target.value)} disabled={busy} />
-      <input className="auth-input" type="password" placeholder="Confirm password"
+      <input className="auth-input" type="password" placeholder="Confirm password" autoComplete="new-password"
         value={confirm} onChange={e => setConfirm(e.target.value)} disabled={busy} />
       {error && <div className="auth-error">{error}</div>}
       <div className="auth-form-note">All profiles on this device will be linked to this account.</div>
@@ -266,9 +266,9 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
   if (view === 'login') return (
     <div className="auth-panel">
       <div className="auth-form-title">Sign in</div>
-      <input className="auth-input" type="email" placeholder="Email address"
+      <input className="auth-input" type="email" placeholder="Email address" autoComplete="email"
         value={email} onChange={e => setEmail(e.target.value)} disabled={busy} />
-      <input className="auth-input" type="password" placeholder="Password"
+      <input className="auth-input" type="password" placeholder="Password" autoComplete="current-password"
         value={password} onChange={e => setPassword(e.target.value)} disabled={busy} />
       {error && <div className="auth-error">{error}</div>}
       <div className="auth-btns">
@@ -290,7 +290,7 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
     <div className="auth-panel">
       <div className="auth-form-title">Reset password</div>
       <div className="auth-form-note">Enter your email and we'll send a 6-digit reset code.</div>
-      <input className="auth-input" type="email" placeholder="Email address"
+      <input className="auth-input" type="email" placeholder="Email address" autoComplete="email"
         value={email} onChange={e => setEmail(e.target.value)} disabled={busy} />
       {error && <div className="auth-error">{error}</div>}
       {success && <div className="auth-success">{success}</div>}
@@ -307,14 +307,15 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
     <div className="auth-panel">
       <div className="auth-form-title">Enter reset code</div>
       {success && <div className="auth-success">{success}</div>}
-      <input className="auth-input" type="email" placeholder="Email address"
+      <input className="auth-input" type="email" placeholder="Email address" autoComplete="email"
         value={email} onChange={e => setEmail(e.target.value)} disabled={busy} />
       <input className="auth-input" type="text" placeholder="6-digit code from email"
         value={code} onChange={e => setCode(e.target.value)} maxLength={6} disabled={busy}
+        inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*"
         style={{ letterSpacing: '0.2em', fontFamily: 'monospace' }} />
-      <input className="auth-input" type="password" placeholder="New password (8+ characters)"
+      <input className="auth-input" type="password" placeholder="New password (8+ characters)" autoComplete="new-password"
         value={newVal} onChange={e => setNewVal(e.target.value)} disabled={busy} />
-      <input className="auth-input" type="password" placeholder="Confirm new password"
+      <input className="auth-input" type="password" placeholder="Confirm new password" autoComplete="new-password"
         value={newVal2} onChange={e => setNewVal2(e.target.value)} disabled={busy} />
       {error && <div className="auth-error">{error}</div>}
       <div className="auth-btns">

@@ -1,4 +1,4 @@
-import { hashPassword, json, checkRateLimit, clientIp } from '../_helpers.js';
+import { hashPassword, hashToken, json, checkRateLimit, clientIp } from '../_helpers.js';
 
 export async function onRequestPost({ request, env }) {
   let body;
@@ -58,7 +58,7 @@ export async function onRequestPost({ request, env }) {
   const expiresAt = Math.floor(Date.now() / 1000) + 90 * 24 * 60 * 60;
   await env.DB.prepare(
     'INSERT INTO sessions (token, account_id, expires_at) VALUES (?, ?, ?)'
-  ).bind(token, accountId, expiresAt).run();
+  ).bind(await hashToken(token), accountId, expiresAt).run();
 
   return json({ token, accountId, email });
 }

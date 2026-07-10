@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { saveUsers, saveCurrentUserId } from '../data/users.js';
 import AuthPanel from './AuthPanel.jsx';
 import { PATTERNS, avatarStyle, DEFAULT_PATTERN_OPACITY, PATTERN_OPACITY_MIN, PATTERN_OPACITY_MAX } from '../data/avatarStyle.js';
@@ -9,6 +9,7 @@ import {
 } from '../data/pushNotifications.js';
 import OverlayHeader from './OverlayHeader.jsx';
 import { APP_VERSION } from '../data/version.js';
+import { useModalA11y } from '../hooks/useModalA11y.js';
 
 function formatHour(h) {
   const period = h < 12 ? 'AM' : 'PM';
@@ -248,6 +249,14 @@ export default function ProfileModal({
   const [subscreen, setSubscreen] = useState(initialSubscreen); // null | 'edit' | 'add'
   const [deleteStep, setDeleteStep] = useState(0);
 
+  // Escape should mirror the header's back button: step out of a subscreen
+  // first, and only close the whole overlay once at the top level.
+  const handleEscapeClose = useCallback(
+    () => { if (subscreen) setSubscreen(null); else onClose(); },
+    [subscreen, onClose]
+  );
+  const modalRef = useModalA11y(handleEscapeClose);
+
   const canDelete = users.length > 1;
   const bracketLabel = BRACKETS.find(b => b.value === (user.bracket || 'adult'))?.label ?? 'Adult';
   const translationLabel = TRANSLATIONS.find(t => t.value === (user.translation || 'kjv'))?.label ?? 'KJV';
@@ -361,7 +370,7 @@ export default function ProfileModal({
   }
 
   return (
-    <div className="pm-overlay">
+    <div className="pm-overlay" ref={modalRef} role="dialog" aria-modal="true" aria-label={subscreen === 'edit' ? 'Edit Profile' : subscreen === 'add' ? 'Add Family Member' : 'Profile'}>
       <div className="pm-panel">
         <OverlayHeader onBack={subscreen ? () => setSubscreen(null) : onClose} user={user} onHome={onHome} />
       </div>

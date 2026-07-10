@@ -1,6 +1,7 @@
 import { APP_VERSION } from '../data/version.js';
 import { COMMIT_COUNT } from '../data/commitCount.js';
 import Icon from './Icon.jsx';
+import { useModalA11y } from '../hooks/useModalA11y.js';
 
 // Simple informational modal for the drawer's "About" and "Support" items.
 // NOTE: copy below is placeholder starter content — replace with the ministry's
@@ -58,13 +59,14 @@ const CONTENT = {
 
 export default function InfoModal({ kind, onClose }) {
   const content = CONTENT[kind];
+  const modalRef = useModalA11y(content ? onClose : undefined);
   if (!content) return null;
 
   return (
     <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal-box info-modal">
+      <div className="modal-box info-modal" ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="info-modal-title">
         <button className="modal-close-btn" onClick={onClose} aria-label="Close"><Icon name="close" size={16} /></button>
-        <h2 className="info-modal-title">{content.title}</h2>
+        <h2 className="info-modal-title" id="info-modal-title">{content.title}</h2>
         <div className="info-modal-body">{content.body}</div>
         <button className="ob-btn-primary" onClick={onClose}>Close</button>
       </div>

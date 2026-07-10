@@ -1,4 +1,4 @@
-import { hashPassword, json, checkRateLimit, clientIp } from '../_helpers.js';
+import { hashPassword, hashToken, json, checkRateLimit, clientIp } from '../_helpers.js';
 
 export async function onRequestPost({ request, env }) {
   let body;
@@ -29,7 +29,10 @@ export async function onRequestPost({ request, env }) {
     return json({ error: 'Too many attempts. Please request a new code.' }, 429);
   }
 
-  if (code.trim() !== reset.token) {
+  // Codes are stored hashed; accept a legacy plaintext row too (in-flight code
+  // issued just before the hashing rollout).
+  const submitted = code.trim();
+  if (reset.token !== (await hashToken(submitted)) && reset.token !== submitted) {
     await env.DB.prepare('UPDATE password_resets SET attempts = attempts + 1 WHERE token = ?').bind(reset.token).run();
     return json({ error: 'Invalid or expired code.' }, 400);
   }
