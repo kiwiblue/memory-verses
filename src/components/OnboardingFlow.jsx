@@ -7,6 +7,7 @@ import { fetchTranslation, fetchKJV } from '../api/bible.js';
 import { APP_VERSION } from '../data/version.js';
 import AuthPanel from './AuthPanel.jsx';
 import Icon from './Icon.jsx';
+import TranslationGuide from './TranslationGuide.jsx';
 import { logEvent } from '../data/telemetry.js';
 
 function ObFooter() {
@@ -129,19 +130,7 @@ function TranslationScreen({ translation, onChange, onNext }) {
         <button className="ob-btn-primary" onClick={onNext} disabled={!translation}>Next →</button>
         <ObFooter />
 
-        {showHelp && (
-          <div className="ob-overlay ob-overlay-center" onClick={() => setShowHelp(false)}>
-            <div className="ob-popup ob-popup-center" onClick={e => e.stopPropagation()}>
-              <div className="ob-popup-hdr">
-                <span className="ob-popup-title">About Bible Translations</span>
-                <button className="ob-popup-close" onClick={() => setShowHelp(false)}>✕</button>
-              </div>
-              <div className="ob-popup-body">
-                <p>More translation guidance coming soon.</p>
-              </div>
-            </div>
-          </div>
-        )}
+        {showHelp && <TranslationGuide onClose={() => setShowHelp(false)} />}
       </div>
     </div>
   );
