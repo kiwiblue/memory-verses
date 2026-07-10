@@ -6,6 +6,7 @@ import { parseRef, toDisplayRef } from '../api/bibleRef.js';
 import { fetchTranslation, fetchKJV } from '../api/bible.js';
 import { APP_VERSION } from '../data/version.js';
 import AuthPanel from './AuthPanel.jsx';
+import Icon from './Icon.jsx';
 import { logEvent } from '../data/telemetry.js';
 
 function ObFooter() {
@@ -52,21 +53,37 @@ function StepDots({ step }) {
 
 // ── Screen 0: Welcome ───────────────────────────────────────────────────────
 
+const WELCOME_FEATURES = [
+  { icon: 'book',      tint: 'teal',   text: 'Curated verse collections' },
+  { icon: 'add',       tint: 'indigo', text: 'Add your own verses' },
+  { icon: 'streak',    tint: 'gold',   text: 'Daily reminders & streaks' },
+  { icon: 'celebrate', tint: 'rose',   text: "Fun ways to learn God's Word" },
+];
+
 function WelcomeScreen({ onStart, onSkip, onLogin }) {
   return (
-    <div className="ob-screen">
+    <div className="ob-screen ob-screen-welcome">
       <div className="ob-content">
-        <Logo />
-        <p className="ob-tagline">Treasure His Word in your heart.</p>
+        <div className="ob-hero">
+          <img className="ob-appicon" src="/icons/icon-192.png" alt="" width="96" height="96" />
+          <Logo />
+        </div>
 
-        <ul className="ob-bullets">
-          <li>Choose from curated verse sets</li>
-          <li>Add your own selected verses</li>
-          <li>Schedule a daily reminder</li>
-          <li>Have fun while learning God's Word</li>
-        </ul>
+        <h1 className="ob-headline">
+          Treasure <em>His Word</em> in your heart.
+        </h1>
+        <p className="ob-subline">Memorise Scripture a few minutes a day — for the whole family, at every age.</p>
 
-        <button className="ob-btn-primary" onClick={onStart}>Get Started →</button>
+        <div className="ob-features">
+          {WELCOME_FEATURES.map(f => (
+            <div key={f.icon} className="ob-feature">
+              <span className={`ob-feature-ico ob-tint-${f.tint}`}><Icon name={f.icon} size={18} /></span>
+              <span className="ob-feature-text">{f.text}</span>
+            </div>
+          ))}
+        </div>
+
+        <button className="ob-btn-primary ob-btn-hero" onClick={onStart}>Get Started →</button>
 
         <div className="ob-links">
           <button className="ob-link" onClick={onSkip}>Skip setup</button>
