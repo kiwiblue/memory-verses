@@ -10,8 +10,11 @@ async function fetchFromProxy(reference, translation) {
     if (!res.ok) return null;
     const data = await res.json();
     return data.text?.trim() || null;
-  } catch {
-    return null;
+  } catch (err) {
+    // A genuine network/fetch exception (offline, DNS, aborted, etc) — rethrow
+    // so callers can distinguish "request failed" from "translation unavailable"
+    // (a real HTTP response with no text, handled above by returning null).
+    throw err;
   }
 }
 

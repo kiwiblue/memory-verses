@@ -8,13 +8,13 @@ import { pushSync, pullSync, deleteCloudProfile } from './data/syncService.js';
 import { loadProgress, saveProgress, getEntry } from './data/progress.js';
 import { recordAttempt, startRevising, recordReviseAttempt, buildDailyQueue, progressStats, computeHintScore, computeNextSkillLevel, getSkillLevel, verseAgeDays } from './data/spacedRepetition.js';
 import { loadCustomVerses, addCustomVerse, removeCustomVerse, saveCustomVerses } from './data/customVerses.js';
-import { loadHiddenVerseIds, hideVerseId, restoreVerseId, restoreAllVerseIds, saveHiddenVerseIds } from './data/hiddenVerses.js';
+import { loadHiddenVerseIds, hideVerseId, restoreVerseId, restoreAllVerseIds, saveHiddenVerseIds, loadHiddenMeta, saveHiddenMeta } from './data/hiddenVerses.js';
 import { loadVerseCache, saveVerseCache, mergeVerseIntoCache } from './data/verseCache.js';
 import { fetchTranslation } from './api/bible.js';
 import { appendReviseLog } from './data/reviseLog.js';
 import { loadVerseOrder, saveVerseOrder } from './data/verseOrder.js';
 import { markSyncPending, isSyncPending, clearSyncPending } from './data/syncMeta.js';
-import { mergeProgress, mergeCustomVerses, mergeHiddenIds, mergeTranslations } from './data/syncMerge.js';
+import { mergeProgress, mergeCustomVerses, mergeHiddenMeta, mergeTranslations } from './data/syncMerge.js';
 
 import FlipCard from './components/FlipCard.jsx';
 import Drawer from './components/Drawer.jsx';
@@ -368,9 +368,9 @@ export default function App() {
             saveCustomVerses(p.id, mergeCustomVerses(localCustom, cloudCustom));
           } catch {}
           try {
-            const localHidden = loadHiddenVerseIds(p.id);
-            const cloudHidden = new Set(JSON.parse(p.hidden_json || '[]'));
-            saveHiddenVerseIds(p.id, mergeHiddenIds(localHidden, cloudHidden));
+            const localHidden = loadHiddenMeta(p.id);
+            const cloudHidden = JSON.parse(p.hidden_json || '{}');
+            saveHiddenMeta(p.id, mergeHiddenMeta(localHidden, cloudHidden));
           } catch {}
           try {
             const localTrans = loadVerseTranslations(p.id);
@@ -378,7 +378,15 @@ export default function App() {
             saveVerseTranslations(p.id, mergeTranslations(localTrans, cloudTrans, true));
           } catch {}
         });
-        pushSync(auth.token, users).then(() => clearSyncPending()).catch(() => {});
+        // Reload the current profile's in-memory React state from the freshly
+        // merged localStorage — otherwise the next setProgress/etc. would build
+        // on the pre-merge snapshot and overwrite the merged data on save.
+        const pendingUser = users.find(u => u.id === currentUser.id) || currentUser;
+        handleUserChange(pendingUser);
+        // Local has unsynced edits (incl. possibly profile edits), so local is
+        // authoritative here — push the current local profiles, read fresh (not
+        // the stale mount-time closure).
+        pushSync(auth.token, loadUsers()).then(() => clearSyncPending()).catch(() => {});
         return;
       }
 
@@ -401,9 +409,9 @@ export default function App() {
           saveCustomVerses(p.id, mergeCustomVerses(localCustom, cloudCustom));
         } catch {}
         try {
-          const localHidden = loadHiddenVerseIds(p.id);
-          const cloudHidden = new Set(JSON.parse(p.hidden_json || '[]'));
-          saveHiddenVerseIds(p.id, mergeHiddenIds(localHidden, cloudHidden));
+          const localHidden = loadHiddenMeta(p.id);
+          const cloudHidden = JSON.parse(p.hidden_json || '{}');
+          saveHiddenMeta(p.id, mergeHiddenMeta(localHidden, cloudHidden));
         } catch {}
         try { saveVerseOrder(p.id, JSON.parse(p.order_json || '[]')); } catch {}
         try {
@@ -416,7 +424,11 @@ export default function App() {
       setUsers(cloudUsers);
       const restoredUser = cloudUsers.find(u => u.id === currentUser.id) || cloudUsers[0];
       handleUserChange(restoredUser);
-      pushSync(auth.token, users).then(() => clearSyncPending()).catch(() => {});
+      // Push the reconciled state back so both devices converge. Use cloudUsers
+      // (the profiles we just adopted), NOT the stale mount-time `users` closure
+      // — pushing that would overwrite a profile edit made on another device
+      // with this device's pre-pull copy.
+      pushSync(auth.token, cloudUsers).then(() => clearSyncPending()).catch(() => {});
     }).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -634,7 +646,8 @@ export default function App() {
   const handleAddVerse = useCallback((v) => {
     setCustomVerses(addCustomVerse(currentUser.id, v));
     logEvent('verse_added', { source: 'search' });
-  }, [currentUser.id]);
+    scheduleSync(auth, users);
+  }, [currentUser.id, auth, users, scheduleSync]);
 
   const handleRemoveVerse = useCallback(() => {
     if (!verse) return;
@@ -644,7 +657,8 @@ export default function App() {
       setHiddenIds(new Set(hideVerseId(currentUser.id, verse.id)));
     }
     setIsFlipped(false);
-  }, [verse, currentUser.id]);
+    scheduleSync(auth, users);
+  }, [verse, currentUser.id, auth, users, scheduleSync]);
 
   const handleVerseTranslationChange = useCallback((verseId, translation) => {
     setVerseTranslations(prev => {
@@ -654,7 +668,8 @@ export default function App() {
       saveVerseTranslations(currentUser.id, updated);
       return updated;
     });
-  }, [currentUser.id, version]);
+    scheduleSync(auth, users);
+  }, [currentUser.id, version, auth, users, scheduleSync]);
 
   const handleUsersChange = useCallback((updated) => {
     setUsers(updated);
@@ -673,7 +688,8 @@ export default function App() {
     } else {
       setHiddenIds(new Set(hideVerseId(currentUser.id, verse.id)));
     }
-  }, [currentUser.id]);
+    scheduleSync(auth, users);
+  }, [currentUser.id, auth, users, scheduleSync]);
 
   const handleResetVerse = useCallback((v) => {
     setProgress(prev => {
@@ -685,7 +701,8 @@ export default function App() {
 
   const handleRestoreVerse = useCallback((verseId) => {
     setHiddenIds(new Set(restoreVerseId(currentUser.id, verseId)));
-  }, [currentUser.id]);
+    scheduleSync(auth, users);
+  }, [currentUser.id, auth, users, scheduleSync]);
 
   // Add Verse Flow callbacks — distinguishes curated (numeric id) from external search results
   const handleAddDeckFromFlow = useCallback((verse) => {
@@ -698,7 +715,8 @@ export default function App() {
       setHiddenIds(new Set(restoreVerseId(currentUser.id, verse.id)));
     }
     // Already-visible curated verse → no-op (UI shows "In deck")
-  }, [currentUser.id, hiddenIds]);
+    scheduleSync(auth, users);
+  }, [currentUser.id, hiddenIds, auth, users, scheduleSync]);
 
   const handleLearnFromFlow = useCallback((verse) => {
     let targetVerse = verse;
@@ -713,11 +731,13 @@ export default function App() {
     }
     setShowAddVerse(false);
     setVerseScreenVerse(targetVerse);
-  }, [currentUser.id, hiddenIds]);
+    scheduleSync(auth, users);
+  }, [currentUser.id, hiddenIds, auth, users, scheduleSync]);
 
   const handleRestoreAll = useCallback(() => {
     setHiddenIds(new Set(restoreAllVerseIds(currentUser.id)));
-  }, [currentUser.id]);
+    scheduleSync(auth, users);
+  }, [currentUser.id, auth, users, scheduleSync]);
 
   const handleOnboardingComplete = useCallback((updatedUser, selectedVerseId, auth, customVerse) => {
     // Save updated user profile

@@ -37,13 +37,33 @@ export function mergeCustomVerses(local = [], cloud = []) {
   return [...byId.values()];
 }
 
-// Hidden verse ids: union of both sets. Without timestamps we can't tell
-// whether a mismatch means "just hidden on device A" or "just restored on
-// device B" — unioning is the conservative choice already used for streak
-// history, since it can misclassify a verse as still-hidden but can never
-// silently lose a verse's data.
-export function mergeHiddenIds(local = new Set(), cloud = new Set()) {
-  return new Set([...(local || []), ...(cloud || [])]);
+// Hidden-verse state as a timestamped map { [id]: { hidden, ts } } (see
+// hiddenVerses.js). For each verse the most recent change wins, so a restore
+// on one device (newer ts) correctly overrides an older "hidden" from another
+// — which a plain union of hidden-id sets could never do (it could only ever
+// re-add, silently undoing restores). Legacy array snapshots (a bare list of
+// hidden ids) normalise to hidden@ts:0 so any real timestamped change beats
+// them.
+function normalizeHiddenMeta(m) {
+  if (Array.isArray(m)) {
+    const o = {};
+    for (const id of m) o[id] = { hidden: true, ts: 0 };
+    return o;
+  }
+  return m && typeof m === 'object' ? m : {};
+}
+
+export function mergeHiddenMeta(local = {}, cloud = {}) {
+  const l = normalizeHiddenMeta(local);
+  const c = normalizeHiddenMeta(cloud);
+  const merged = {};
+  for (const id of new Set([...Object.keys(l), ...Object.keys(c)])) {
+    const a = l[id], b = c[id];
+    if (a && !b) merged[id] = a;
+    else if (b && !a) merged[id] = b;
+    else merged[id] = (b.ts > a.ts) ? b : a;
+  }
+  return merged;
 }
 
 // Per-verse translation overrides: shallow-merge the two preference maps.

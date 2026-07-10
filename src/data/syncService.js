@@ -1,7 +1,7 @@
 import { loadProgress } from './progress.js';
 import { loadVerseTranslations } from './users.js';
 import { loadCustomVerses } from './customVerses.js';
-import { loadHiddenVerseIds } from './hiddenVerses.js';
+import { loadHiddenMeta } from './hiddenVerses.js';
 import { loadStreak } from './streak.js';
 import { loadVerseOrder } from './verseOrder.js';
 
@@ -16,7 +16,7 @@ export async function pushSync(token, users) {
     progress_json: JSON.stringify(loadProgress(u.id)),
     trans_json:   JSON.stringify(loadVerseTranslations(u.id)),
     custom_json:  JSON.stringify(loadCustomVerses(u.id)),
-    hidden_json:  JSON.stringify([...loadHiddenVerseIds(u.id)]),
+    hidden_json:  JSON.stringify(loadHiddenMeta(u.id)),
     streak_json:  JSON.stringify(loadStreak(u.id)),
     order_json:   JSON.stringify(loadVerseOrder(u.id)),
   }));
@@ -52,7 +52,7 @@ export async function registerAccount(email, password, users) {
     progress_json: JSON.stringify(loadProgress(u.id)),
     trans_json:   JSON.stringify(loadVerseTranslations(u.id)),
     custom_json:  JSON.stringify(loadCustomVerses(u.id)),
-    hidden_json:  JSON.stringify([...loadHiddenVerseIds(u.id)]),
+    hidden_json:  JSON.stringify(loadHiddenMeta(u.id)),
     streak_json:  JSON.stringify(loadStreak(u.id)),
     order_json:   JSON.stringify(loadVerseOrder(u.id)),
   }));

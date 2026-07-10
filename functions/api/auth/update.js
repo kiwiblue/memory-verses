@@ -4,6 +4,9 @@ export async function onRequestPost({ request, env }) {
   const accountId = await requireAuth(request, env);
   if (!accountId) return json({ error: 'Unauthorised' }, 401);
 
+  const auth = request.headers.get('Authorization') || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : null;
+
   let body;
   try { body = await request.json(); } catch { return json({ error: 'Invalid JSON' }, 400); }
 
@@ -40,6 +43,8 @@ export async function onRequestPost({ request, env }) {
     const newHash = await hashPassword(newPassword, newSalt);
     await env.DB.prepare('UPDATE accounts SET password_hash = ?, salt = ? WHERE id = ?')
       .bind(newHash, newSalt, accountId).run();
+    await env.DB.prepare('DELETE FROM sessions WHERE account_id = ? AND token != ?')
+      .bind(accountId, token).run();
     return json({ ok: true });
   }
 

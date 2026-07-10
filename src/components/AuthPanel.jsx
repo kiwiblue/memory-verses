@@ -5,11 +5,11 @@ import { saveUsers, saveCurrentUserId } from '../data/users.js';
 import { saveProgress, loadProgress } from '../data/progress.js';
 import { saveVerseTranslations, loadVerseTranslations } from '../data/users.js';
 import { saveCustomVerses, loadCustomVerses } from '../data/customVerses.js';
-import { saveHiddenVerseIds, loadHiddenVerseIds } from '../data/hiddenVerses.js';
+import { loadHiddenMeta, saveHiddenMeta } from '../data/hiddenVerses.js';
 import { loadStreak, saveStreak, mergeStreaks } from '../data/streak.js';
 import { saveVerseOrder } from '../data/verseOrder.js';
 import { clearSyncPending } from '../data/syncMeta.js';
-import { mergeProgress, mergeCustomVerses, mergeHiddenIds, mergeTranslations } from '../data/syncMerge.js';
+import { mergeProgress, mergeCustomVerses, mergeHiddenMeta, mergeTranslations } from '../data/syncMerge.js';
 
 function timeSince(ts) {
   if (!ts) return null;
@@ -103,9 +103,9 @@ export default function AuthPanel({ auth, users, syncStatus, lastSynced, onAuthC
           saveCustomVerses(p.id, mergeCustomVerses(localCustom, cloudCustom));
         } catch {}
         try {
-          const localHidden = loadHiddenVerseIds(p.id);
-          const cloudHidden = new Set(JSON.parse(p.hidden_json || '[]'));
-          saveHiddenVerseIds(p.id, mergeHiddenIds(localHidden, cloudHidden));
+          const localHidden = loadHiddenMeta(p.id);
+          const cloudHidden = JSON.parse(p.hidden_json || '{}');
+          saveHiddenMeta(p.id, mergeHiddenMeta(localHidden, cloudHidden));
         } catch {}
         try { saveVerseOrder(p.id, JSON.parse(p.order_json || '[]')); } catch {}
         try {

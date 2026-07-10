@@ -1502,6 +1502,7 @@ input[type="search"], input[type="number"], textarea, select {
   cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 2px;
 }
 .ob-link-login { color: var(--color-text-muted); font-size: 12px; }
+.ob-back-link { align-self: flex-start; margin-bottom: 12px; }
 .ob-dots { display: flex; justify-content: center; gap: 6px; margin-bottom: 24px; }
 .ob-dot {
   width: 7px; height: 7px; border-radius: 50%;
@@ -1565,6 +1566,8 @@ input[type="search"], input[type="number"], textarea, select {
 .ob-verse-ref { font-size: 14px; font-weight: 700; color: var(--color-text-primary); }
 .ob-verse-text { font-size: 13px; color: var(--color-text-secondary); line-height: 1.5; }
 .ob-verse-text-empty { color: var(--color-text-faint); font-style: italic; }
+.ob-verse-text-error { color: var(--color-text-faint); cursor: pointer; }
+.ob-verse-retry { color: var(--color-brand); text-decoration: underline; text-underline-offset: 2px; }
 .ob-footer { text-align: center; font-size: 11px; color: var(--color-border-strong); margin-top: 20px; }
 .ob-verse-more {
   width: 100%; padding: 12px; border: 1.5px dashed var(--color-border); border-radius: 12px;

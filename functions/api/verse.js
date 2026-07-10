@@ -1,4 +1,5 @@
 import { parseRef, toOSIS } from '../../src/api/bibleRef.js';
+import { checkRateLimit, clientIp } from './_helpers.js';
 
 // api.bible-backed translations — mirrors src/api/bible.js's API_BIBLE_IDS.
 const API_BIBLE_IDS = {
@@ -83,10 +84,25 @@ export async function onRequestGet({ request, env }) {
     return new Response(JSON.stringify({ error: 'Missing ref parameter' }), { status: 400, headers: CORS });
   }
 
+  const allowed = await checkRateLimit(env, 'verse:' + clientIp(request), 60, 60);
+  if (!allowed) return new Response(JSON.stringify({ error: 'Too many requests. Please slow down.' }), { status: 429, headers: CORS });
+
   if (translation && EXTERNAL_TRANSLATIONS.has(translation)) {
     try {
+      const cached = await env.DB.prepare(
+        'SELECT text FROM bible_verses WHERE reference = ? AND translation = ?'
+      ).bind(rawRef, translation).first();
+      if (cached?.text) {
+        return new Response(JSON.stringify({ reference: rawRef, translation, text: cached.text }), { headers: CORS });
+      }
+
       const text = await fetchExternal(rawRef, translation, env);
       if (!text) return new Response(JSON.stringify({ error: 'Verse not found' }), { status: 404, headers: CORS });
+
+      await env.DB.prepare(
+        'INSERT OR IGNORE INTO bible_verses (reference, translation, text) VALUES (?, ?, ?)'
+      ).bind(rawRef, translation, text).run();
+
       return new Response(JSON.stringify({ reference: rawRef, translation, text }), { headers: CORS });
     } catch {
       return new Response(JSON.stringify({ error: 'Upstream error' }), { status: 502, headers: CORS });

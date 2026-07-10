@@ -98,13 +98,14 @@ function WelcomeScreen({ onStart, onSkip, onLogin }) {
 
 // ── Screen 1: Translation ───────────────────────────────────────────────────
 
-function TranslationScreen({ translation, onChange, onNext }) {
+function TranslationScreen({ translation, onChange, onNext, onBack }) {
   const [showHelp, setShowHelp] = useState(false);
 
   return (
     <div className="ob-screen">
       <div className="ob-content">
         <Logo />
+        <button className="ob-link ob-back-link" onClick={onBack}>← Back</button>
         <StepDots step={1} />
         <h2 className="ob-title">Choose your preferred translation</h2>
         <p className="ob-note">You can change this at any time, or set individual verses to a different translation.</p>
@@ -147,13 +148,16 @@ function verseText(v, translation, verseCache, fetched) {
   return v.kjv || null;
 }
 
-function VerseScreen({ selectedId, onSelect, onNext, translation, verseCache }) {
+function VerseScreen({ selectedId, onSelect, onNext, onBack, translation, verseCache }) {
   const [search, setSearch] = useState('');
   const [limit, setLimit] = useState(10);
   // apiResult: null | 'loading' | { reference, kjv } | 'not-found'
   const [apiResult, setApiResult] = useState(null);
   // Per-verse text fetched for the chosen translation during this session
   const [fetched, setFetched] = useState({});
+  // Per-verse fetch failure flag, so a genuine network error shows a retry
+  // instead of an eternal "Loading…"
+  const [failed, setFailed] = useState({});
   const fetchedRef = useRef({});
   const debounceRef = useRef(null);
 
@@ -185,12 +189,29 @@ function VerseScreen({ selectedId, onSelect, onNext, translation, verseCache }) 
     if (!needed.length) return;
     // Mark as in-progress immediately to avoid duplicate fetches
     needed.forEach(v => { fetchedRef.current[v.reference] = null; });
-    needed.forEach(async v => {
+    needed.forEach(v => fetchOne(v));
+  }, [visible.map(v => v.reference).join(','), translation]);
+
+  async function fetchOne(v) {
+    setFailed(prev => {
+      if (!prev[v.reference]) return prev;
+      const next = { ...prev }; delete next[v.reference]; return next;
+    });
+    try {
       const text = await fetchTranslation(v.reference, translation);
       fetchedRef.current[v.reference] = text || v.kjv;
       setFetched(prev => ({ ...prev, [v.reference]: text || v.kjv }));
-    });
-  }, [visible.map(v => v.reference).join(','), translation]);
+    } catch {
+      // Genuine network failure — surface a retry instead of looping forever
+      delete fetchedRef.current[v.reference];
+      setFailed(prev => ({ ...prev, [v.reference]: true }));
+    }
+  }
+
+  function retryFetch(v) {
+    fetchedRef.current[v.reference] = null;
+    fetchOne(v);
+  }
 
   // When search changes, debounce an API lookup if the exact reference isn't in the curated list
   useEffect(() => {
@@ -229,6 +250,7 @@ function VerseScreen({ selectedId, onSelect, onNext, translation, verseCache }) 
     <div className="ob-screen ob-screen-verse">
       <div className="ob-verse-screen-top">
         <Logo />
+        <button className="ob-link ob-back-link" onClick={onBack}>← Back</button>
         <StepDots step={2} />
         <h2 className="ob-title">Pick your first verse</h2>
         <p className="ob-note">Choose a verse to start memorising. You can add more later.</p>
@@ -249,6 +271,7 @@ function VerseScreen({ selectedId, onSelect, onNext, translation, verseCache }) 
           {visible.map(v => {
             const selected = selectedId === v.id;
             const text = verseText(v, translation, verseCache, fetched);
+            const hasFailed = !text && failed[v.reference];
             return (
               <button
                 key={v.id}
@@ -259,10 +282,18 @@ function VerseScreen({ selectedId, onSelect, onNext, translation, verseCache }) 
                   <span className="ob-verse-ref">{v.reference}</span>
                   {selected && <span className="ob-check">✓</span>}
                 </div>
-                {text
-                  ? <p className="ob-verse-text">{text}</p>
-                  : <p className="ob-verse-text ob-verse-text-empty">Loading…</p>
-                }
+                {text ? (
+                  <p className="ob-verse-text">{text}</p>
+                ) : hasFailed ? (
+                  <p
+                    className="ob-verse-text ob-verse-text-error"
+                    onClick={e => { e.stopPropagation(); retryFetch(v); }}
+                  >
+                    Couldn't load — <span className="ob-verse-retry">Tap to retry</span>
+                  </p>
+                ) : (
+                  <p className="ob-verse-text ob-verse-text-empty">Loading…</p>
+                )}
               </button>
             );
           })}
@@ -314,7 +345,7 @@ function VerseScreen({ selectedId, onSelect, onNext, translation, verseCache }) 
 
 // ── Screen 3: Personalise ───────────────────────────────────────────────────
 
-function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, setColour, pattern, setPattern, patternOpacity, setPatternOpacity, onComplete }) {
+function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, setColour, pattern, setPattern, patternOpacity, setPatternOpacity, onComplete, onBack }) {
   const [showAccount, setShowAccount] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -353,6 +384,7 @@ function PersonaliseScreen({ user, name, setName, bracket, setBracket, colour, s
     <div className="ob-screen">
       <div className="ob-content">
         <Logo />
+        <button className="ob-link ob-back-link" onClick={onBack}>← Back</button>
         <StepDots step={3} />
         <h2 className="ob-title">Personalise</h2>
 
@@ -529,6 +561,7 @@ export default function OnboardingFlow({ currentUser, verseCache, onComplete, on
       translation={translation}
       onChange={setTranslation}
       onNext={() => { logEvent('onboarding_step_complete', { step: 1, translation }); setStep(2); }}
+      onBack={() => setStep(0)}
     />
   );
 
@@ -540,6 +573,7 @@ export default function OnboardingFlow({ currentUser, verseCache, onComplete, on
         setCustomVerse(apiVerse || null);
       }}
       onNext={() => { logEvent('onboarding_step_complete', { step: 2, verse_id: selectedVerseId }); setStep(3); }}
+      onBack={() => setStep(1)}
       translation={translation}
       verseCache={verseCache}
     />
@@ -554,6 +588,7 @@ export default function OnboardingFlow({ currentUser, verseCache, onComplete, on
       pattern={pattern} setPattern={setPattern}
       patternOpacity={patternOpacity} setPatternOpacity={setPatternOpacity}
       onComplete={(arg) => { logEvent('onboarding_step_complete', { step: 3 }); finish(arg); }}
+      onBack={() => setStep(2)}
     />
   );
 }
