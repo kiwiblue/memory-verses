@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import Icon from '../Icon.jsx';
 import { logEvent } from '../../data/telemetry.js';
 import { parseRef, toDisplayRef } from '../../api/bibleRef.js';
@@ -34,9 +34,24 @@ function DragMatch({ verses, version = 'kjv', verseTranslations = {}, onComplete
   const [dragSource, setDragSource] = useState(null); // { from: 'pool'|'slot', index }
   const [checked, setChecked]     = useState(false);
   const [errors, setErrors]       = useState(0);
+  const completedRef = useRef(false);
 
   const allFilled = slots.every(s => s !== null);
   const correct   = verses.map((v, i) => slots[i] === v.reference);
+  const allCorrect = allFilled && correct.every(c => c);
+
+  // Once the user has checked, the slot colours update live as they drag the
+  // wrong ones into place. Complete as soon as everything is correct — without
+  // this the "Check answers" button is gone (it only shows before the first
+  // check) so a corrected board would otherwise sit in limbo with no way to
+  // finish. Guarded so it fires exactly once.
+  useEffect(() => {
+    if (checked && allCorrect && !completedRef.current) {
+      completedRef.current = true;
+      const t = setTimeout(() => onComplete?.({ errors, total: verses.length }), 600);
+      return () => clearTimeout(t);
+    }
+  }, [checked, allCorrect, errors, verses.length, onComplete]);
 
   function startDragPool(ref) {
     setDragSource({ from: 'pool', ref });
@@ -97,9 +112,8 @@ function DragMatch({ verses, version = 'kjv', verseTranslations = {}, onComplete
     const wrongCount = correct.filter(c => !c).length;
     setErrors(e => e + wrongCount);
     setChecked(true);
-    if (correct.every(c => c)) {
-      setTimeout(() => onComplete?.({ errors: errors + wrongCount, total: verses.length }), 800);
-    }
+    // Completion (including the already-all-correct case) is handled by the
+    // effect above, so correcting the highlighted ones afterwards also finishes.
   }
 
   // Touch drag support — a floating "ghost" chip follows the finger so the drag
