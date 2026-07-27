@@ -46,6 +46,7 @@ export default function VerseScreen({
   onVerseTranslationChange,
   // exercise launchers
   onLearnVerse,
+  onReviewed,
   onTypeVerse,
   onSelectWord,
   onMatchRef,
@@ -125,7 +126,15 @@ export default function VerseScreen({
               isFlipped={flipped}
               mode="learn"
               starred={!!entry?.starred}
-              onFlip={() => setFlipped(f => !f)}
+              onFlip={() => {
+                // Flipping to reveal is how many users self-test against the
+                // physical cards, so count it toward the daily streak (once per
+                // day — touchStreak is idempotent for the day). Fire the
+                // side-effect in the handler, not inside the setState updater
+                // (which must stay pure).
+                if (!flipped) onReviewed?.();
+                setFlipped(f => !f);
+              }}
               onVerseTranslationChange={onVerseTranslationChange}
             />
           ) : (

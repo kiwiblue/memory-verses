@@ -40,6 +40,13 @@ export default function UserPanel({ users, currentUser, onUserChange, onOpenProf
   function handleOpenProfile(e, user) {
     e.stopPropagation();
     onToggle(false);
+    // Opening someone's profile also makes them the active user — otherwise it's
+    // easy to view another profile and wrongly assume you're now practising as
+    // them. The name row already switches; this keeps the two in sync.
+    if (user.id !== currentUser?.id) {
+      saveCurrentUserId(user.id);
+      onUserChange(user);
+    }
     onOpenProfile(user);
   }
 

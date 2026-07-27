@@ -6,7 +6,7 @@ import { loadUsers, saveUsers, loadCurrentUserId, saveCurrentUserId, loadVerseTr
 import { loadAuth, saveAuth, clearAuth } from './data/auth.js';
 import { pushSync, pullSync, deleteCloudProfile } from './data/syncService.js';
 import { loadProgress, saveProgress, getEntry } from './data/progress.js';
-import { recordAttempt, startRevising, recordReviseAttempt, buildDailyQueue, progressStats, computeHintScore, computeNextSkillLevel, getSkillLevel, verseAgeDays } from './data/spacedRepetition.js';
+import { recordAttempt, startRevising, recordReviseAttempt, buildDailyQueue, buildReviseQueue, progressStats, computeHintScore, computeNextSkillLevel, getSkillLevel, verseAgeDays } from './data/spacedRepetition.js';
 import { loadCustomVerses, addCustomVerse, removeCustomVerse, saveCustomVerses } from './data/customVerses.js';
 import { loadHiddenVerseIds, hideVerseId, restoreVerseId, restoreAllVerseIds, saveHiddenVerseIds, loadHiddenMeta, saveHiddenMeta } from './data/hiddenVerses.js';
 import { loadVerseCache, saveVerseCache, mergeVerseIntoCache } from './data/verseCache.js';
@@ -297,9 +297,20 @@ export default function App() {
     return map;
   }, [users, progress, currentUser.id]);
 
-  const todayCount = useMemo(
+  // Verses actually due right now — decides whether today's exercises are offered.
+  const dueCount = useMemo(
     () => reviseVerses.filter(v => (progress[v.id]?.next_review ?? 0) <= Date.now()).length,
     [reviseVerses, progress]
+  );
+  // "Today's Exercises" runs a capped queue (buildReviseQueue, limit 5 — the same
+  // call RevisePanel uses), so surface the real session size instead of the raw
+  // due count, which could be dozens and read as an intimidating, wrong number.
+  const TODAY_LIMIT = 5;
+  const todayCount = useMemo(
+    () => (dueCount > 0
+      ? buildReviseQueue(allVerses, progress, currentUser.bracket || 'adult', TODAY_LIMIT).length
+      : 0),
+    [dueCount, allVerses, progress, currentUser.bracket]
   );
 
   const nextUnseen = useMemo(
@@ -1089,6 +1100,7 @@ export default function App() {
           verseTranslations={verseTranslations}
           onVerseTranslationChange={handleVerseTranslationChange}
           onLearnVerse={() => setLearnRevealVerse(verseScreenVerse)}
+          onReviewed={handleTouchStreak}
           onSelectWord={() => setExercise({ verse: verseScreenVerse, kind: 'select' })}
           onTypeVerse={() => setExercise({ verse: verseScreenVerse, kind: 'type' })}
           onMatchRef={() => setExercise({ verse: verseScreenVerse, kind: 'match' })}
