@@ -92,7 +92,20 @@ function normalizePrefix(s) {
 
 function lookupBook(raw) {
   const s = normalizePrefix(raw.trim()).toLowerCase().replace(/\s+/g, ' ');
-  return LOOKUP.get(s) || null;
+  if (LOOKUP.has(s)) return LOOKUP.get(s);
+
+  // Numbered-book abbreviations are stored without a space ('2tim', '1cor'),
+  // but normalizePrefix emits '2 tim' — so "2 Tim 3:16" would never match while
+  // "2Tim 3:16" did. Retry with the space after a leading digit removed, which
+  // also covers "1 jn", "2 pet", "3 jn", etc. Trailing periods ("2 Tim.") are
+  // stripped too, since abbreviations are commonly written that way.
+  const noDots = s.replace(/\./g, '').trim();
+  if (LOOKUP.has(noDots)) return LOOKUP.get(noDots);
+
+  const tight = noDots.replace(/^(\d)\s+/, '$1');
+  if (LOOKUP.has(tight)) return LOOKUP.get(tight);
+
+  return null;
 }
 
 /**

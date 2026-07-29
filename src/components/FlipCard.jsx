@@ -3,6 +3,21 @@ import Icon from './Icon.jsx';
 
 const TRANSLATIONS = ['kjv', 'bsb', 'esv', 'niv', 'nkjv', 'nasb'];
 
+// Wrap verse text in display quotes, but don't double up when the source text
+// already carries its own. Several translations open a quotation mid-passage
+// (e.g. John 14:1 in ESV/NIV/NKJV/NASB/BSB starts with “ because Jesus' speech
+// begins there and closes verses later), which previously rendered as "“…".
+const OPEN_QUOTES  = ['"', '“', '‘', '«'];
+const CLOSE_QUOTES = ['"', '”', '’', '»'];
+
+function quoted(text) {
+  const t = (text ?? '').trim();
+  if (!t) return t;
+  const lead  = OPEN_QUOTES.includes(t[0])            ? '' : '“';
+  const trail = CLOSE_QUOTES.includes(t[t.length - 1]) ? '' : '”';
+  return `${lead}${t}${trail}`;
+}
+
 
 export default function FlipCard({ verse, version, defaultVersion, verseTranslations, isFlipped, mode, starred, onFlip, onVerseTranslationChange }) {
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -92,7 +107,7 @@ export default function FlipCard({ verse, version, defaultVersion, verseTranslat
           )}
           {verseText === null
             ? <div className="vtxt loading">Loading…</div>
-            : <div className="vtxt" style={{ fontSize: vtxtFontSize }}>"{verseText}"</div>
+            : <div className="vtxt" style={{ fontSize: vtxtFontSize }}>{quoted(verseText)}</div>
           }
           <div className="vref">{verse.reference}</div>
         </div>

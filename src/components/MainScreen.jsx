@@ -3,7 +3,33 @@ import FlipCard from './FlipCard.jsx';
 import Icon from './Icon.jsx';
 import { todayStr as todayDateStr, yesterdayStr as yesterdayDateStr } from '../data/streak.js';
 
-// Sort active verses by next_review ascending (most overdue first)
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// How badly a verse needs practice — higher = show sooner. Previously the home
+// carousel sorted on next_review alone, so a shaky verse could sit behind a
+// solid one and ties fell back to deck order. This blends the three things
+// that actually signal "needs work":
+//   • overdue    — days past its due date (the main driver; negative if early)
+//   • staleness  — days since it was last seen, so long-untouched verses rise
+//   • difficulty — recent accuracy and skill level (easy = least secure here,
+//                  matching the app's easy→hard mastery progression)
+function practiceNeed(entry) {
+  if (!entry) return 0;
+  const now = Date.now();
+  const overdueDays = ((now - (entry.next_review ?? now)) / DAY_MS);
+  const staleDays   = entry.last_seen ? (now - entry.last_seen) / DAY_MS : 0;
+
+  // Mean of the last few attempt scores (1 = correct). Fewer/poorer → needier.
+  const scores = (entry.scores || []).filter(Number.isFinite).slice(-5);
+  const accuracy = scores.length ? scores.reduce((s, x) => s + x, 0) / scores.length : 0.5;
+  const inaccuracy = 1 - accuracy;
+
+  const skillWeight = { easy: 1, moderate: 0.5, hard: 0 }[entry.skill_level] ?? 1;
+
+  return overdueDays + (staleDays * 0.5) + (inaccuracy * 5) + (skillWeight * 2);
+}
+
+// Active verses ordered by how much practice they need (neediest first).
 function sortedActiveVerses(verses, progress) {
   return verses
     .filter(v => {
@@ -11,9 +37,10 @@ function sortedActiveVerses(verses, progress) {
       return s === 'learning' || s === 'mastered';
     })
     .sort((a, b) => {
-      const na = progress[a.id]?.next_review ?? 0;
-      const nb = progress[b.id]?.next_review ?? 0;
-      return na - nb;
+      const diff = practiceNeed(progress[b.id]) - practiceNeed(progress[a.id]);
+      if (diff !== 0) return diff;
+      // Stable tiebreak: fall back to due date, then deck order.
+      return (progress[a.id]?.next_review ?? 0) - (progress[b.id]?.next_review ?? 0);
     });
 }
 
