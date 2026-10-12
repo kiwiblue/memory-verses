@@ -12,10 +12,68 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Memory.bible" />
-    <title>Memory.bible</title>
+
+    <title>Memory.bible — Bible Verse Memorisation App for Families</title>
+    <meta name="description" content="Memorise Bible verses with short daily practice. Flip cards, fill-in-the-blank, typing and matching exercises with spaced repetition. Free for the whole family — KJV, BSB, ESV, NIV, NKJV and NASB." />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://memory.bible/" />
+
+    <!-- Social link previews (Facebook, iMessage, WhatsApp, Slack, LinkedIn, X) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Memory.bible" />
+    <meta property="og:url" content="https://memory.bible/" />
+    <meta property="og:title" content="Memory.bible — Hide God's Word in your heart" />
+    <meta property="og:description" content="Memorise Bible verses with short daily practice — flip cards, quizzes and streaks for the whole family. Free." />
+    <meta property="og:image" content="https://memory.bible/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Memory.bible — Hide God's Word in your heart, one verse at a time." />
+    <meta property="og:locale" content="en_AU" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Memory.bible — Hide God's Word in your heart" />
+    <meta name="twitter:description" content="Memorise Bible verses with short daily practice — flip cards, quizzes and streaks for the whole family. Free." />
+    <meta name="twitter:image" content="https://memory.bible/og-image.png" />
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Memory.bible",
+      "url": "https://memory.bible/",
+      "description": "A free Bible verse memorisation app with flip cards, fill-in-the-blank, typing and matching exercises, spaced repetition and daily streaks — a digital companion to physical verse-memory cards.",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Any (web, iOS, Android)",
+      "inLanguage": "en",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "AUD" },
+      "image": "https://memory.bible/og-image.png"
+    }
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Content below is for search engines, link previews and visitors without
+         JavaScript. React's createRoot replaces it on first render, so app users
+         never see it. Keep it accurate to what the app actually does. -->
+    <div id="root">
+      <main style="max-width:640px;margin:0 auto;padding:32px 16px;font-family:Georgia,serif;line-height:1.6;color:#1f2330">
+        <h1>Memory.bible</h1>
+        <p><strong>Hide God's Word in your heart, one verse at a time.</strong></p>
+        <p>Memory.bible is a free app that helps you and your family memorise Bible verses through short, daily practice. It's a digital companion to physical verse-memory card decks — use it on its own, or alongside the cards.</p>
+        <h2>How it works</h2>
+        <ul>
+          <li><strong>Learn</strong> each new verse step by step, piece by piece.</li>
+          <li><strong>Practise</strong> with flip cards, fill-in-the-blank, typing the verse, choosing the missing word and matching verses to references.</li>
+          <li><strong>Spaced repetition</strong> brings back the verses that need the most work, so practice time goes where it counts.</li>
+          <li><strong>Daily streaks</strong> and progress stats keep you motivated.</li>
+          <li><strong>Family profiles</strong> with age-appropriate verse sets for children, youth and adults.</li>
+          <li><strong>Six translations:</strong> KJV, BSB, ESV, NIV, NKJV and NASB.</li>
+          <li><strong>Add any verse</strong> you want to memorise, and sync your progress across devices.</li>
+          <li>Install it on your phone's home screen, with daily reminders and offline use.</li>
+        </ul>
+        <p><a href="https://memory.bible/">Open Memory.bible</a> — it runs in your browser. JavaScript is required to use the app.</p>
+        <p>Questions? Email <a href="mailto:help@memory.bible">help@memory.bible</a>.</p>
+      </main>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

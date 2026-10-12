@@ -1,0 +1,6 @@
+# Memory.bible — open to all search engines and crawlers.
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://memory.bible/sitemap.xml
